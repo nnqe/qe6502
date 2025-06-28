@@ -7,3 +7,6 @@
 [submodule "examples/3rdParty/glfw"]
 	path = examples/3rdParty/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "examples/3rdParty/imgui"]
+	path = examples/3rdParty/imgui
+	url = https://github.com/ocornut/imgui.git
