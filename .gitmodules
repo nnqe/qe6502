@@ -4,3 +4,6 @@
 [submodule "examples/3rdParty/fmt"]
 	path = examples/3rdParty/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "examples/3rdParty/glfw"]
+	path = examples/3rdParty/glfw
+	url = https://github.com/glfw/glfw.git
