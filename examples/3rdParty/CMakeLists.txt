@@ -1,0 +1,6 @@
+add_subdirectory(json)
+add_subdirectory(fmt)
+add_subdirectory(glfw)
+add_subdirectory(glad)
+add_subdirectory(imgui)
+add_subdirectory(miniaudio)

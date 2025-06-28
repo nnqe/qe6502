@@ -10,3 +10,6 @@
 [submodule "examples/3rdParty/imgui"]
 	path = examples/3rdParty/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "examples/3rdParty/miniaudio"]
+	path = examples/3rdParty/miniaudio
+	url = https://github.com/mackron/miniaudio.git
