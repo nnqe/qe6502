@@ -30,6 +30,24 @@ std::vector<uint8_t> LoadBinaryFile(const std::string &filePath)
     return buffer;
 }
 
+void SaveTextFile(const std::string& filePath, const std::string& content)
+{
+    std::ofstream file(filePath, std::ios::out | std::ios::trunc);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file for writing: " + filePath);
+    }
+    file << content;
+    if (!file)
+    {
+        throw std::runtime_error("Failed to write content to file: " + filePath);
+    }
+    file.flush();
+    if (!file)
+    {
+        throw std::runtime_error("Failed to flush data to file: " + filePath);
+    }
+}
 
 void WriteBinaryFile(const std::string& filePath, const std::vector<uint8_t>& data)
 {

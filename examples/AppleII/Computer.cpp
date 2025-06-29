@@ -1,6 +1,5 @@
 #include "Computer.h"
 #include "Display.h"
-#include <Stopwatch.h>
 #include <algorithm>
 
 namespace qe::Examples::AppleII
@@ -11,14 +10,66 @@ void Computer::SetContext(Context ctx)
     ctx_ = ctx;
 }
 
+bool Computer::IsOn() const
+{
+    return state_ != State::eOff;
+}
+
+bool Computer::IsPaused() const
+{
+    return state_ == State::ePause;
+}
+
+bool Computer::IsRunning() const
+{
+    return state_ != State::eOff && state_ != State::ePause;
+}
+
+bool Computer::IsTurboSpeed()
+{
+    return state_.load() == State::eTurboRunning;
+}
+
 void Computer::Pause()
 {
-
+    if (state_ != State::eOff)
+    {
+        stateRequest_.store(State::ePause);
+        WaitForStateChanged();
+    }
 }
 
 void Computer::Resume()
 {
+    if (state_.load() == State::ePause)
+    {
+        stateRequest_.store(State::eRunning);
+        WaitForStateChanged();
+    }
+}
 
+void Computer::Shutdown()
+{
+    stateRequest_.store(State::eOff);
+    WaitForStateChanged();
+}
+
+void Computer::TurboSpeed()
+{
+    if (state_ != State::eOff)
+    {
+        stateRequest_.store(State::eTurboRunning);
+        WaitForStateChanged();
+    }
+}
+
+void Computer::NormalSpeed()
+{
+    if (state_ != State::eOff)
+    {
+        stateRequest_.store(State::eRunning);
+        WaitForStateChanged();
+    }
 }
 
 void Computer::Boot(std::vector<uint8_t> memory,
@@ -68,13 +119,7 @@ void Computer::Boot(std::vector<uint8_t> memory,
     }
 
     bootstrap_ = bootstrapPtr;
-    stateRequest_.store(State::eRun);
-    WaitForStateChanged();
-}
-
-void Computer::Shutdown()
-{
-    stateRequest_.store(State::eFree);
+    stateRequest_.store(State::eRunning);
     WaitForStateChanged();
 }
 
@@ -91,17 +136,17 @@ void Computer::Loop()
         state_.store(stateRequest_);
         switch (state_.load())
         {
-        case State::eFree:
-            FreeLoop();
+        case State::eOff:
+            // Do nothing
             break;
         case State::ePause:
             PauseLoop();
             break;
-        case State::eRun:
+        case State::eRunning:
             RunLoop();
             break;
-        case State::eRunFast:
-            RunFastLoop();
+        case State::eTurboRunning:
+            FastRunLoop();
             break;
         default:
             break;
@@ -115,14 +160,6 @@ void Computer::Destroy()
 
 }
 
-void Computer::FreeLoop()
-{
-    while(!ShouldExit() && !ChangeRequested())
-    {
-        std::this_thread::sleep_for(5ms);
-    }
-}
-
 void Computer::PauseLoop()
 {
     while(!ShouldExit() && !ChangeRequested())
@@ -134,29 +171,40 @@ void Computer::PauseLoop()
 void Computer::RunLoop()
 {
     auto& display = *ctx_.display;
-    uint64_t instructions = 0;
-    Stopwatch sw;
+
+    ResetSleepPolicy();
     while(!ShouldExit() && !ChangeRequested())
     {
-        instructions += qeaii_run(appleII_.get(), 10'000);
+        // Run for a while
+        auto clocks = qeaii_run(appleII_.get(), 5'000);
+
+        bool newFrame = false;
+        if (qeaii_frame_ready(appleII_.get()) &&
+            display.IsReadyForRawFrame())
+        {
+            auto frame = qeaii_frame(appleII_.get());
+            display.NewRawFrame(frame);
+
+            newFrame = true;
+        }
+        SleepPolicy(clocks, newFrame);
+    }
+}
+
+void Computer::FastRunLoop()
+{
+    auto& display = *ctx_.display;
+    uint64_t instructions = 0;
+    while(!ShouldExit() && !ChangeRequested())
+    {
+        instructions += qeaii_run(appleII_.get(), 16'000);
         if (qeaii_frame_ready(appleII_.get()) &&
             display.IsReadyForRawFrame())
         {
             auto frame = qeaii_frame(appleII_.get());
             display.NewRawFrame(frame);
         }
-        // AppleII is ~1Mhz
-        auto micros = sw.Measure().count() / 1000;
-        int a = sizeof(micros);
-        uint64_t sleepFor = instructions - micros;
-        sleepFor = std::clamp(sleepFor, 1'000ul, 10'000ul);
-        //std::this_thread::sleep_for(Clock::Micros(sleepFor));
     }
-}
-
-void Computer::RunFastLoop()
-{
-
 }
 
 void Computer::WaitForStateChanged()
@@ -167,16 +215,48 @@ void Computer::WaitForStateChanged()
         exit(-4);
     }
 
-    std::this_thread::sleep_for(6ms);
     for(int i = 0; i < 4 && (state_ != stateRequest_); i++)
     {
-        std::this_thread::sleep_for(60ms);
+        std::this_thread::sleep_for(10ms);
     }
 
     if (state_ != stateRequest_)
     {
         fmt::println("CPU too busy, deadlock detected!");
         exit(-5);
+    }
+}
+
+void Computer::ResetSleepPolicy()
+{
+    sleepPolicySw_.Reset();
+    sleepPolicyClocks_ = 0;
+}
+
+void Computer::SleepPolicy(uint64_t clocks, bool hasNewFrame)
+{
+    sleepPolicyClocks_ += clocks;
+    if (appleII_->driveII.spinning)
+    {
+        // do not sleep, AppleII is loading
+        std::this_thread::yield();
+        ResetSleepPolicy();
+    }
+    else
+    {
+        // AppleII is ~1Mhz
+        auto micros = sleepPolicySw_.Measure().count() / 1000;
+        uint64_t sleepFor = sleepPolicyClocks_ - micros;
+
+        if (hasNewFrame)
+        {
+            sleepFor = std::clamp(sleepFor, 1'000ul, 60'000ul);
+        }
+        else
+        {
+            sleepFor = std::clamp(sleepFor, 1ul, 1'000ul);
+        }
+        std::this_thread::sleep_for(Clock::Micros(sleepFor));
     }
 }
 

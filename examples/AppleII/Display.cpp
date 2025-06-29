@@ -75,6 +75,11 @@ bool Display::HasReadyRawFrame() const
 
 void Display::NewRawFrame(qeaii_frame_t *rawFrame)
 {
+    if (HasReadyRawFrame())
+    {
+        fmt::println("New frame cannot be set. Possible race-condititon. please fix it !");
+        exit(-11);
+    }
     rawFrame_ = rawFrame;
     frameConsumed_.clear();
 }
