@@ -16,6 +16,7 @@ target_link_libraries(AppleII
         Utils
         Audio
         App
+        portable_file_dialogs
 )
 
 # Set C++ standard

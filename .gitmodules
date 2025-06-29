@@ -13,3 +13,6 @@
 [submodule "examples/3rdParty/imgui/upstream"]
 	path = examples/3rdParty/imgui/upstream
 	url = https://github.com/ocornut/imgui.git
+[submodule "examples/3rdParty/filedialog"]
+	path = examples/3rdParty/filedialog
+	url = https://github.com/samhocevar/portable-file-dialogs.git

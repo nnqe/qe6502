@@ -3,6 +3,8 @@
 #include "roms/Roms.h"
 #include <Dsk2Nib.h>
 
+#include <portable-file-dialogs.h>
+
 namespace qe::Examples::AppleII
 {
 
@@ -32,6 +34,15 @@ void ControlPanel::RenderModule()
                             diskette);
     }
     if(ImGui::Button("Close")) ExitRequest();
+
+    if (ImGui::Button("Open File"))
+    {
+        std::vector<std::string> file = pfd::open_file("Open Floppy Disk Image", ".", { "Image Files", "*.dsk *.nib" }).result();
+        if (!file.empty())
+        {
+            fmt::println("{}", file.at(0));
+        }
+    }
     ImGui::End();
 }
 
