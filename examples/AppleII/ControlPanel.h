@@ -1,21 +1,18 @@
 #pragma once
-#include <ImGuiWindow.h>
 #include "Context.h"
+#include <App.h>
 #include <Json.h>
 #include <Fs.h>
 
 namespace qe::Examples::AppleII
 {
 
-class ControlPanel : public ImGuiWindow
+class ControlPanel
 {
 public:
-    void SetContext(Context ctx);
-    // ImGuiWindow interface
-public:
-    bool CreateModule(int &width, int &height, std::string &title) override;
-    void RenderModule() override;
-    void CloseModule() override;
+    void RunModule(Context ctx);
+    void DestroyModule();
+    void Draw();
 private:
 
     void ShowOpenFile();

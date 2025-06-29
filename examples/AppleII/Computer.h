@@ -1,16 +1,18 @@
 #pragma once
-#include <App.h>
-#include <qe_appleII.h>
 #include "Context.h"
+#include <App.h>
 #include <Stopwatch.h>
+#include <qe_appleII.h>
+#include <thread>
 
 namespace qe::Examples::AppleII
 {
 
-class Computer : public ModuleBase
+class Computer
 {
 public:
-    void SetContext(Context ctx);
+    void RunModule(Context ctx);
+    void DestroyModule();
 
     bool IsOn() const;
     bool IsPaused() const;
@@ -25,13 +27,8 @@ public:
               std::vector<uint8_t> videoRom,
               std::vector<uint8_t> diskImage = {});
 
-    // ModuleBase interface
-public:
-    bool Create();
-    void Loop();
-    void Destroy();
-
 private:
+    void Loop();
     void PauseLoop();
     void RunLoop();
     void FastRunLoop();
@@ -59,6 +56,7 @@ private:
 
     Stopwatch sleepPolicySw_;
     uint64_t sleepPolicyClocks_;
+    std::thread worker_;
 };
 
 }

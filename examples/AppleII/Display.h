@@ -1,36 +1,36 @@
 #pragma once
-#include <App.h>
 #include "Context.h"
+#include <App.h>
 #include <qe_appleII.h>
+#include <SDL.h>
 #include <array>
+
 namespace qe::Examples::AppleII
 {
 
-class Display : public ModuleBase
+class Display
 {
 public:
-    void SetContext(Context ctx);
+    void RunModule(Context ctx);
+    void DestroyModule();
+    void Draw();
+    void Render();
 
     bool IsReadyForRawFrame() const;
     bool HasReadyRawFrame() const;
     void NewRawFrame(qeaii_frame_t* rawFrame);
     void ClearDisplay();
 
-    // ModuleBase interface
-public:
-    bool Create() override;
-    void Loop() override;
-    void Destroy() override;
-
 private:
-    void InitFrameResources();
-    void UploadFrame();
-    void DrawFrame();
+
+    void UploadRgbBuffer();
+
     Context ctx_;
     std::atomic_flag frameConsumed_;
     std::atomic<bool> clearDisplay_ = false;
     qeaii_frame_t* rawFrame_ = nullptr;
     std::array<uint8_t, qeaii_width * qeaii_height * 3> rgbFrame_;
+    SDL_Texture*  rgbTexture_;
 };
 
 }

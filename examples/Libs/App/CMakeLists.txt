@@ -4,7 +4,6 @@
 # Create library
 add_library(App STATIC
     App.cpp
-    ImGuiWindow.cpp
 )
 
 target_include_directories(App
@@ -18,9 +17,7 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(App PUBLIC
     fmt
     Utils
-    glfw
-    GLAD
-    OpenGL::GL
+    SDL2::SDL2
     imgui)
 
 if(UNIX AND NOT APPLE)

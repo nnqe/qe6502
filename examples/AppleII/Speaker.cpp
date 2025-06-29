@@ -1,17 +1,13 @@
 #include "Speaker.h"
 #include <Audio.h>
 #include <CountdownTimer.h>
+#include <thread>
+
 namespace qe::Examples::AppleII
 {
 
-void Speaker::SetContext(Context ctx)
+void Speaker::RunModule(Context ctx)
 {
-    ctx_ = ctx;
-}
-
-bool Speaker::Create()
-{
-    return
     Audio::Init(Audio::Format_u8,
                 1,            // channels
                 48'000,       // 48'000 sample rate / PCM rate
@@ -19,26 +15,20 @@ bool Speaker::Create()
                 [this](void* output, uint32_t frameSize){
                     GenerateSoundFrame(static_cast<uint8_t*>(output), frameSize);
                 },
-              nullptr);
+                nullptr);
+
+    worker_ = std::thread([this](){
+        std::this_thread::sleep_for(3s);
+        testPlay_.store(false);
+    });
 }
 
-void Speaker::Loop()
+void Speaker::DestroyModule()
 {
-    CountdownTimer t(1s);
-    t.Start();
-    while(!ShouldExit())
+    if (worker_.joinable())
     {
-        if (t.GetRemainingTime().count() <= 0)
-        {
-            testPlay_.store(false);
-        }
-        std::this_thread::sleep_for(16ms);
+        worker_.join();
     }
-}
-
-void Speaker::Destroy()
-{
-
 }
 
 void Speaker::GenerateSoundFrame(uint8_t *output, uint32_t frameSize)

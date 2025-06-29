@@ -1,237 +1,198 @@
 #include "App.h"
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <map>
 
 namespace qe::Examples
 {
-using namespace std::chrono;
 
+IApp::~IApp() = default;
 
-ModuleBase::~ModuleBase() = default;
-static std::vector<Ptr<ModuleBase>> allModules_;
-static std::map<ModuleBase::Handle, Ptr<ModuleBase>> windows_;
-
-static std::atomic<bool> exitRequest_ = false;
-
-static bool Init()
+static bool InitSdl(Program::Context& ctx)
 {
-    if(!glfwInit()) return false;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
-    return true;
-}
-
-void AddWindowCallbacks(ModuleBase::Handle handle)
-{
-    glfwSetKeyCallback(handle, GLFWkeyfun(App::KeyCallback));
-    glfwSetCharCallback(handle, GLFWcharfun(App::CharCallback));
-    glfwSetMouseButtonCallback(handle, GLFWmousebuttonfun(App::MouseBtnCallback));
-    glfwSetCursorPosCallback(handle, GLFWcursorposfun(App::CursorPosCallback));
-    glfwSetScrollCallback(handle, GLFWscrollfun(App::ScrollCallback));
-}
-
-void App::AddModule(Ptr<ModuleBase> module)
-{
-    allModules_.push_back(module);
-}
-
-bool App::Run()
-{
-    if (!Init())
+    // Setup SDL
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
-        allModules_.clear();
-        windows_.clear();
+        fmt::println("Error: {}", SDL_GetError());
         return false;
     }
 
-    bool isOk = true;
-    for(auto& module : allModules_)
-    {
-        if (!module->Create())
-        {
-            isOk = false;
-            break;
-        }
-        if (auto windowHandle = module->GetWindowHandle();
-            nullptr != windowHandle)
-        {
-            windows_[windowHandle] = module;
-            AddWindowCallbacks(windowHandle);
-        }
-    }
-    if (isOk)
-    {
-        for(auto module : allModules_)
-        {
-            module->StartLoop();
-        }
-    }
+// From 2.0.18: Enable native IME.
+#ifdef SDL_HINT_IME_SHOW_UI
+    SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+#endif
 
-    while(isOk && !exitRequest_)
+    // Create window with SDL_Renderer graphics context
+    SDL_WindowFlags windowFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    ctx.window = SDL_CreateWindow("Dear ImGui SDL2+SDL_Renderer example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, windowFlags);
+    if (ctx.window == nullptr)
     {
-        glfwPollEvents();
-        for(auto& [handle, window] : windows_)
-        {
-            if(glfwWindowShouldClose(handle) ||
-               window->ShouldExit())
-            {
-                exitRequest_.store(true);
-            }
-        }
-        if (exitRequest_)
-        {
-            for(auto module : allModules_)
-            {
-                module->ExitRequest();
-            }
-            for(auto module : allModules_)
-            {
-                module->WaitExit();
-            }
-            break;
-        }
-        std::this_thread::sleep_for(16ms);
+        fmt::println("Error: SDL_CreateWindow(): {}", SDL_GetError());
+        return false;
     }
-
-    std::this_thread::sleep_for(50ms);
-    for(auto module : allModules_)
+    ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+    if (ctx.renderer == nullptr)
     {
-        module->Destroy();
+        fmt::println("Error creating SDL_Renderer!");
+        return false;
     }
-    std::this_thread::sleep_for(50ms);
-    allModules_.clear();
-    windows_.clear();
     return true;
 }
-// key
-void App::KeyCallback(ModuleBase::Handle w,int k,int s,int a,int m)
+
+void CloseSdl(Program::Context& ctx)
 {
-    if (auto it = windows_.find(w); it != windows_.end())
-    {
-        auto& window = it->second;
-        window->PushEvent(Event{.type=EvType::Key, .key={k,s,a,m}});
-    }
+    SDL_DestroyRenderer(ctx.renderer);
+    SDL_DestroyWindow(ctx.window);
+    SDL_Quit();
 }
-// char
-void App::CharCallback(ModuleBase::Handle w,unsigned int cp)
+
+
+static bool InitGui(Program::Context& ctx)
 {
-    if (auto it = windows_.find(w); it != windows_.end())
-    {
-        auto& window = it->second;
-        window->PushEvent(Event{.type=EvType::Char,.ch={cp}});
-    }
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForSDLRenderer(ctx.window, ctx.renderer);
+    ImGui_ImplSDLRenderer2_Init(ctx.renderer);
+
+    // Our state
+    ctx.clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ctx.done = false;
+    ctx.isMinimized = false;
+    return true;
 }
-// mouse btn
-void App::MouseBtnCallback(ModuleBase::Handle w,int b,int a,int m)
+
+
+static void InitDpi(Program::Context& ctx)
 {
-    if (auto it = windows_.find(w); it != windows_.end())
-    {
-        auto& window = it->second;
-        window->PushEvent(Event{.type=EvType::MouseBtn,.mouse={b,a,m}});
+    int displayIndex = SDL_GetWindowDisplayIndex(ctx.window);
+    SDL_DisplayMode dm;
+    if (SDL_GetCurrentDisplayMode(displayIndex, &dm) != 0) {
+        SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
+        dm.w = 1920; dm.h = 1080; // fallback
     }
+
+    float scaleX = dm.w / 1280.0f;
+    float scaleY = dm.h / 720;
+
+    ctx.dpiScale = std::min(scaleX, scaleY);
+    ImGuiIO& io = ImGui::GetIO();
+    io.FontGlobalScale = ctx.dpiScale;
+    ImGui::GetStyle().ScaleAllSizes(ctx.dpiScale);
 }
-// cursor
-void App::CursorPosCallback(ModuleBase::Handle w,double x,double y)
+
+
+static void ProcessEvents(Program::Context& ctx)
 {
-    if (auto it = windows_.find(w); it != windows_.end())
+    // Poll and handle events (inputs, window resize, etc.)
+    // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+    // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
+    // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
+    // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
     {
-        auto& window = it->second;
-        window->PushEvent(Event{.type=EvType::CursorPos,.cursor={x,y}});
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if (event.type == SDL_QUIT)
+            ctx.done = true;
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(ctx.window))
+            ctx.done = true;
     }
-}
-// scroll
-void App::ScrollCallback(ModuleBase::Handle w,double xo,double yo)
-{
-    if (auto it = windows_.find(w); it != windows_.end())
+    if (SDL_GetWindowFlags(ctx.window) & SDL_WINDOW_MINIMIZED)
     {
-        auto& window = it->second;
-        window->PushEvent(Event{.type=EvType::Scroll,.scroll={xo,yo}});
+        SDL_Delay(10);
+        ctx.isMinimized = true;
+    }
+    else
+    {
+        ctx.isMinimized = false;
     }
 }
 
-bool ModuleBase::CreateWindow(int width, int height, const char *title)
+static void CloseGui(Program::Context& ctx)
 {
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    windowHandle_ = glfwCreateWindow(width,height,title,nullptr,nullptr);
-    return windowHandle_ != nullptr;
+    // Cleanup
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 }
 
-void ModuleBase::CloseWindow()
+static void StartGuiFrame(Program::Context& ctx)
 {
-    if (windowHandle_)
+    // Start the Dear ImGui frame
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+}
+
+static void PrepareRendering(Program::Context& ctx)
+{
+    ImGui::Render();
+    ImGuiIO& io = ImGui::GetIO();
+    SDL_RenderSetScale(ctx.renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+    SDL_SetRenderDrawColor(ctx.renderer, (Uint8)(ctx.clearColor.x * 255), (Uint8)(ctx.clearColor.y * 255), (Uint8)(ctx.clearColor.z * 255), (Uint8)(ctx.clearColor.w * 255));
+    SDL_RenderClear(ctx.renderer);
+}
+
+static void Present(Program::Context& ctx)
+{
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ctx.renderer);
+    SDL_RenderPresent(ctx.renderer);
+}
+
+Program::Context& Program::Ctx()
+{
+    static Context s_ctx;
+    return s_ctx;
+}
+
+int Program::Run( Ptr<IApp> appPtr )
+{
+    auto& ctx = Ctx();
+    ctx.done = false;
+    ctx.app = std::move(appPtr);
+    auto& app = *ctx.app;
+
+    if (!InitSdl( ctx ))
     {
-        glfwDestroyWindow(windowHandle_);
+        return -1;
     }
-}
+    if (!InitGui( ctx ))
+    {
+        CloseSdl( ctx );
+        return -1;
+    }
+    InitDpi( ctx );
+    app.Init();
 
-ModuleBase::Handle ModuleBase::GetWindowHandle() const
-{
-    return windowHandle_;
-}
-
-const std::vector<Event> &ModuleBase::GetEvents()
-{
-    std::lock_guard<SpinLock> l(lock_);
-    eventQueus_[clientEventQueue_].clear();
-    std::swap(clientEventQueue_, freeEventQueue_);
-    return eventQueus_[clientEventQueue_];
-}
-
-bool ModuleBase::ShouldExit() const
-{
-    return shoudExit_.load();
-}
-
-void ModuleBase::StartLoop()
-{
-    mainThread_ = std::thread([this](){
-        if (windowHandle_)
+    while(!ctx.done)
+    {
+        ProcessEvents( ctx );
+        if (ctx.isMinimized)
         {
-            glfwMakeContextCurrent(windowHandle_);
-            if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
-            {
-                fprintf(stderr, "Failed to initialize GLAD\n");
-                return;
-            }
+            app.ProcessOnMinimize();
+            SDL_Delay(10);
+            continue;
         }
-        Loop();
-    });
-}
-
-void ModuleBase::WaitExit()
-{
-    if (mainThread_.joinable())
-    {
-        mainThread_.join();
-    }
-}
-
-void ModuleBase::ExitRequest()
-{
-    shoudExit_.store(true);
-}
-
-void ModuleBase::PushEvent(Event ev)
-{
-    std::lock_guard<SpinLock> l(lock_);
-    eventQueus_[freeEventQueue_].push_back(std::move(ev));
-    if (eventQueus_[freeEventQueue_].size() > 128)
-    {
-        eventQueus_[freeEventQueue_]
-                .erase(
-                    eventQueus_[freeEventQueue_].begin(),
-                    eventQueus_[freeEventQueue_].begin() +
-                    eventQueus_[freeEventQueue_].size() / 2);
+        StartGuiFrame( ctx );
+        app.Draw();
+        PrepareRendering( ctx );
+        app.CustomRender();
+        Present( ctx );
     }
 
-
+    ctx.done = true;
+    app.Deinit();
+    CloseGui( ctx );
+    CloseSdl( ctx );
+    return 0;
 }
 
 }
-

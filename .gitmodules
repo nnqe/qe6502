@@ -16,3 +16,9 @@
 [submodule "examples/3rdParty/filedialog"]
 	path = examples/3rdParty/filedialog
 	url = https://github.com/samhocevar/portable-file-dialogs.git
+[submodule "examples/3rdParty/glm"]
+	path = examples/3rdParty/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "examples/3rdParty/sdl"]
+	path = examples/3rdParty/sdl
+	url = https://github.com/libsdl-org/SDL.git

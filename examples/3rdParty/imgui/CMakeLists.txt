@@ -5,6 +5,8 @@ add_library(imgui STATIC
     upstream/imgui_tables.cpp
     upstream/imgui_widgets.cpp
 
+    upstream/backends/imgui_impl_sdl2.cpp
+    upstream/backends/imgui_impl_sdlrenderer2.cpp
     upstream/backends/imgui_impl_glfw.cpp
     upstream/backends/imgui_impl_opengl3.cpp
 )
@@ -16,4 +18,4 @@ target_include_directories(imgui PUBLIC
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+target_link_libraries(imgui PUBLIC SDL2::SDL2 glfw OpenGL::GL)

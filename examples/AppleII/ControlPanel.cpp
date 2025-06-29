@@ -2,29 +2,24 @@
 #include "Computer.h"
 #include "roms/Roms.h"
 #include <Dsk2Nib.h>
-
-#include <portable-file-dialogs.h>
 #include <Fs.h>
+#include <portable-file-dialogs.h>
 
 namespace qe::Examples::AppleII
 {
 
-void ControlPanel::SetContext(Context ctx)
+void ControlPanel::RunModule(Context ctx)
 {
     ctx_ = ctx;
-}
-
-bool ControlPanel::CreateModule(int &width, int &height, std::string &title)
-{
-    width = 800;
-    height = 600;
-    title = "AppleII Control Panel";
     LoadUserspace();
-
-    return true;
 }
 
-void ControlPanel::RenderModule()
+void ControlPanel::DestroyModule()
+{
+
+}
+
+void ControlPanel::Draw()
 {
     ImGui::Begin("AppleII Control Panel");
 
@@ -32,11 +27,6 @@ void ControlPanel::RenderModule()
     ShowCpuCtrl();
 
     ImGui::End();
-}
-
-void ControlPanel::CloseModule()
-{
-
 }
 
 void ControlPanel::ShowOpenFile()

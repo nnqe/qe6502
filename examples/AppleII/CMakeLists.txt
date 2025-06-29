@@ -16,6 +16,7 @@ target_link_libraries(AppleII
         Utils
         Audio
         App
+        SDL2::SDL2
         portable_file_dialogs
 )
 

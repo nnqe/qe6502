@@ -1,13 +1,23 @@
 #include "Computer.h"
 #include "Display.h"
 #include <algorithm>
+#include <App.h>
 
 namespace qe::Examples::AppleII
 {
 
-void Computer::SetContext(Context ctx)
+void Computer::RunModule(Context ctx)
 {
     ctx_ = ctx;
+    worker_ = std::thread([this](){Loop();});
+}
+
+void Computer::DestroyModule()
+{
+    if (worker_.joinable())
+    {
+        worker_.join();
+    }
 }
 
 bool Computer::IsOn() const
@@ -124,15 +134,10 @@ void Computer::Boot(std::vector<uint8_t> memory,
     WaitForStateChanged();
 }
 
-bool Computer::Create()
-{
-    return true;
-}
-
 void Computer::Loop()
 {
     cpuThread_ = std::this_thread::get_id();
-    while(!ShouldExit())
+    while(!Program::Ctx().done)
     {
         state_.store(stateRequest_);
         switch (state_.load())
@@ -156,14 +161,9 @@ void Computer::Loop()
     }
 }
 
-void Computer::Destroy()
-{
-
-}
-
 void Computer::PauseLoop()
 {
-    while(!ShouldExit() && !ChangeRequested())
+    while(!Program::Ctx().done && !ChangeRequested())
     {
         std::this_thread::sleep_for(5ms);
     }
@@ -174,7 +174,7 @@ void Computer::RunLoop()
     auto& display = *ctx_.display;
 
     ResetSleepPolicy();
-    while(!ShouldExit() && !ChangeRequested())
+    while(!Program::Ctx().done && !ChangeRequested())
     {
         // Run for a while
         auto clocks = qeaii_run(appleII_.get(), 5'000);
@@ -196,7 +196,7 @@ void Computer::FastRunLoop()
 {
     auto& display = *ctx_.display;
     uint64_t instructions = 0;
-    while(!ShouldExit() && !ChangeRequested())
+    while(!Program::Ctx().done && !ChangeRequested())
     {
         instructions += qeaii_run(appleII_.get(), 16'000);
         if (qeaii_frame_ready(appleII_.get()) &&

@@ -1,25 +1,23 @@
 #pragma once
+#include "Context.h"
 #include <App.h>
 #include <qe_appleII.h>
-#include "Context.h"
+#include <thread>
 
 namespace qe::Examples::AppleII
 {
 
-class Speaker : public ModuleBase
+class Speaker
 {
 public:
-    void SetContext(Context ctx);
-    // ModuleBase interface
-public:
-    bool Create();
-    void Loop();
-    void Destroy();
+    void RunModule(Context ctx);
+    void DestroyModule();
 
 private:
     void GenerateSoundFrame(uint8_t* output, uint32_t frameSize);
     Context ctx_;
     std::atomic<bool> testPlay_{true};
+    std::thread worker_;
 };
 
 }

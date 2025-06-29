@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include <Memory.h>
 
 namespace qe::Examples::AppleII
 {
@@ -11,11 +11,10 @@ class Computer;
 
 struct Context
 {
-    std::shared_ptr<ControlPanel> controlPanel;
-    std::shared_ptr<Display> display;
-    std::shared_ptr<Speaker> speaker;
-    std::shared_ptr<Computer> computer;
+    Ptr<ControlPanel> controlPanel;
+    Ptr<Display> display;
+    Ptr<Speaker> speaker;
+    Ptr<Computer> computer;
 };
-
 
 }
