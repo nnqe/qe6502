@@ -16,9 +16,9 @@ void qeaii_frame_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
             }
             else
             {
-                *rgb_frame++ = 10;
+                *rgb_frame++ = 5;
                 *rgb_frame++ = 15;
-                *rgb_frame++ = 10;
+                *rgb_frame++ = 5;
             }
             pixels >>= 1;
         }

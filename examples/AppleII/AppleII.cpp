@@ -33,7 +33,7 @@ public:
     }
     void ProcessOnMinimize()
     {
-
+        ctx_.computer->Pause();
     }
     void CustomRender()
     {
@@ -61,6 +61,5 @@ int Main()
 
 int main()
 {
-    //return main2();
     return qe::Examples::AppleII::Main();
 }

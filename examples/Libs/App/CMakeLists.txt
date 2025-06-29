@@ -12,7 +12,7 @@ target_include_directories(App
         PRIVATE
 )
 
-find_package(OpenGL REQUIRED)
+#find_package(OpenGL REQUIRED)
 
 target_link_libraries(App PUBLIC
     fmt

@@ -13,13 +13,6 @@ option(QE6502_ENABLE_CMOS_65C02 "Enable CMOS 65C02 (adds -DQE_ENABLE_CMOS_65C02)
 
 # Public build-time options for qeappleII
 
-
-# find_package(fmt REQUIRED)
-# find_package(imgui CONFIG REQUIRED)
-# find_package(glfw3 CONFIG REQUIRED)
-# find_package(GLEW REQUIRED)
-# find_package(OpenGL REQUIRED)
-
 # Add subdirectories
 add_subdirectory(qe_6502)
 add_subdirectory(qe_appleII)

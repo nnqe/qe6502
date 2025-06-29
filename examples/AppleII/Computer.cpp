@@ -255,7 +255,7 @@ void Computer::SleepPolicy(uint64_t clocks, bool hasNewFrame)
         }
         else
         {
-            sleepFor = std::clamp(sleepFor, 1ul, 1'000ul);
+            sleepFor = std::clamp(sleepFor, 1ul, 2'000ul);
         }
         std::this_thread::sleep_for(Clock::Micros(sleepFor));
     }

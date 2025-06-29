@@ -43,7 +43,6 @@ void CloseSdl(Program::Context& ctx)
     SDL_Quit();
 }
 
-
 static bool InitGui(Program::Context& ctx)
 {
     // Setup Dear ImGui context
@@ -63,12 +62,11 @@ static bool InitGui(Program::Context& ctx)
     ImGui_ImplSDLRenderer2_Init(ctx.renderer);
 
     // Our state
-    ctx.clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ctx.clearColor = ImVec4(5.0f/255.0f, 15.0f/255.0f, 5.0f/255.0f, 1.00f);
     ctx.done = false;
     ctx.isMinimized = false;
     return true;
 }
-
 
 static void InitDpi(Program::Context& ctx)
 {
@@ -88,14 +86,8 @@ static void InitDpi(Program::Context& ctx)
     ImGui::GetStyle().ScaleAllSizes(ctx.dpiScale);
 }
 
-
 static void ProcessEvents(Program::Context& ctx)
 {
-    // Poll and handle events (inputs, window resize, etc.)
-    // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-    // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-    // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-    // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
