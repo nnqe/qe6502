@@ -12,6 +12,10 @@ struct GLFWwindow;
 namespace qe::Examples
 {
 using namespace std::chrono;
+template<typename T>
+using Ptr = std::shared_ptr<T>;
+template<typename T, typename ... Args>
+inline Ptr<T> MakePtr(Args&&...args){return std::make_shared<T>(std::forward<Args>(args)...);}
 
 enum class EvType { Key, Char, MouseBtn, CursorPos, Scroll };
 struct Event
@@ -65,7 +69,7 @@ private:
 class App
 {
 public:
-    static void AddModule(std::shared_ptr<ModuleBase> module);
+    static void AddModule(Ptr<ModuleBase> module);
     static bool Run();
 
     static void KeyCallback(ModuleBase::Handle w,int k,int s,int a,int m);

@@ -10,6 +10,10 @@ namespace qe::Examples
         using rep = duration::rep;
         using period = duration::period;
         using time_point = std::chrono::time_point<Clock>;
+        using Seconds = std::chrono::seconds;
+        using Millis = std::chrono::milliseconds;
+        using Micros = std::chrono::microseconds;
+        using Nanos = std::chrono::nanoseconds;
 
         static constexpr bool is_steady = true;
 

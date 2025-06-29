@@ -12,10 +12,10 @@ namespace qe::Examples::AppleII
 int Main()
 {
     Context ctx;
-    ctx.controlPanel = std::make_shared<ControlPanel>();
-    ctx.display = std::make_shared<Display>();
-    ctx.speaker = std::make_shared<Speaker>();
-    ctx.computer = std::make_shared<Computer>();
+    ctx.controlPanel = MakePtr<ControlPanel>();
+    ctx.display = MakePtr<Display>();
+    ctx.speaker = MakePtr<Speaker>();
+    ctx.computer = MakePtr<Computer>();
 
     ctx.controlPanel->SetContext(ctx);
     ctx.display->SetContext(ctx);

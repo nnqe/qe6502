@@ -479,7 +479,7 @@ void fatal(const char *format, ... )
 }
 }
 
-namespace qe::Examples
+namespace qe::Examples::Fs
 {
 std::vector<uint8_t> Dsk2Nib(const char* dskFile)
 {

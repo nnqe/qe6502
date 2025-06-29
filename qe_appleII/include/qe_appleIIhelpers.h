@@ -3,7 +3,7 @@
 #include "qe_appleII.h"
 
 QE_API
-void aii_frame_to_rgb(const aii_frame_t* frame, uint8_t* rgb_frame);
+void qeaii_frame_to_rgb(const qeaii_frame_t* frame, uint8_t* rgb_frame);
 
 
 #endif // QE_APPLEII_HELPERS_H__

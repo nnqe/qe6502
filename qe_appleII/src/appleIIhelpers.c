@@ -1,9 +1,9 @@
 #include <qe_appleIIhelpers.h>
 
 
-void aii_frame_to_rgb(const aii_frame_t *frame, uint8_t *rgb_frame)
+void qeaii_frame_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
 {
-    for(unsigned i = 0; i < aii_width * aii_height / aii_pixels_per_clock; i++)
+    for(unsigned i = 0; i < qeaii_width * qeaii_height / qeaii_pixels_per_clock; i++)
     {
         uint8_t pixels = frame->bitmap[i];
         for(int i = 0; i < 7; i++)

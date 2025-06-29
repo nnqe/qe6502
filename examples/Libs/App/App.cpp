@@ -13,8 +13,9 @@ using namespace std::chrono;
 
 
 ModuleBase::~ModuleBase() = default;
-static std::vector<std::shared_ptr<ModuleBase>> allModules_;
-static std::map<ModuleBase::Handle, std::shared_ptr<ModuleBase>> windows_;
+static std::vector<Ptr<ModuleBase>> allModules_;
+static std::map<ModuleBase::Handle, Ptr<ModuleBase>> windows_;
+
 static std::atomic<bool> exitRequest_ = false;
 
 static bool Init()
@@ -35,7 +36,7 @@ void AddWindowCallbacks(ModuleBase::Handle handle)
     glfwSetScrollCallback(handle, GLFWscrollfun(App::ScrollCallback));
 }
 
-void App::AddModule(std::shared_ptr<ModuleBase> module)
+void App::AddModule(Ptr<ModuleBase> module)
 {
     allModules_.push_back(module);
 }
@@ -156,6 +157,7 @@ void App::ScrollCallback(ModuleBase::Handle w,double xo,double yo)
 
 bool ModuleBase::CreateWindow(int width, int height, const char *title)
 {
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     windowHandle_ = glfwCreateWindow(width,height,title,nullptr,nullptr);
     return windowHandle_ != nullptr;
 }
