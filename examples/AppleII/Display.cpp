@@ -84,6 +84,11 @@ void Display::NewRawFrame(qeaii_frame_t *rawFrame)
     frameConsumed_.clear();
 }
 
+void Display::ClearDisplay()
+{
+    clearDisplay_ = true;
+}
+
 bool Display::Create()
 {
     frameConsumed_.test_and_set();
@@ -117,6 +122,12 @@ void Display::Loop()
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        if (clearDisplay_)
+        {
+            clearDisplay_ = false;
+            memset(rgbFrame_.data(), 0, rgbFrame_.size());
+            UploadFrame();
+        }
         if (HasReadyRawFrame())
         {
             qeaii_frame_to_rgb(rawFrame_, rgbFrame_.data());
@@ -210,6 +221,5 @@ void Display::DrawFrame()
     glBindVertexArray(0);
     glUseProgram(0);
 }
-
 
 }

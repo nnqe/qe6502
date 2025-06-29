@@ -14,6 +14,7 @@ public:
     bool IsReadyForRawFrame() const;
     bool HasReadyRawFrame() const;
     void NewRawFrame(qeaii_frame_t* rawFrame);
+    void ClearDisplay();
 
     // ModuleBase interface
 public:
@@ -27,6 +28,7 @@ private:
     void DrawFrame();
     Context ctx_;
     std::atomic_flag frameConsumed_;
+    std::atomic<bool> clearDisplay_ = false;
     qeaii_frame_t* rawFrame_ = nullptr;
     std::array<uint8_t, qeaii_width * qeaii_height * 3> rgbFrame_;
 };

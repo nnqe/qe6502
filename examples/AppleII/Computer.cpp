@@ -52,6 +52,7 @@ void Computer::Shutdown()
 {
     stateRequest_.store(State::eOff);
     WaitForStateChanged();
+    ctx_.display->ClearDisplay();
 }
 
 void Computer::TurboSpeed()
