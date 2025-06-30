@@ -4,87 +4,92 @@
 #include <App.h>
 #include <SDL.h>
 #include <fmt/format.h>
+#include <qe_appleIIhelpers.h>
 
 namespace qe::Examples::AppleII
 {
 
-struct AudioData
-{
-    double Phase;            // current phase of the sine wave
-    double PhaseIncrement;   // phase increment per sample
-    uint32_t SamplesPlayed;    // number of samples already generated
-    uint32_t MaxSamples;       // total samples for 3 seconds
-};
-
-AudioData Data{};
-
-void AudioCallback(void* UserData, Uint8* Stream, int Len)
-{
-    AudioData* Data = static_cast<AudioData*>(UserData);
-    Sint16* Buffer = reinterpret_cast<Sint16*>(Stream);
-    int SamplesToWrite = Len / sizeof(Sint16);
-
-    for (int i = 0; i < SamplesToWrite; ++i) {
-        if (Data->SamplesPlayed >= Data->MaxSamples) {
-            // After 3 seconds, output silence
-            Buffer[i] = 0;
-        } else {
-            // generate sine wave sample
-            double Sample = std::sin(Data->Phase) * 28000;
-            Buffer[i] = static_cast<Sint16>(Sample);
-
-            // advance phase and sample count
-            Data->Phase += Data->PhaseIncrement;
-            if (Data->Phase >= M_PI * 2.0) {
-                Data->Phase -= M_PI * 2.0;
-            }
-            ++Data->SamplesPlayed;
-        }
-    }
-}
-
 void Speaker::RunModule(Context ctx)
 {
-    // Desired audio spec
-    SDL_AudioSpec DesiredSpec;
-    SDL_zero(DesiredSpec);
-    DesiredSpec.freq = 48000;             // sample rate
-    DesiredSpec.format = AUDIO_S16SYS;    // 16-bit signed
-    DesiredSpec.channels = 1;             // mono
-    DesiredSpec.samples = 1024;           // buffer size
-    DesiredSpec.callback = AudioCallback; // our callback
+    // // Desired audio spec
+    // const double frequency = 440.0;
+    // const int sampleRate   = Program::Ctx().audioSpecs.freq;
+    // const int64_t totalSamples = sampleRate * 3;
+    // std::vector<int16_t> buffer;
+    // buffer.reserve(totalSamples);
 
-    Data.Phase = 0.0;
-        double Frequency = 440.0; // A4 tone
-        Data.PhaseIncrement = 2.0 * M_PI * Frequency / DesiredSpec.freq;
-        Data.SamplesPlayed = 0;
-        Data.MaxSamples = DesiredSpec.freq * 3; // 3 seconds
+    // double Phase = 0.0;
+    // double PhaseInc = 2.0 * M_PI * frequency / sampleRate;
+    // for (int64_t i = 0; i < totalSamples; ++i) {
+    //     double value = std::sin(Phase) * 28000.0;
+    //     buffer.push_back(static_cast<Sint16>(value));
+    //     Phase += PhaseInc;
+    //     if (Phase >= 2.0 * M_PI) Phase -= 2.0 * M_PI;
+    // }
 
-        DesiredSpec.userdata = &Data;
+    // if (SDL_QueueAudio(Program::Ctx().audioDeviceId,
+    //                    buffer.data(),
+    //                    buffer.size() * sizeof(Sint16)) < 0)
+    // {
+    //     fmt::println("SDL_QueueAudio Error: {}", SDL_GetError());
+    // }
 
-        // Open audio device
-        SDL_AudioSpec ObtainedSpec;
-        if (SDL_OpenAudio(&DesiredSpec, &ObtainedSpec) < 0) {
-            fmt::println("SDL_OpenAudio Error: {}", SDL_GetError());
-            SDL_Quit();
-            return;
-        }
+    worker_ = std::thread([this](){AudioLoop();});
 
-        // Start playback
-        SDL_PauseAudio(0);
-
-    worker_ = std::thread([this](){
-        std::this_thread::sleep_for(1s);
-    });
+    frameConsumed_.test_and_set();
 }
 
 void Speaker::DestroyModule()
 {
-    SDL_CloseAudio();
-
     if (worker_.joinable())
     {
         worker_.join();
+    }
+}
+
+bool Speaker::IsReadyForRawFrame() const
+{
+    return frameConsumed_.test();
+}
+
+bool Speaker::HasReadyRawFrame() const
+{
+    return !frameConsumed_.test();
+}
+
+void Speaker::NewRawFrame(qeaii_speaker_frame_t *rawFrame)
+{
+    if (HasReadyRawFrame())
+    {
+        fmt::println("New audio frame cannot be set. Possible race-condititon. please fix it !");
+        exit(-111);
+    }
+    rawFrame_ = rawFrame;
+    frameConsumed_.clear();
+}
+
+void Speaker::AudioLoop()
+{
+    while(!Program::Ctx().done)
+    {
+        if (HasReadyRawFrame())
+        {
+            // process it
+            if (rawFrame_->tick_count > 0)
+            {
+                uint64_t nanos = qeaii_to_nanos(rawFrame_->end_cycle - rawFrame_->start_cycle + 1);
+                size_t samples = (Program::Ctx().audioSpecs.freq * nanos) / 1'000'000'000;
+                audioBuff_.resize(samples);
+                qeaii_to_audio_samples(rawFrame_, audioBuff_.data(), samples);
+
+                SDL_QueueAudio(Program::Ctx().audioDeviceId,
+                               audioBuff_.data(),
+                               samples * sizeof(int16_t));
+            }
+
+            frameConsumed_.test_and_set();
+        }
+        std::this_thread::sleep_for(3ms);
     }
 }
 

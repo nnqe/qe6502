@@ -5,6 +5,39 @@ namespace qe::Examples
 
 IApp::~IApp() = default;
 
+static bool InitSdlAudio(Program::Context& ctx)
+{
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        fmt::println("SDL_Init Error: {}", SDL_GetError());
+        return false;
+    }
+
+    SDL_AudioSpec desiredSpec;
+    SDL_zero(desiredSpec);
+    desiredSpec.freq     = 48000;           // sample rate
+    desiredSpec.format   = AUDIO_S16SYS;    // 16-bit signed
+    desiredSpec.channels = 1;               // mono
+    desiredSpec.samples  = 0;               // buffer size
+    desiredSpec.callback = nullptr;         //
+
+    ctx.audioDeviceId = SDL_OpenAudioDevice(
+        nullptr,            // NULL = default device
+        0,                  // 0 = playback
+        &desiredSpec,
+        &ctx.audioSpecs,
+        0                   // allowed_changes
+    );
+    if (ctx.audioDeviceId == 0)
+    {
+        fmt::println("SDL_OpenAudioDevice Error: {}", SDL_GetError());
+        SDL_Quit();
+        return false;
+    }
+    SDL_PauseAudioDevice(ctx.audioDeviceId, 0);
+    return true;
+}
+
 static bool InitSdl(Program::Context& ctx)
 {
     // Setup SDL
@@ -33,13 +66,24 @@ static bool InitSdl(Program::Context& ctx)
         fmt::println("Error creating SDL_Renderer!");
         return false;
     }
+    InitSdlAudio(ctx);
     return true;
 }
 
 void CloseSdl(Program::Context& ctx)
 {
+    // Close video
     SDL_DestroyRenderer(ctx.renderer);
     SDL_DestroyWindow(ctx.window);
+
+    // Close audio
+    while (SDL_GetQueuedAudioSize(ctx.audioDeviceId) > 0)
+    {
+        SDL_Delay(100);
+    }
+    SDL_CloseAudioDevice(ctx.audioDeviceId);
+
+    // Quit SDL
     SDL_Quit();
 }
 

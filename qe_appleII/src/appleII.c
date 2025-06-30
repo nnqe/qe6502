@@ -246,10 +246,11 @@ qeaii_speaker_frame(qeaii_t* pc)
     uint8_t new_frame = !old_frame;
 
     pc->speaker.current_frame = new_frame;
-    pc->speaker.frames[new_frame].frame_start_cycle = pc->cycle_counter;
+    pc->speaker.frames[new_frame].start_cycle = pc->cycle_counter + 1;
     pc->speaker.frames[new_frame].tick_count = 0;
-    pc->speaker.frames[new_frame].first_value = !pc->speaker.last_value;
+    pc->speaker.frames[new_frame].speaker_state = pc->speaker.last_value;
 
+    pc->speaker.frames[old_frame].end_cycle = pc->cycle_counter;
     return &pc->speaker.frames[old_frame];
 }
 
@@ -262,13 +263,12 @@ void speaker_init(qeaii_t* pc, qeaii_bootstrap_t* bootstrap)
 QE_SIC
 void speaker_io(qeaii_t* pc)
 {
-    pc->speaker.last_value = !pc->speaker.last_value;
     qeaii_speaker_frame_t* frame = &pc->speaker.frames[pc->speaker.current_frame];
-    frame->ticks[frame->tick_count] = pc->cycle_counter - frame->frame_start_cycle;
-    frame->tick_count++;
-    if (frame->tick_count >= QE_ARRAY_SIZE(frame->ticks))
+    if (frame->tick_count < QE_ARRAY_SIZE(frame->ticks))
     {
-        frame->tick_count = 0;
+        pc->speaker.last_value = !pc->speaker.last_value;
+        frame->ticks[frame->tick_count] = pc->cycle_counter - frame->start_cycle;
+        frame->tick_count++;
     }
 }
 

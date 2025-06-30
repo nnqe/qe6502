@@ -1,5 +1,6 @@
 #include "Computer.h"
 #include "Display.h"
+#include "Speaker.h"
 #include <algorithm>
 #include <App.h>
 
@@ -178,15 +179,22 @@ void Computer::RunLoop()
     {
         // Run for a while
         auto clocks = qeaii_run(appleII_.get(), 5'000);
+        std::this_thread::sleep_for(Clock::Micros( clocks / 2 ));
 
         bool newFrame = false;
-        if (qeaii_frame_ready(appleII_.get()) &&
-            display.IsReadyForRawFrame())
+        if (qeaii_frame_ready(appleII_.get()))
         {
-            auto frame = qeaii_frame(appleII_.get());
-            display.NewRawFrame(frame);
-
             newFrame = true;
+            if (display.IsReadyForRawFrame())
+            {
+                auto frame = qeaii_frame(appleII_.get());
+                display.NewRawFrame(frame);
+            }
+        }
+        if (ctx_.speaker->IsReadyForRawFrame())
+        {
+            auto newRawAudio = qeaii_speaker_frame(appleII_.get());
+            ctx_.speaker->NewRawFrame(newRawAudio);
         }
         SleepPolicy(clocks, newFrame);
     }
@@ -205,6 +213,9 @@ void Computer::FastRunLoop()
             auto frame = qeaii_frame(appleII_.get());
             display.NewRawFrame(frame);
         }
+
+        // skip audio
+        qeaii_speaker_frame(appleII_.get());
     }
 }
 
@@ -237,27 +248,30 @@ void Computer::ResetSleepPolicy()
 void Computer::SleepPolicy(uint64_t clocks, bool hasNewFrame)
 {
     sleepPolicyClocks_ += clocks;
-    if (appleII_->driveII.spinning)
-    {
-        // do not sleep, AppleII is loading
-        std::this_thread::yield();
-        ResetSleepPolicy();
-    }
-    else
+    // if (appleII_->driveII.spinning)
+    // {
+    //     // do not sleep, AppleII is loading
+    //     std::this_thread::yield();
+    //     ResetSleepPolicy();
+    // }
+    // else
     {
         // AppleII is ~1Mhz
         auto micros = sleepPolicySw_.Measure().count() / 1000;
-        uint64_t sleepFor = sleepPolicyClocks_ - micros;
+        if (sleepPolicyClocks_ > micros)
+        {
+            uint64_t sleepFor = sleepPolicyClocks_ - micros;
 
-        if (hasNewFrame)
-        {
-            sleepFor = std::clamp(sleepFor, 1'000ul, 60'000ul);
+            sleepFor = std::clamp(sleepFor, 1ul, 60'000ul);
+            // if (hasNewFrame)
+            // {
+            // }
+            // else
+            // {
+            //     sleepFor = std::clamp(sleepFor, 1ul, 2'000ul);
+            // }
+            //std::this_thread::sleep_for(Clock::Micros(sleepFor));
         }
-        else
-        {
-            sleepFor = std::clamp(sleepFor, 1ul, 2'000ul);
-        }
-        std::this_thread::sleep_for(Clock::Micros(sleepFor));
     }
 }
 

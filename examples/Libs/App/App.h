@@ -32,6 +32,8 @@ public:
     {
         SDL_Window* window;
         SDL_Renderer* renderer;
+        SDL_AudioDeviceID audioDeviceId;
+        SDL_AudioSpec audioSpecs;
         std::atomic<bool> done;
         ImVec4 clearColor;
         bool isMinimized;

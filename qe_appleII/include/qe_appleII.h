@@ -82,10 +82,11 @@ typedef struct
 
 typedef struct
 {
-    uint16_t ticks[1024];
-    uint64_t frame_start_cycle;
+    uint16_t ticks[512];
+    uint64_t start_cycle;
+    uint64_t end_cycle;
     uint16_t tick_count;
-    uint8_t first_value;
+    uint8_t speaker_state;
 } qeaii_speaker_frame_t;
 
 typedef struct

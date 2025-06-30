@@ -33,6 +33,7 @@ void ControlPanel::ShowOpenFile()
 {
     if (ImGui::Button("Diskette..."))
     {
+        ctx_.computer->Pause();
         std::string folder = userspace_.value("last_folder", ".");
         std::vector<std::string> file = pfd::open_file("Open Floppy Disk Image", folder, { "Image Files", "*.dsk *.nib" }).result();
         if (!file.empty() && !file.at(0).empty())

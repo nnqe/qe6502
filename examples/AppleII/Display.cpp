@@ -89,7 +89,7 @@ void Display::ClearDisplay()
 void Display::UploadRgbBuffer()
 {
     // pitch = width * bytes_per_pixel
-    qeaii_frame_to_rgb(rawFrame_, rgbFrame_.data());
+    qeaii_to_rgb(rawFrame_, rgbFrame_.data());
 
     const int pitch = 280 * 3;
     SDL_UpdateTexture(
