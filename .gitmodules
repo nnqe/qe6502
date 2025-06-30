@@ -4,9 +4,6 @@
 [submodule "examples/3rdParty/fmt"]
 	path = examples/3rdParty/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "examples/3rdParty/miniaudio"]
-	path = examples/3rdParty/miniaudio
-	url = https://github.com/mackron/miniaudio.git
 [submodule "examples/3rdParty/imgui/upstream"]
 	path = examples/3rdParty/imgui/upstream
 	url = https://github.com/ocornut/imgui.git

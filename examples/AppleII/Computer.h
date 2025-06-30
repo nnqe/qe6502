@@ -4,6 +4,7 @@
 #include <Stopwatch.h>
 #include <qe_appleII.h>
 #include <thread>
+#include <vector>
 
 namespace qe::Examples::AppleII
 {
