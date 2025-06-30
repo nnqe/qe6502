@@ -96,3 +96,9 @@ uint64_t qeaii_to_nanos(uint32_t clocks)
 {
     return ((uint64_t)(clocks) * nanos_per_65536_clocks) / 65536;
 }
+
+QE_API_IMPL
+uint64_t qeaii_to_cycles(uint32_t nanos)
+{
+    return ((uint64_t)(nanos) * 65536) / nanos_per_65536_clocks;
+}

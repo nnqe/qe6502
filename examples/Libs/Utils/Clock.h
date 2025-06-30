@@ -20,6 +20,7 @@ namespace qe::Examples
         static time_point now() noexcept;
 
     public:
+        static double ToSeconds(duration d);
         static double GetSpeed() noexcept;
         static void SetSpeed(double) noexcept;
     };

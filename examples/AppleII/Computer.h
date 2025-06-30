@@ -38,7 +38,6 @@ private:
     inline bool ChangeRequested() const { return state_ != stateRequest_; }
 
     void ResetSleepPolicy();
-    void SleepPolicy(uint64_t executedInstructions, bool hasNewFrame);
 
     enum class State
     {
@@ -55,8 +54,6 @@ private:
     Ptr<qeaii_bootstrap_t> bootstrap_;
     std::thread::id cpuThread_;
 
-    Stopwatch sleepPolicySw_;
-    uint64_t sleepPolicyClocks_;
     std::thread worker_;
 };
 

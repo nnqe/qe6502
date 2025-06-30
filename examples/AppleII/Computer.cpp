@@ -1,6 +1,7 @@
 #include "Computer.h"
 #include "Display.h"
 #include "Speaker.h"
+#include <qe_appleIIhelpers.h>
 #include <algorithm>
 #include <App.h>
 
@@ -172,50 +173,83 @@ void Computer::PauseLoop()
 
 void Computer::RunLoop()
 {
+    static Clock::duration frameDuration = Clock::Millis(8);
+    static uint32_t s_cyclesPerFrame = qeaii_to_cycles(frameDuration.count());
     auto& display = *ctx_.display;
-
-    ResetSleepPolicy();
+    auto timePoint = Clock::now() + Clock::Millis(8);
     while(!Program::Ctx().done && !ChangeRequested())
     {
-        // Run for a while
-        auto clocks = qeaii_run(appleII_.get(), 5'000);
-        std::this_thread::sleep_for(Clock::Micros( clocks / 2 ));
-
-        bool newFrame = false;
-        if (qeaii_frame_ready(appleII_.get()))
+        uint32_t cyclesLeft = appleII_->driveII.spinning ? s_cyclesPerFrame * 100 : s_cyclesPerFrame;
+        while(cyclesLeft)
         {
-            newFrame = true;
-            if (display.IsReadyForRawFrame())
+            cyclesLeft = qeaii_run(appleII_.get(), cyclesLeft);
+            if (qeaii_frame_ready(appleII_.get()) &&
+                display.IsReadyForRawFrame())
             {
+                // push this frame
                 auto frame = qeaii_frame(appleII_.get());
                 display.NewRawFrame(frame);
             }
         }
-        if (ctx_.speaker->IsReadyForRawFrame())
+        while(!ctx_.speaker->IsReadyForRawFrame())
         {
-            auto newRawAudio = qeaii_speaker_frame(appleII_.get());
-            ctx_.speaker->NewRawFrame(newRawAudio);
+            // not expected!
+            std::this_thread::sleep_for(Clock::Micros(500));
         }
-        SleepPolicy(clocks, newFrame);
+        auto newRawAudio = qeaii_speaker_frame(appleII_.get());
+        ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);
+        timePoint += Clock::Millis(8);
+        auto now = Clock::now();
+        if ( now >= timePoint )
+        {
+            // we are too busy
+            timePoint = now + Clock::Micros(100);
+        }
+        else
+        {
+            std::this_thread::sleep_for( (timePoint - now) / 2 );
+        }
     }
 }
 
 void Computer::FastRunLoop()
 {
+    static Clock::duration s_passDuration = Clock::Millis(16);
+    static uint32_t s_cyclesPerPass = qeaii_to_cycles(s_passDuration.count());
     auto& display = *ctx_.display;
-    uint64_t instructions = 0;
+    auto timePoint = Clock::now() + s_passDuration;
     while(!Program::Ctx().done && !ChangeRequested())
     {
-        instructions += qeaii_run(appleII_.get(), 16'000);
-        if (qeaii_frame_ready(appleII_.get()) &&
-            display.IsReadyForRawFrame())
+        uint32_t cyclesLeft = appleII_->driveII.spinning ? s_cyclesPerPass * 100 : s_cyclesPerPass * 8;
+        while(cyclesLeft)
         {
-            auto frame = qeaii_frame(appleII_.get());
-            display.NewRawFrame(frame);
+            cyclesLeft = qeaii_run(appleII_.get(), cyclesLeft);
+            if (qeaii_frame_ready(appleII_.get()) &&
+                display.IsReadyForRawFrame())
+            {
+                // push this frame
+                auto frame = qeaii_frame(appleII_.get());
+                display.NewRawFrame(frame);
+            }
         }
-
-        // skip audio
-        qeaii_speaker_frame(appleII_.get());
+        while(!ctx_.speaker->IsReadyForRawFrame())
+        {
+            // not expected!
+            std::this_thread::sleep_for(Clock::Micros(500));
+        }
+        auto newRawAudio = qeaii_speaker_frame(appleII_.get());
+        ctx_.speaker->NewRawFrame(newRawAudio, timePoint, s_passDuration);
+        timePoint += s_passDuration;
+        auto now = Clock::now();
+        if ( now >= timePoint )
+        {
+            // we are too busy
+            timePoint = now + Clock::Micros(100);
+        }
+        else
+        {
+            std::this_thread::sleep_for( (timePoint - now) / 2 );
+        }
     }
 }
 
@@ -236,42 +270,6 @@ void Computer::WaitForStateChanged()
     {
         fmt::println("CPU too busy, deadlock detected!");
         exit(-5);
-    }
-}
-
-void Computer::ResetSleepPolicy()
-{
-    sleepPolicySw_.Reset();
-    sleepPolicyClocks_ = 0;
-}
-
-void Computer::SleepPolicy(uint64_t clocks, bool hasNewFrame)
-{
-    sleepPolicyClocks_ += clocks;
-    // if (appleII_->driveII.spinning)
-    // {
-    //     // do not sleep, AppleII is loading
-    //     std::this_thread::yield();
-    //     ResetSleepPolicy();
-    // }
-    // else
-    {
-        // AppleII is ~1Mhz
-        auto micros = sleepPolicySw_.Measure().count() / 1000;
-        if (sleepPolicyClocks_ > micros)
-        {
-            uint64_t sleepFor = sleepPolicyClocks_ - micros;
-
-            sleepFor = std::clamp(sleepFor, 1ul, 60'000ul);
-            // if (hasNewFrame)
-            // {
-            // }
-            // else
-            // {
-            //     sleepFor = std::clamp(sleepFor, 1ul, 2'000ul);
-            // }
-            //std::this_thread::sleep_for(Clock::Micros(sleepFor));
-        }
     }
 }
 

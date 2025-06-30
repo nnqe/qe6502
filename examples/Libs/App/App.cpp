@@ -18,8 +18,9 @@ static bool InitSdlAudio(Program::Context& ctx)
     desiredSpec.freq     = 48000;           // sample rate
     desiredSpec.format   = AUDIO_S16SYS;    // 16-bit signed
     desiredSpec.channels = 1;               // mono
-    desiredSpec.samples  = 0;               // buffer size
+    desiredSpec.samples  = 512;             // buffer size
     desiredSpec.callback = nullptr;         //
+    desiredSpec.silence = 11;
 
     ctx.audioDeviceId = SDL_OpenAudioDevice(
         nullptr,            // NULL = default device

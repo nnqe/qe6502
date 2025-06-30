@@ -13,4 +13,7 @@ void qeaii_to_audio_samples(const qeaii_speaker_frame_t* frame,
 QE_API
 uint64_t qeaii_to_nanos(uint32_t clocks);
 
+QE_API
+uint64_t qeaii_to_cycles(uint32_t nanos);
+
 #endif // QE_APPLEII_HELPERS_H__

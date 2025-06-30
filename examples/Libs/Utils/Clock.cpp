@@ -28,6 +28,11 @@ namespace qe::Examples
         return time_point(offset_ + duration(std::llround(double(delta.count()) * speed_)));
     }
 
+    double Clock::ToSeconds(duration d)
+    {
+        return std::chrono::duration<double>(d).count();
+    }
+
     double Clock::GetSpeed() noexcept
     {
         std::lock_guard guard(lock_);

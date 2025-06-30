@@ -162,17 +162,17 @@ qeaii_frame_t* qeaii_frame(qeaii_t* pc);
 
 
 QE_API
-uint32_t qeaii_run(qeaii_t* pc,
+uint32_t qeaii_run_instructions(qeaii_t* pc,
                  uint16_t max_instructions);
 QE_API
-uint32_t qeaii_run_ex(qeaii_t* pc,
+uint32_t qeaii_run_instructions_ex(qeaii_t* pc,
                     uint16_t max_instructions);
 
 #if(QE6502_ENABLE_CYCLE_MERGE != 1)
     QE_API // returns cycles left, not cycles processed
-    uint32_t qeaii_run_cycles(qeaii_t* pc, uint32_t max_cycles);
+    uint32_t qeaii_run(qeaii_t* pc, uint32_t max_cycles);
     QE_API // returns cycles left, not cycles processed
-    uint32_t qeaii_run_cycles_ex(qeaii_t* pc, uint32_t max_cycles);
+    uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t max_cycles);
 #endif
 
 QE_API
