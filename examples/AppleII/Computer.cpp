@@ -211,7 +211,7 @@ void Computer::RunLoop(int timeDiv)
             ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);
             timePoint += frameDuration;
             auto now = Clock::now();
-            if ( now > timePoint )
+            if ( now < timePoint )
             {
                 std::this_thread::sleep_for( (timePoint - now) / 2 );
             }

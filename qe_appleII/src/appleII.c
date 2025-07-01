@@ -582,7 +582,8 @@ uint32_t qeaii_run(qeaii_t *pc, uint32_t requested_cycles)
     {
         return 0;
     }
-    uint64_t target_cycles = pc->cycle_counter + requested_cycles;
+    uint64_t start_cycles = pc->cycle_counter;
+    uint64_t target_cycles = start_cycles + requested_cycles;
     pc->stop_flags = 0;
     cpu_handle_nmi(pc);
     pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
@@ -593,7 +594,7 @@ uint32_t qeaii_run(qeaii_t *pc, uint32_t requested_cycles)
         bus_clock(pc);
         cpu_clock(pc);
     }
-    return QE_U32(pc->cycle_counter - requested_cycles);
+    return QE_U32(pc->cycle_counter - start_cycles);
 }
 
 QE_API_IMPL
@@ -603,7 +604,8 @@ uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t requested_cycles)
     {
         return 0;
     }
-    uint64_t target_cycles = pc->cycle_counter + requested_cycles;
+    uint64_t start_cycles = pc->cycle_counter;
+    uint64_t target_cycles = start_cycles + requested_cycles;
     pc->stop_flags = 0;
     cpu_handle_nmi(pc);
     pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
@@ -626,7 +628,7 @@ uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t requested_cycles)
             cpu_clock(pc);
         }
     }
-    return QE_U32(pc->cycle_counter - requested_cycles);
+    return QE_U32(pc->cycle_counter - start_cycles);
 }
 
 QE_API_IMPL
