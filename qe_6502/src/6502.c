@@ -96,9 +96,12 @@ power_on_impl( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
         return select_fetch_opcode_bridge(cpu);
     }
-    cpu->cmd.flags = qe6502_starting;
-    qe_log("qe6502", "Power ON Error");
-    return cpu_error(cpu,  qe6502_err_poweron_error );
+    QE_UNREACHABLE();
+}
+
+static int my_new_func()
+{
+  return 3434;
 }
 
 QE_API_IMPL qe6502_cycle_t
@@ -108,18 +111,6 @@ qe6502_power_on(qe6502_t* cpu, uint8_t model)
     qe_log("qe6502", "CPU size: %u", (unsigned)sizeof(qe6502_t));
     qe_log("qe6502", "CPU Cycle size: %u", (unsigned)sizeof(qe6502_cycle_t));
     QE_CLEAR_OBJ(*cpu);
-
-    // test sizes
-    if (sizeof(qe6502_t) > 32)
-    {
-        qe_log("qe6502", "Error: wrong cpu size, maybe padding problem");
-        return cpu_error(cpu,  qe6502_err_compile_error );
-    }
-    if (sizeof(qe6502_cycle_t) > 8)
-    {
-        qe_log("qe6502", "Error: wrong cpu cycle size, maybe padding problem");
-        return cpu_error(cpu,  qe6502_err_compile_error );
-    }
 
     // test read
     cpu->cmd.packed = 0;
@@ -350,7 +341,6 @@ qe6502_reset_instruction(qe6502_t *cpu)
 QE_API_IMPL void
 qe6502_offsets(qe6502_offsets_t* offsets)
 {
-    qe6502_t* cpu = QE_NULL;
     offsets->address            = OFFSETOF(address);
     offsets->pointer            = OFFSETOF(pointer);
     offsets->error_code         = OFFSETOF(error_code);

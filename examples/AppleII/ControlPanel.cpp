@@ -44,7 +44,7 @@ void ControlPanel::ShowOpenFile()
             SaveUserspace();
         }
     }
-    ImGui::Text("Diskette: %s", diskImageFile_.filename().c_str());
+    ImGui::Text("Diskette: %s", diskImageFile_.filename().string().c_str());
 }
 
 void ControlPanel::ShowCpuCtrl()
@@ -144,11 +144,11 @@ std::vector<uint8_t> ControlPanel::LoadDiskette(Fs::Path file)
         std::string ext = p.extension().string();
         if (ext == ".dsk")
         {
-            diskette = Fs::Dsk2Nib(file.c_str());
+            diskette = Fs::Dsk2Nib(file.string().c_str());
         }
         else if (ext == ".nib")
         {
-            diskette = Fs::LoadBinaryFile(file);
+            diskette = Fs::LoadBinaryFile(file.string());
         }
         else
         {

@@ -1,12 +1,14 @@
 ﻿# examples/CMakeLists.txt
 # C++ App helper for opening windows and event loops
 
+set(target App)
+
 # Create library
 add_library(App STATIC
     App.cpp
 )
 
-target_include_directories(App
+target_include_directories(${target}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE
@@ -14,15 +16,15 @@ target_include_directories(App
 
 #find_package(OpenGL REQUIRED)
 
-target_link_libraries(App PUBLIC
+target_link_libraries(${target} PUBLIC
     fmt
     Utils
     SDL2::SDL2
     imgui)
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(App PUBLIC dl pthread)
+    target_link_libraries(${target} PUBLIC dl pthread)
 endif()
 
 # Set C++ standard
-target_compile_features(App PUBLIC cxx_std_20)
+target_compile_features(${target} PUBLIC cxx_std_20)

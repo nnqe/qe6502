@@ -24,7 +24,7 @@ static const uint16_t qeaii_frame_size = (280 * 192) / 7; // 7 pixels per byte
 static const uint16_t qeaii_pixels_per_clock = 7;
 static const uint16_t qeaii_total_clocks_per_line = 65;
 static const uint16_t qeaii_dummy_lines = 70;
-static const uint16_t qeaii_clocks_per_line_visible_pixels = qeaii_width / qeaii_pixels_per_clock;
+static const uint16_t qeaii_clocks_per_line_visible_pixels = 280 / 7; // qeaii_width / qeaii_pixels_per_clock;
 
 static const uint16_t qeaii_disk_tracks = 35;
 static const uint16_t qeaii_disk_track_size = 0x1a00;

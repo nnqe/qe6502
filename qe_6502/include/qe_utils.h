@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
+
 #if defined(_MSC_VER)
     #define QE_LITTLE_ENDIAN 1
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -23,27 +24,15 @@
     #define QE_MSB 0
 #endif // QE_LITTLE_ENDIAN
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(_MSC_VER)
+    #define QE_LIKELY(x)   (x)
+    #define QE_UNLIKELY(x) (x)
+#elif defined(__GNUC__) || defined(__clang__)
     #define QE_LIKELY(x)   __builtin_expect(!!(x), 1)
     #define QE_UNLIKELY(x) __builtin_expect(!!(x), 0)
-#elif defined(_MSC_VER)
-    #define QE_LIKELY(x)   (x)
-    #define QE_UNLIKELY(x) (x)
 #else
     #define QE_LIKELY(x)   (x)
     #define QE_UNLIKELY(x) (x)
-#endif
-
-#if defined _WIN32 || defined __CYGWIN__
-    #ifdef BUILDING_QE_LIB
-        #define QE_PUBLIC __declspec(dllexport)
-    #else
-        #define QE_PUBLIC __declspec(dllimport)
-    #endif
-#elif defined __GNUC__ && __GNUC__ >= 4
-    #define QE_PUBLIC __attribute__ ((visibility ("default")))
-#else
-    #define QE_PUBLIC
 #endif
 
 #ifdef __cplusplus
@@ -53,18 +42,28 @@
 #else
     #define QE_EXTERN_C
     #define QE_RESTRICT restrict
-    #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+
+    #if defined(_MSC_VER)
+        #define QE_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+    #else
+        #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+    #endif
 #endif
 
-#define QE_API QE_EXTERN_C QE_PUBLIC
+#define QE_API QE_EXTERN_C
 #define QE_API_IMPL
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(_MSC_VER)
+    #define QE_ALWAYS_INLINE __forceinline
+    #define QE_UNREACHABLE() __assume(0)
+#elif defined(__GNUC__) || defined(__clang__)
     #define QE_ALWAYS_INLINE __attribute__((always_inline))
-#elif defined(_MSC_VER)
-    #define QE_ALWAYS_INLINE __attribute__((__forceinline))
+    #define QE_UNREACHABLE() __builtin_unreachable()
 #else
     #define QE_ALWAYS_INLINE
+    #define QE_UNREACHABLE() ((void)0)
 #endif
 
 #define QE_SIC static inline QE_ALWAYS_INLINE // static inline constexpr

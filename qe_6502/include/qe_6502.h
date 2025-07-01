@@ -165,14 +165,14 @@ static const uint8_t qe6502_flagpos_UN = 5;
 static const uint8_t qe6502_flagpos_V = 6;
 static const uint8_t qe6502_flagpos_N = 7;
 
-static const uint8_t qe6502_flag_C  = ( 1 << qe6502_flagpos_C );
-static const uint8_t qe6502_flag_Z  = ( 1 << qe6502_flagpos_Z );
-static const uint8_t qe6502_flag_I  = ( 1 << qe6502_flagpos_I );
-static const uint8_t qe6502_flag_D  = ( 1 << qe6502_flagpos_D );
-static const uint8_t qe6502_flag_B  = ( 1 << qe6502_flagpos_B );
-static const uint8_t qe6502_flag_UN = ( 1 << qe6502_flagpos_UN);
-static const uint8_t qe6502_flag_V  = ( 1 << qe6502_flagpos_V );
-static const uint8_t qe6502_flag_N  = ( 1 << qe6502_flagpos_N );
+static const uint8_t qe6502_flag_C  = ( 1 << 0 ); //qe6502_flagpos_C
+static const uint8_t qe6502_flag_Z  = ( 1 << 1 ); //qe6502_flagpos_Z
+static const uint8_t qe6502_flag_I  = ( 1 << 2 ); //qe6502_flagpos_I
+static const uint8_t qe6502_flag_D  = ( 1 << 3 ); //qe6502_flagpos_D
+static const uint8_t qe6502_flag_B  = ( 1 << 4 ); //qe6502_flagpos_B
+static const uint8_t qe6502_flag_UN = ( 1 << 5 ); //qe6502_flagpos_UN
+static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
+static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
 
 QE_API qe6502_cycle_t
 qe6502_power_on(qe6502_t* cpu, uint8_t model);

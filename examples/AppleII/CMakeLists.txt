@@ -1,16 +1,20 @@
 ﻿# examples/CMakeLists.txt
 # C++ AppleII example emulator: depends on qe6502 and qeappleII
 
+set(target AppleII)
+
 file(GLOB_RECURSE APPLEII_SOURCE_FILES CONFIGURE_DEPENDS
     ./*.cpp ./*.c
 )
 
 # Create executable
-add_executable(AppleII
+add_executable(${target}
     ${APPLEII_SOURCE_FILES}
 )
 
-target_link_libraries(AppleII
+target_compile_definitions(${target} PRIVATE SDL_MAIN_HANDLED)
+
+target_link_libraries(${target}
     PRIVATE
         qeappleII
         Utils
@@ -20,5 +24,5 @@ target_link_libraries(AppleII
 )
 
 # Set C++ standard
-target_compile_features(AppleII PUBLIC cxx_std_20)
+target_compile_features(${target} PUBLIC cxx_std_20)
 

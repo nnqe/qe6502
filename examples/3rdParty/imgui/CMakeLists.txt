@@ -1,4 +1,7 @@
-add_library(imgui STATIC
+set(target imgui)
+
+
+add_library(${target} STATIC
     upstream/imgui.cpp
     upstream/imgui_demo.cpp
     upstream/imgui_draw.cpp
@@ -9,11 +12,11 @@ add_library(imgui STATIC
     upstream/backends/imgui_impl_sdlrenderer2.cpp
 )
 
-target_include_directories(imgui PUBLIC
+target_include_directories(${target} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/upstream
     ${CMAKE_CURRENT_SOURCE_DIR}/upstream/backends
 )
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(imgui PUBLIC SDL2::SDL2)
+target_link_libraries(${target} PUBLIC SDL2::SDL2)

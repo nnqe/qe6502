@@ -178,7 +178,7 @@ cmos_instr_ADC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     flags |= (result & qe6502_flag_N);
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
     //
-    cpu->A = result;
+    cpu->A = (uint8_t)result;
     return jump_to(cpu, cmos_fetch_opcode);
 }
 
@@ -224,7 +224,7 @@ cmos_instr_SBC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         flags |= qe6502_flag_C;
     }
 
-    uint8_t result = high + low;
+    uint8_t result = (uint8_t)(high + low);
     flags |= (((uint8_t)result == 0) << qe6502_flagpos_Z);
     flags |= (result & qe6502_flag_N);
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
@@ -3967,10 +3967,6 @@ cmos_pre_rw_bbr_zeropage_relative_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->address,  OFFSETOF(data));
     return resume_to( cmos_pre_rw_bbr_zeropage_relative_4 );
-
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
-    cpu->PC.u16++;
-    return resume_to(cmos_pre_rw_bbr_zeropage_relative_3);
 }
 
 INSTR_RETTYPE qe6502_cycle_t

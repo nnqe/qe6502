@@ -1,6 +1,8 @@
 # qeappleII/CMakeLists.txt
 # qeappleII: depends on qe6502
 
+set(target qeappleII)
+
 # Determine library type
 if(QE_BUILD_SHARED)
     set(QEAPPLEII_BUILD_TYPE SHARED)
@@ -19,25 +21,25 @@ file(GLOB_RECURSE QEAPPLEII_PRIVATE_SOURCE  ./src/*.c)
 
 
 # Create target
-add_library(qeappleII ${QEAPPLEII_BUILD_TYPE}
+add_library(${target} ${QEAPPLEII_BUILD_TYPE}
     ${QEAPPLEII_PUBLIC_HEADERS}
     ${QEAPPLEII_PRIVATE_SOURCE}
 )
 
 # Include directories
-target_include_directories(qeappleII
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
 # Link dependency on lib1
-target_link_libraries(qeappleII
+target_link_libraries(${target}
     PUBLIC qe6502
 )
 
 # Compile definitions (propagated to users)
-target_compile_definitions(qeappleII
+target_compile_definitions(${target}
     PUBLIC
         $<$<BOOL:${QE_BUILD_SHARED}>:QE_BUILD_SHARED>
         $<$<BOOL:${QE_ENABLE_DEBUG_LOG}>:QE_ENABLE_DEBUG_LOG>
@@ -47,4 +49,4 @@ target_compile_definitions(qeappleII
 )
 
 # Set C standard
-target_compile_features(qeappleII PUBLIC c_std_99)
+target_compile_features(${target} PUBLIC c_std_99)

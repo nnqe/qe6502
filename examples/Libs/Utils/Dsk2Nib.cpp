@@ -38,9 +38,7 @@
 #include <stdarg.h>
 #include <fcntl.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
-
 
 #include <vector>
 #include <cstdint>
@@ -206,32 +204,32 @@ std::vector<uint8_t> Dsk2Nib(const char* dskFile)
     return nibData;
 }
 
-int main( int argc, char **argv )
-{
-    int volume = DEFAULT_VOLUME;
+// int main( int argc, char **argv )
+// {
+//     int volume = DEFAULT_VOLUME;
 
-    printf( "Apple II DSK to NIB Image Converter Version %d.%d\n\n",
-        VERSION_MAJOR, VERSION_MINOR );
+//     printf( "Apple II DSK to NIB Image Converter Version %d.%d\n\n",
+//         VERSION_MAJOR, VERSION_MINOR );
 
-    //
-    // Check args
-    //
-    if ( argc < 3 || argc > 4 )
-        usage( argv[ 0 ] );
-    if ( argc == 4 ) {
-        volume = atoi( argv[ 3 ] );
-        if ( volume < 0 || volume > 255 )
-            usage( argv[ 0 ] );
-    }
+//     //
+//     // Check args
+//     //
+//     if ( argc < 3 || argc > 4 )
+//         usage( argv[ 0 ] );
+//     if ( argc == 4 ) {
+//         volume = atoi( argv[ 3 ] );
+//         if ( volume < 0 || volume > 255 )
+//             usage( argv[ 0 ] );
+//     }
 
-    printf( "Converting %s => %s [Volume:%03d]\n", argv[ 1 ], argv[ 2 ],
-        volume );
+//     printf( "Converting %s => %s [Volume:%03d]\n", argv[ 1 ], argv[ 2 ],
+//         volume );
 
-    auto vec = Dsk2Nib(argv[ 1 ]);
-    cpp_nib_write(argv[ 2 ], vec);
+//     auto vec = Dsk2Nib(argv[ 1 ]);
+//     cpp_nib_write(argv[ 2 ], vec);
 
-    return 0;
-}
+//     return 0;
+// }
 
 //
 // Encode 1 byte into two "4 and 4" bytes
@@ -337,16 +335,20 @@ void dsk_reset( void )
 //
 void dsk_read( const char *path )
 {
-    int i, fd;
+    int i;
+    FILE* fd;
 
-    if ( ( fd = open( path, O_RDONLY ) ) == -1 )
+    if ( ( fd = fopen( path, "rb" ) ) == NULL )
         fatal( "cannot open %s for reading", path );
 
     for ( i = 0; i < TRACKS_PER_DISK; i++ )
-        if ( read( fd, dsk_buf[ i ], BYTES_PER_TRACK ) != BYTES_PER_TRACK )
-            fatal( "dsk write failure" );
+    {
 
-    close( fd );
+        if ( fread( dsk_buf[ i ], BYTES_PER_TRACK, 1, fd ) != BYTES_PER_TRACK )
+            fatal( "dsk write failure" );
+    }
+
+    fclose( fd );
 }
 
 //
@@ -388,18 +390,18 @@ void nib_reset( void )
 //
 void nib_write( const char *path )
 {
-    int i, fd;
+    int i;
+    FILE* fd;
 
-    if ( ( fd = open( path, O_RDWR | O_CREAT | O_TRUNC,
-        S_IREAD | S_IWRITE ) ) == -1 )
+    if ( ( fd = fopen( path, "wb") ) == NULL )
             fatal( "cannot open %s for writing", path );
 
     for ( i = 0; i < TRACKS_PER_DISK; i++ )
-        if ( write( fd, nib_buf[ i ], BYTES_PER_NIB_TRACK ) !=
+        if ( fwrite( nib_buf[ i ], BYTES_PER_NIB_TRACK, 1, fd ) !=
             BYTES_PER_NIB_TRACK )
                 fatal( "nib write error" );
 
-    close( fd );
+    fclose( fd );
 }
 
 //
@@ -407,17 +409,17 @@ void nib_write( const char *path )
 //
 void cpp_nib_write( const char *path, std::vector<uint8_t>& buff )
 {
-    int i, fd;
+    int i;
+    FILE* fd;
 
-    if ( ( fd = open( path, O_RDWR | O_CREAT | O_TRUNC,
-        S_IREAD | S_IWRITE ) ) == -1 )
+    if ( ( fd = fopen( path, "wb") ) == NULL )
             fatal( "cannot open %s for writing", path );
 
-    if ( write( fd, buff.data(), buff.size() ) !=
+    if ( fwrite( buff.data(), buff.size(), 1, fd ) !=
         buff.size() )
             fatal( "nib write error" );
 
-    close( fd );
+    fclose( fd );
 }
 
 //

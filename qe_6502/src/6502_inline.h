@@ -9,7 +9,7 @@
 #define INSTR_RETTYPE QE_SIC
 #define INSTR_ARGS
 
-static const uint32_t writing_packed_cmd = (uint32_t)qe6502_writing << 24;
+static const uint32_t writing_packed_cmd = (1 << 24); //(uint32_t)qe6502_writing << 24;
 
 QE_SIC
 qe6502_cycle_t resume_to(qe6502_microcode_fn handler)
@@ -24,8 +24,9 @@ qe6502_cycle_t resume_to_dummy_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe650
         cpu->merged++;
         return handler(cpu);
     #else
-    return (qe6502_cycle_t){ .execute = handler };
-#endif
+        (void)cpu;
+        return (qe6502_cycle_t){ .execute = handler };
+    #endif
 }
 
 QE_SIC
@@ -35,8 +36,9 @@ qe6502_cycle_t resume_to_dummy_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe65
         cpu->merged++;
         return handler(cpu);
     #else
-    return (qe6502_cycle_t){ .execute = handler };
-#endif
+        (void)cpu;
+        return (qe6502_cycle_t){ .execute = handler };
+    #endif
 }
 
 QE_SIC
