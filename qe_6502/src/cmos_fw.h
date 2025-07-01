@@ -88,9 +88,6 @@ cmos_pre_r_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_w_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 
-INSTR_RETTYPE qe6502_cycle_t  //
-cmos_instr_ILLEGAL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
-
 INSTR_RETTYPE qe6502_cycle_t  // ADC - Add with Carry
 cmos_instr_ADC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
 

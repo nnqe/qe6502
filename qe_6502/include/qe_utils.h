@@ -56,12 +56,12 @@
 #endif
 
 #define QE_MAYBE_UNUSED(sym)                                \
-    QE_SIC void qeqe_##sym##___unused_unused(void);         \
-    QE_SIC void qeqe_##sym##___unused_implement(void) {     \
-        qeqe_##sym##___unused_unused(); (void)&sym;         \
+    QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
+    QE_SIC void qeqe_##sym##___unused_implement_qe(void) {  \
+        qeqe_##sym##___unused_unused_qe(); (void)&sym;      \
     }                                                       \
-    QE_SIC void qeqe_##sym##___unused_unused(void) {        \
-        qeqe_##sym##___unused_implement();                  \
+    QE_SIC void qeqe_##sym##___unused_unused_qe(void) {     \
+        qeqe_##sym##___unused_implement_qe();               \
     }
 
 #define QE_API QE_EXTERN_C
@@ -84,10 +84,10 @@
 typedef uint8_t qe_bool;
 
 static const uint8_t qe_false = 0;
-QE_MAYBE_UNUSED(qe_false);
+QE_MAYBE_UNUSED(qe_false)
 
 static const uint8_t qe_true = 1;
-QE_MAYBE_UNUSED(qe_true);
+QE_MAYBE_UNUSED(qe_true)
 
 #define QE_U8(x) ((uint8_t)(x))
 #define QE_S8(x) ((int8_t)(x))
@@ -169,13 +169,13 @@ QE_SIC void qe_memset(void* dst, uint8_t value, size_t count)
 {
     memset(dst, value, count);
 }
-QE_MAYBE_UNUSED(qe_memset);
+QE_MAYBE_UNUSED(qe_memset)
 
 QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t count)
 {
     memcpy(dst, src, count);
 }
-QE_MAYBE_UNUSED(qe_memcpy);
+QE_MAYBE_UNUSED(qe_memcpy)
 
 #define QE_CLEAR_OBJ(obj) qe_memset(&(obj), 0, sizeof(obj));
 #define QE_COPY_OBJ(dst, src) qe_memcpy(&(dst), &(src), sizeof(dst));

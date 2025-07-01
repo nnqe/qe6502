@@ -56,13 +56,6 @@ qe6502_cycle_t st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return cmos_fetch_opcode(cpu);
 }
 
-INSTR_RETTYPE qe6502_cycle_t
-cmos_instr_ILLEGAL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    qe_log("qe6502", "Illegal instruction opcode: %u, (%02X)", (unsigned)cpu->opcode, (unsigned)cpu->opcode);
-    return cpu_error(cpu,  qe6502_err_illegal_instr );
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 INSTR_FW_DECL(cmos_do_relative_branch_2);
@@ -3040,65 +3033,6 @@ cmos_pre_r_absolute_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->address, OFFSETOF(data));
     return resume_to( cpu->instr );
-}
-
-/********************************************************
- *
- *  Mode:  Absolute_Y
- *
- *  Class: ReaderWriter
- *
- ********************************************************/
-
-INSTR_FW_DECL( cmos_pre_rw_absolute_y_2 );
-INSTR_FW_DECL( cmos_pre_rw_absolute_y_3 );
-INSTR_FW_DECL( cmos_pre_rw_absolute_y_4 );
-INSTR_FW_DECL( cmos_pre_rw_absolute_y_5 );
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
-    cpu->PC.u16++;
-
-    return resume_to(cmos_pre_rw_absolute_y_2);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
-    cpu->PC.u16++;
-
-    cpu->address.u8_msb = 0;
-    cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
-
-    return resume_to(cmos_pre_rw_absolute_y_3);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read_dummy(cpu, cpu->address, OFFSETOF(data));
-
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
-
-    return resume_to_dummy_read(cpu, cmos_pre_rw_absolute_y_4 );
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_absolute_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->address, OFFSETOF(data));
-    return resume_to( cmos_pre_rw_absolute_y_5 );
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_absolute_y_5( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_write_dummy(cpu, cpu->address, OFFSETOF(data));
-    return resume_to_dummy_write(cpu, cpu->instr );
 }
 
 /********************************************************

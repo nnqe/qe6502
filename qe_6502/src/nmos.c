@@ -2489,65 +2489,6 @@ nmos_pre_r_absolute_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
  *
  *  Mode:  Absolute_Y
  *
- *  Class: ReaderWriter
- *
- ********************************************************/
-
-INSTR_FW_DECL( nmos_pre_rw_absolute_y_2 );
-INSTR_FW_DECL( nmos_pre_rw_absolute_y_3 );
-INSTR_FW_DECL( nmos_pre_rw_absolute_y_4 );
-INSTR_FW_DECL( nmos_pre_rw_absolute_y_5 );
-
-INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
-    cpu->PC.u16++;
-
-    return resume_to(nmos_pre_rw_absolute_y_2);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
-    cpu->PC.u16++;
-
-    cpu->address.u8_msb = 0;
-    cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
-
-    return resume_to(nmos_pre_rw_absolute_y_3);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read_dummy(cpu, cpu->address, OFFSETOF(data));
-
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
-
-    return resume_to_dummy_read(cpu, nmos_pre_rw_absolute_y_4 );
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_absolute_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->address, OFFSETOF(data));
-    return resume_to( nmos_pre_rw_absolute_y_5 );
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_absolute_y_5( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_write_dummy(cpu, cpu->address, OFFSETOF(data));
-    return resume_to_dummy_write(cpu, cpu->instr );
-}
-
-/********************************************************
- *
- *  Mode:  Absolute_Y
- *
  *  Class: Writer
  *
  ********************************************************/

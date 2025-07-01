@@ -31,17 +31,17 @@ static const uint16_t qeaii_disk_track_size = 0x1a00;
 static const uint8_t qeaii_flag_cpu_error = (1 << 7);
 static const uint8_t qeaii_flag_new_frame = (1 << 0);
 
-QE_MAYBE_UNUSED(qeaii_width);
-QE_MAYBE_UNUSED(qeaii_height);
-QE_MAYBE_UNUSED(qeaii_frame_size);
-QE_MAYBE_UNUSED(qeaii_pixels_per_clock);
-QE_MAYBE_UNUSED(qeaii_total_clocks_per_line);
-QE_MAYBE_UNUSED(qeaii_dummy_lines);
-QE_MAYBE_UNUSED(qeaii_clocks_per_line_visible_pixels);
-QE_MAYBE_UNUSED(qeaii_disk_tracks);
-QE_MAYBE_UNUSED(qeaii_disk_track_size);
-QE_MAYBE_UNUSED(qeaii_flag_cpu_error);
-QE_MAYBE_UNUSED(qeaii_flag_new_frame);
+QE_MAYBE_UNUSED(qeaii_width)
+QE_MAYBE_UNUSED(qeaii_height)
+QE_MAYBE_UNUSED(qeaii_frame_size)
+QE_MAYBE_UNUSED(qeaii_pixels_per_clock)
+QE_MAYBE_UNUSED(qeaii_total_clocks_per_line)
+QE_MAYBE_UNUSED(qeaii_dummy_lines)
+QE_MAYBE_UNUSED(qeaii_clocks_per_line_visible_pixels)
+QE_MAYBE_UNUSED(qeaii_disk_tracks)
+QE_MAYBE_UNUSED(qeaii_disk_track_size)
+QE_MAYBE_UNUSED(qeaii_flag_cpu_error)
+QE_MAYBE_UNUSED(qeaii_flag_new_frame)
 
 typedef struct
 {
