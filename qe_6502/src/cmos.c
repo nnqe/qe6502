@@ -72,7 +72,7 @@ cmos_do_relative_branch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->PC, OFFSETOF(data));
     qe_word_t pc;
-    pc.u16 = cpu->PC.u16 + cpu->address.i8_lsb;
+    pc.u16 = QE_U16(cpu->PC.u16 + cpu->address.i8_lsb);
     cpu->PC.u8_lsb = pc.u8_lsb;
     if (pc.u8_msb == cpu->PC.u8_msb)
     {
@@ -135,13 +135,14 @@ cmos_instr_ADC_impl_bin( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     qe_word_t r16 = (qe_word_t){.u16 = cpu->A};
 
     uint8_t carry = ((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
-    r16.u16 += u + carry;
+    r16.u16 += QE_U16(u + carry);
     uint8_t c = r16.u16 > 0xff;
 
-    uint8_t flags = (c) |  // carry
+    uint8_t flags = QE_U8(
+                    (c) |  // carry
                     ((r16.u8_lsb == 0) << qe6502_flagpos_Z) | // zero
                     (r16.u8_lsb & qe6502_flag_N) |  // negative
-                    (((((~(cpu->A ^ u)) & (cpu->A ^ r16.u8_lsb)) & qe6502_flag_N) != 0) << qe6502_flagpos_V); // overflow
+                    (((((~(cpu->A ^ u)) & (cpu->A ^ r16.u8_lsb)) & qe6502_flag_N) != 0) << qe6502_flagpos_V)); // overflow
 
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
     cpu->A = r16.u8_lsb;
@@ -157,25 +158,25 @@ cmos_instr_ADC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint16_t result = 0;
     uint8_t flags = 0;
 
-    result = (cpu->A & 0x0f) + (data & 0x0f) + carry;
+    result = QE_U16((cpu->A & 0x0f) + (data & 0x0f) + carry);
     if (result >= 0x0A)
     {
         result = 0x10 | ((result + 6) & 0x0f);
     }
-    result += (cpu->A & 0xf0) + (data & 0xf0);
+    result += QE_U16((cpu->A & 0xf0) + (data & 0xf0));
 
     if (result >= 0xA0)
     {
         flags |= qe6502_flag_C;
-        flags |= (result < 0x180) ? (!((cpu->A ^ data) & 0x80)) << qe6502_flagpos_V : 0;
+        flags |= QE_U8((result < 0x180) ? (!((cpu->A ^ data) & 0x80)) << qe6502_flagpos_V : 0);
         result += 0x60;
     }
     else
     {
-        flags |= (result >= 0x80) ? (!((cpu->A ^ data) & 0x80)) << qe6502_flagpos_V : 0;
+        flags |= QE_U8((result >= 0x80) ? (!((cpu->A ^ data) & 0x80)) << qe6502_flagpos_V : 0);
     }
-    flags |= (((uint8_t)result == 0) << qe6502_flagpos_Z);
-    flags |= (result & qe6502_flag_N);
+    flags |= QE_U8((((uint8_t)result == 0) << qe6502_flagpos_Z));
+    flags |= QE_U8(result & qe6502_flag_N);
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
     //
     cpu->A = (uint8_t)result;
@@ -197,8 +198,8 @@ cmos_instr_SBC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint8_t low = 0;
     uint8_t flags = 0;
 
-    uint8_t carry = ((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
-    low = 0x0F + (cpu->A & 0x0F) - (data & 0x0F) + carry;
+    uint8_t carry = QE_U8((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
+    low = QE_U8(0x0F + (cpu->A & 0x0F) - (data & 0x0F) + carry);
     high = (cpu->A & 0xF0) - (data & 0xF0);
 
     if (low < 0x10)
@@ -225,8 +226,8 @@ cmos_instr_SBC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
 
     uint8_t result = (uint8_t)(high + low);
-    flags |= (((uint8_t)result == 0) << qe6502_flagpos_Z);
-    flags |= (result & qe6502_flag_N);
+    flags |= QE_U8(((uint8_t)result == 0) << qe6502_flagpos_Z);
+    flags |= QE_U8(result & qe6502_flag_N);
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
     //
     cpu->A = result;
@@ -464,8 +465,9 @@ cmos_instr_BIT( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
 
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_V | qe6502_flag_N,
+                            QE_U8(
                             ((!(cpu->A & cpu->data)) << qe6502_flagpos_Z) |
-                            (cpu->data & (qe6502_flag_V | qe6502_flag_N)));
+                            (cpu->data & (qe6502_flag_V | qe6502_flag_N))));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -474,7 +476,8 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_BIT_immediate( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_Z,
-                        (!(cpu->A & cpu->data)) << qe6502_flagpos_Z);
+                        QE_U8(
+                        (!(cpu->A & cpu->data)) << qe6502_flagpos_Z));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -799,9 +802,10 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CMP( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         (cpu->A >= cpu->data) |
                         ((cpu->A == cpu->data) << qe6502_flagpos_Z) |
-                        ((cpu->A - cpu->data) & qe6502_flag_N));
+                        ((cpu->A - cpu->data) & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -829,9 +833,10 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CPX( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         (cpu->X >= cpu->data) |
                             ((cpu->X == cpu->data) << qe6502_flagpos_Z) |
-                            ((cpu->X - cpu->data) & qe6502_flag_N));
+                            ((cpu->X - cpu->data) & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -859,9 +864,10 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CPY( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             (cpu->Y >= cpu->data) |
                             ((cpu->Y == cpu->data) << qe6502_flagpos_Z) |
-                            ((cpu->Y - cpu->data) & qe6502_flag_N));
+                            ((cpu->Y - cpu->data) & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -893,8 +899,9 @@ cmos_instr_DEC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->data--;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->data) << qe6502_flagpos_Z) |
-                            (cpu->data & qe6502_flag_N));
+                            (cpu->data & qe6502_flag_N)));
 
     request_write(cpu, cpu->address, OFFSETOF(data));
     return resume_to(cmos_fetch_opcode);
@@ -905,8 +912,9 @@ cmos_instr_DEC_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->A--;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         ((0 == cpu->A) << qe6502_flagpos_Z) |
-                        (cpu->A & qe6502_flag_N));
+                        (cpu->A & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -930,8 +938,9 @@ cmos_instr_DEX( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->X--;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->X) << qe6502_flagpos_Z) |
-                            (cpu->X & qe6502_flag_N));
+                            (cpu->X & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -955,8 +964,9 @@ cmos_instr_DEY( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->Y--;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->Y) << qe6502_flagpos_Z) |
-                            (cpu->Y & qe6502_flag_N));
+                            (cpu->Y & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -1001,8 +1011,9 @@ cmos_instr_EOR( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->A ^= cpu->data;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->A) << qe6502_flagpos_Z) |
-                            (cpu->A & qe6502_flag_N));
+                            (cpu->A & qe6502_flag_N)));
 
     return jump_to(cpu,  cmos_fetch_opcode);
 }
@@ -1034,8 +1045,9 @@ cmos_instr_INC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->data++;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->data) << qe6502_flagpos_Z) |
-                            (cpu->data & qe6502_flag_N));
+                            (cpu->data & qe6502_flag_N)));
 
     request_write(cpu, cpu->address, OFFSETOF(data));
     return resume_to(cmos_fetch_opcode);
@@ -1046,8 +1058,9 @@ cmos_instr_INC_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->A++;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         ((0 == cpu->A) << qe6502_flagpos_Z) |
-                        (cpu->A & qe6502_flag_N));
+                        (cpu->A & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -1071,8 +1084,9 @@ cmos_instr_INX( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->X++;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->X) << qe6502_flagpos_Z) |
-                            (cpu->X & qe6502_flag_N));
+                            (cpu->X & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -1096,8 +1110,9 @@ cmos_instr_INY( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->Y++;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->Y) << qe6502_flagpos_Z) |
-                            (cpu->Y & qe6502_flag_N));
+                            (cpu->Y & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -1229,8 +1244,9 @@ cmos_instr_LDA( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->A = cpu->data;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->A) << qe6502_flagpos_Z) |
-                            (cpu->A & qe6502_flag_N));
+                            (cpu->A & qe6502_flag_N)));
     return jump_to(cpu,  cmos_fetch_opcode);
 }
 
@@ -1264,8 +1280,9 @@ cmos_instr_LDX( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->X = cpu->data;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->X) << qe6502_flagpos_Z) |
-                            (cpu->X & qe6502_flag_N));
+                            (cpu->X & qe6502_flag_N)));
 
     return jump_to(cpu,  cmos_fetch_opcode);
 }
@@ -1300,8 +1317,9 @@ cmos_instr_LDY( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->Y = cpu->data;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->Y) << qe6502_flagpos_Z) |
-                            (cpu->Y & qe6502_flag_N));
+                            (cpu->Y & qe6502_flag_N)));
     return jump_to(cpu,  cmos_fetch_opcode);
 }
 
@@ -1336,9 +1354,10 @@ cmos_instr_LSR( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint8_t carry = cpu->data & 1;
     cpu->data >>= 1;
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             carry |
                             ((0 == cpu->data) << qe6502_flagpos_Z) |
-                            (cpu->data & qe6502_flag_N));
+                            (cpu->data & qe6502_flag_N)));
 
     request_write(cpu, cpu->address, OFFSETOF(data));
     return resume_to(cmos_fetch_opcode);
@@ -1350,9 +1369,10 @@ cmos_instr_LSR_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint8_t carry = cpu->A & 1;
     cpu->A >>= 1;
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             carry |
                             ((0 == cpu->A) << qe6502_flagpos_Z) |
-                            (cpu->A & qe6502_flag_N));
+                            (cpu->A & qe6502_flag_N)));
 
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
@@ -1378,7 +1398,7 @@ cmos_instr_NOP( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
 }
 
-const static uint8_t illegal_nop_lsb[16] = {
+static const uint8_t illegal_nop_lsb[16] = {
     //  x0    x1  x2   x3  x4  x5   x6  x7   x8   x9  xA   xB  xC  xD   xE  xF
     255, 255,  0,  1,  2, 255, 255,  3, 255, 255, 255, 4,  5, 255, 255, 6
 };
@@ -1389,7 +1409,7 @@ const static uint8_t illegal_nop_lsb[16] = {
 // For each entry in the table, the first number is the size in bytes
 // and the second number is the number of cycles taken.
 // After the second number, a lower-case letter may be present, indicating a footnote.
-const static uint8_t illegal_nop_table[16][7][3] = {
+static const uint8_t illegal_nop_table[16][7][3] = {
     // http://www.6502.org/tutorials/65c02opcodes.html
     //         x2:           x3:          x4:         x7:         xB:         xC:         xF:
     //       -----          -----        -----       -----       -----       -----       -----
@@ -1472,12 +1492,12 @@ cmos_instr_ILLEGAL_NOP_st_xXf( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     if (cpu->model == qe6502_st)
     {
-        if (0b00011111 == (cpu->opcode & 0b00011111)) // $1f,$3f,$5f...$ff
+        if (0x1f == (cpu->opcode & 0x1f)) // $1f,$3f,$5f...$ff
         {
             request_read_dummy(cpu, (qe_word_t){.u16=cpu->PC.u16-1},  OFFSETOF(data));
             return resume_to_dummy_read(cpu, cmos_fetch_opcode );
         }
-        else if (0b00001111 == (cpu->opcode & 0b00001111)) // $0f,$2f,$4f,...$ef
+        else if (0x0f == (cpu->opcode & 0x0f)) // $0f,$2f,$4f,...$ef
         {
             return jump_to( cpu, cmos_fetch_opcode );
         }
@@ -1550,8 +1570,9 @@ cmos_instr_ORA( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->A |= cpu->data;
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                            QE_U8(
                             ((0 == cpu->A) << qe6502_flagpos_Z) |
-                            (cpu->A & qe6502_flag_N));
+                            (cpu->A & qe6502_flag_N)));
 
     return jump_to(cpu,  cmos_fetch_opcode);
 }
@@ -1660,8 +1681,9 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_PLA_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         ((0 == cpu->A) << qe6502_flagpos_Z) |
-                        (cpu->A & qe6502_flag_N));
+                        (cpu->A & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -2430,8 +2452,9 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_PLX_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         ((0 == cpu->X) << qe6502_flagpos_Z) |
-                        (cpu->X & qe6502_flag_N));
+                        (cpu->X & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -2479,8 +2502,9 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_PLY_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     update_flags(cpu, qe6502_flag_Z | qe6502_flag_N,
+                        QE_U8(
                         ((0 == cpu->Y) << qe6502_flagpos_Z) |
-                        (cpu->Y & qe6502_flag_N));
+                        (cpu->Y & qe6502_flag_N)));
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -2592,7 +2616,7 @@ cmos_instr_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (bit < 8)
     {
         // RMB
-        cpu->data &= ~(1 << bit);
+        cpu->data &= ~QE_U8(1 << bit);
     }
     else
     {
@@ -2770,7 +2794,7 @@ cmos_pre_r_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_r_absolute_x_3);
 }
@@ -2781,7 +2805,7 @@ cmos_pre_r_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (cpu->pagecross_overflow)
     {
         request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
-        cpu->address.u8_msb += cpu->pagecross_overflow;
+        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
         cpu->PC.u16++;
         return resume_to_dummy_read(cpu, cmos_pre_r_absolute_x_4 );
     }
@@ -2830,7 +2854,7 @@ cmos_pre_rw_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_rw_absolute_x_3);
 }
@@ -2840,7 +2864,7 @@ cmos_pre_rw_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
 
-    cpu->address.u8_msb += cpu->pagecross_overflow;
+    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
     cpu->PC.u16++;
 
     return resume_to_dummy_read(cpu, cmos_pre_rw_absolute_x_4 );
@@ -2881,7 +2905,7 @@ cmos_pre_rw_absolute_x_short_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_rw_absolute_x_short_3);
 }
@@ -2892,7 +2916,7 @@ cmos_pre_rw_absolute_x_short_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (cpu->pagecross_overflow)
     {
         request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
-        cpu->address.u8_msb += cpu->pagecross_overflow;
+        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
         cpu->PC.u16++;
         return resume_to_dummy_read(cpu, cmos_pre_rw_absolute_x_short_4 );
     }
@@ -2942,7 +2966,7 @@ cmos_pre_w_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_w_absolute_x_3);
 }
@@ -2952,7 +2976,7 @@ cmos_pre_w_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
 
-    cpu->address.u8_msb += cpu->pagecross_overflow;
+    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
     cpu->PC.u16++;
 
     return resume_to_dummy_read(cpu, cpu->instr );
@@ -2987,7 +3011,7 @@ cmos_pre_r_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_r_absolute_y_3);
 }
@@ -2999,7 +3023,7 @@ cmos_pre_r_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (cpu->pagecross_overflow)
     {
         request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
-        cpu->address.u8_msb += cpu->pagecross_overflow;
+        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
         cpu->PC.u16++;
         return resume_to_dummy_read(cpu, cmos_pre_r_absolute_y_4 );
     }
@@ -3048,7 +3072,7 @@ cmos_pre_rw_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_rw_absolute_y_3);
 }
@@ -3058,7 +3082,7 @@ cmos_pre_rw_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_msb += cpu->pagecross_overflow;
+    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
 
     return resume_to_dummy_read(cpu, cmos_pre_rw_absolute_y_4 );
 }
@@ -3104,7 +3128,7 @@ cmos_pre_w_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_w_absolute_y_3);
 }
@@ -3114,7 +3138,7 @@ cmos_pre_w_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
 
-    cpu->address.u8_msb += cpu->pagecross_overflow;
+    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
     cpu->PC.u16++;
 
     return resume_to_dummy_read(cpu, cpu->instr );
@@ -3282,7 +3306,7 @@ cmos_pre_r_indexed_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_msb));
 
@@ -3294,7 +3318,7 @@ cmos_pre_r_indexed_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     if (cpu->pagecross_overflow)
     {
-        cpu->address.u8_msb += cpu->pagecross_overflow;
+        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
         request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
         cpu->PC.u16++;
         return resume_to_dummy_read(cpu, cmos_pre_r_indexed_y_5 );
@@ -3350,7 +3374,7 @@ cmos_pre_w_indexed_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     cpu->address.u8_msb = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = cpu->address.u8_msb;
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
 
     return resume_to(cmos_pre_w_indexed_y_4);
 }
@@ -3360,7 +3384,7 @@ cmos_pre_w_indexed_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
 
-    cpu->address.u8_msb += cpu->pagecross_overflow;
+    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
     cpu->PC.u16++;
 
     return resume_to_dummy_read(cpu, cpu->instr );
@@ -3418,7 +3442,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_jmp_indirect_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->pointer, OFFSETOF(address.u8_msb));
-    cpu->pointer.u8_msb += cpu->pagecross_overflow;
+    cpu->pointer.u8_msb = QE_U8(cpu->pointer.u8_msb + cpu->pagecross_overflow);
     return resume_to(cmos_pre_jmp_indirect_5);
 }
 
@@ -3553,12 +3577,12 @@ cmos_pre_rw_zeropage_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     if (cpu->model == qe6502_st)
     {
-        if (0b00010111 == (cpu->opcode & 0b00010111)) // $17,$37,$57...$f7
+        if (0x17 == (cpu->opcode & 0x17)) // $17,$37,$57...$f7
         {
             // RMB
             return jump_to(cpu, cmos_pre_r_zeropage_x);
         }
-        else if (0b00000111 == (cpu->opcode & 0b00000111)) // $07,$27,$47...$e7
+        else if (0x07 == (cpu->opcode & 0x07)) // $07,$27,$47...$e7
         {
             return jump_to(cpu, cmos_pre_r_zeropage);
         }
@@ -3749,56 +3773,6 @@ cmos_pre_r_zeropage_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
  *
  *  Mode:  ZeroPage_Y
  *
- *  Class: ReaderWriter
- *
- ********************************************************/
-
-INSTR_FW_DECL( cmos_pre_rw_zeropage_y_2 );
-INSTR_FW_DECL( cmos_pre_rw_zeropage_y_3 );
-INSTR_FW_DECL( cmos_pre_rw_zeropage_y_4 );
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
-
-    cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
-
-    return resume_to(cmos_pre_rw_zeropage_y_2);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read_dummy(cpu, cpu->address, OFFSETOF(data));
-
-    cpu->address.u8_lsb += cpu->Y;
-
-    return resume_to_dummy_read(cpu, cmos_pre_rw_zeropage_y_3);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_zeropage_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_read(cpu, cpu->address, OFFSETOF(data));
-
-    return resume_to(cmos_pre_rw_zeropage_y_4);
-}
-
-INSTR_RETTYPE qe6502_cycle_t
-cmos_pre_rw_zeropage_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    request_write_dummy(cpu, cpu->address, OFFSETOF(data));
-
-
-    return resume_to_dummy_write(cpu, cpu->instr);
-}
-
-/********************************************************
- *
- *  Mode:  ZeroPage_Y
- *
  *  Class: Writer
  *
  ********************************************************/
@@ -3882,7 +3856,6 @@ cmos_pre_r_indirect_zp_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
 INSTR_FW_DECL( cmos_pre_w_indirect_zp_2 );
 INSTR_FW_DECL( cmos_pre_w_indirect_zp_3 );
-INSTR_FW_DECL( cmos_pre_w_indirect_zp_4 );
 
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_w_indirect_zp( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
@@ -3936,7 +3909,6 @@ cmos_pre_w_indirect_zp_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_FW_DECL( cmos_pre_rw_bbr_zeropage_relative_2 );
 INSTR_FW_DECL( cmos_pre_rw_bbr_zeropage_relative_3 );
 INSTR_FW_DECL( cmos_pre_rw_bbr_zeropage_relative_4 );
-INSTR_FW_DECL( cmos_pre_rw_bbr_zeropage_relative_5 );
 
 INSTR_FW_DECL(cmos_pre_rw_bbr_bbs_zeropage_relative_6);
 INSTR_FW_DECL(cmos_pre_rw_bbr_bbs_zeropage_relative_7);
@@ -3989,7 +3961,6 @@ cmos_pre_rw_bbr_zeropage_relative_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_FW_DECL( cmos_pre_rw_bbs_zeropage_relative_2 );
 INSTR_FW_DECL( cmos_pre_rw_bbs_zeropage_relative_3 );
 INSTR_FW_DECL( cmos_pre_rw_bbs_zeropage_relative_4 );
-INSTR_FW_DECL( cmos_pre_rw_bbs_zeropage_relative_5 );
 
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_rw_bbs_zeropage_relative( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
@@ -4040,7 +4011,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_rw_bbr_bbs_zeropage_relative_6( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
-    cpu->pointer.u16 = cpu->PC.u16 + cpu->address.i8_lsb;
+    cpu->pointer.u16 = QE_U16(cpu->PC.u16 + cpu->address.i8_lsb);
     if (cpu->pointer.u8_msb == cpu->PC.u8_msb)
     {
         // no page crossing

@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#if !(defined(QE_ENABLE_DEBUG_LOG))
+    #define QE_ENABLE_DEBUG_LOG 0
+#endif
 
 #if defined(_MSC_VER)
     #define QE_LITTLE_ENDIAN 1
@@ -73,6 +76,15 @@ typedef uint8_t qe_bool;
 static const uint8_t qe_false = 0;
 static const uint8_t qe_true = 1;
 
+#define QE_U8(x) ((uint8_t)(x))
+#define QE_S8(x) ((int8_t)(x))
+#define QE_U16(x) ((uint16_t)(x))
+#define QE_S16(x) ((int16_t)(x))
+#define QE_U32(x) ((uint32_t)(x))
+#define QE_S32(x) ((int32_t)(x))
+#define QE_F32(x) ((float)(x))
+
+
 typedef union
 {
     uint16_t u16;
@@ -136,7 +148,7 @@ typedef union
 #if (QE_ENABLE_DEBUG_LOG == 1)
     QE_API void qe_log(const char* topic, const char *fmt, ...);
 #else
-     #define qe_log(topic, fmt, ...)
+    QE_SIC void qe_log(const char* topic, const char *fmt, ...){(void)topic;(void)fmt;}
 #endif // QE_ENABLE_LOG
 
 #define QE_ARRAY_SIZE(arr) ( sizeof(arr) / sizeof((arr)[0]) )

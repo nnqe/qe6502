@@ -21,6 +21,7 @@
 QE_SIC
 void kbd_init(qeaii_t* pc, qeaii_bootstrap_t* bootstrap)
 {
+    (void)bootstrap;
     pc->kbd.key = 0;
     pc->kbd.key_register = 0;
 }
@@ -144,10 +145,10 @@ uint8_t video_softswitch_read(qeaii_t* pc, uint8_t softswitch)
 {
     switch (softswitch)
     {
-    case 0x1a: return (pc->video.is_text?1:0)  << 7;
-    case 0x1b: return (pc->video.is_mixed?1:0) << 7;
-    case 0x1c: return (pc->video.is_page2?1:0) << 7;
-    case 0x1d: return (pc->video.is_hires?1:0) << 7;
+    case 0x1a: return QE_U8( (pc->video.is_text?1:0)  << 7 );
+    case 0x1b: return QE_U8( (pc->video.is_mixed?1:0) << 7 );
+    case 0x1c: return QE_U8( (pc->video.is_page2?1:0) << 7 );
+    case 0x1d: return QE_U8( (pc->video.is_hires?1:0) << 7 );
     default: return (video_softswitch_write(pc, softswitch), 0);
     }
     return 0;
@@ -170,7 +171,9 @@ void video_clock(qeaii_t* pc)
                 uint8_t symbol = bus->memory.data[ video->offsets.lsw.u16 ];
                 uint8_t symbol_line = video->line % 8;
                 uint8_t bitmap_idx = symbol % 64;
-                if (((symbol & 0b11000000) == 0b01000000) && video->blink)
+
+                    // 0b11000000     0b01000000
+                if (((symbol & 0xC0) == 0x40) && video->blink)
                 {
                     symbol ^= 0x80;
                 }
@@ -195,7 +198,7 @@ void video_clock(qeaii_t* pc)
             {
                 // draw lores
                 uint8_t code = bus->memory.data[ video->offsets.lsw.u16 ];
-                if (video->line & 0b00001100)
+                if (video->line & 0xC) //0b00001100
                 {
                     code >>= 4;
                 }
@@ -257,6 +260,7 @@ qeaii_speaker_frame(qeaii_t* pc)
 QE_SIC
 void speaker_init(qeaii_t* pc, qeaii_bootstrap_t* bootstrap)
 {
+    (void)bootstrap;
     QE_CLEAR_OBJ(pc->speaker);
 }
 
@@ -267,7 +271,7 @@ void speaker_io(qeaii_t* pc)
     if (frame->tick_count < QE_ARRAY_SIZE(frame->ticks))
     {
         pc->speaker.last_value = !pc->speaker.last_value;
-        frame->ticks[frame->tick_count] = pc->cycle_counter - frame->start_cycle;
+        frame->ticks[frame->tick_count] = QE_U32(pc->cycle_counter - frame->start_cycle);
         frame->tick_count++;
     }
 }
@@ -305,10 +309,10 @@ QE_SIC
 void driveII_phase_on(qeaii_drive_state_t* drive, uint8_t phase)
 {
     drive->phases[phase] = qe_true;
-    uint8_t direction = (phase - drive->phase + 4) % 4;
+    uint8_t direction = QE_U8( (phase - drive->phase + 4) % 4 );
     if (direction == 1)
     {
-        drive->phase = (drive->phase + 1) % 4;
+        drive->phase = QE_U8( (drive->phase + 1) % 4 );
         if ((drive->phase & 1) == 0 && drive->track < qeaii_disk_tracks - 1)
         {
             drive->track++;
@@ -316,7 +320,7 @@ void driveII_phase_on(qeaii_drive_state_t* drive, uint8_t phase)
     }
     else if (direction == 3)
     {
-        drive->phase = (drive->phase + 3) % 4;
+        drive->phase = QE_U8( (drive->phase + 3) % 4 );
         if ((drive->phase & 1) && drive->track > 0)
         {
             drive->track--;
@@ -336,7 +340,7 @@ uint8_t driveII_latch_event(qeaii_drive_state_t* drive, uint8_t data, qe_bool sw
         if (!sw_reading && !drive->diskette.readonly) // switch not reading (switch writing)
         {
             drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos] = data;
-            drive->track_pos = (drive->track_pos + 1) % qeaii_disk_track_size;
+            drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
             drive->diskette.changed = qe_true;
         }
         return 0x0;
@@ -355,7 +359,7 @@ uint8_t driveII_latch_event(qeaii_drive_state_t* drive, uint8_t data, qe_bool sw
             return 0x0;
         }
         uint8_t latch = drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos];
-        drive->track_pos = (drive->track_pos + 1) % qeaii_disk_track_size;
+        drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
         return latch;
     }
 }
@@ -604,7 +608,7 @@ uint32_t qeaii_run_instructions(qeaii_t* pc, uint16_t max_instructions)
             pc->cpu.merged = 0;
         #endif
     }
-    return pc->cycle_counter - initial_cycle;
+    return QE_U32(pc->cycle_counter - initial_cycle);
 }
 
 QE_API_IMPL
@@ -652,7 +656,7 @@ uint32_t qeaii_run_instructions_ex(qeaii_t* pc, uint16_t max_instructions)
             #endif
         }
     }
-    return pc->cycle_counter - initial_cycle;
+    return QE_U32(pc->cycle_counter - initial_cycle);
 }
 
 #if(QE6502_ENABLE_CYCLE_MERGE != 1)

@@ -82,7 +82,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t ticks[512];
+    uint32_t ticks[256];
     uint64_t start_cycle;
     uint64_t end_cycle;
     uint16_t tick_count;

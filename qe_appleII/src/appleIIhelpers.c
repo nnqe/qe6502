@@ -5,10 +5,10 @@ static const uint64_t nanos_per_65536_clocks = 64079653ULL;
 QE_API_IMPL
 void qeaii_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
 {
-    for(unsigned i = 0; i < qeaii_width * qeaii_height / qeaii_pixels_per_clock; i++)
+    for(unsigned byte = 0; byte < qeaii_width * qeaii_height / qeaii_pixels_per_clock; byte++)
     {
-        uint8_t pixels = frame->bitmap[i];
-        for(int i = 0; i < 7; i++)
+        uint8_t pixels = frame->bitmap[byte];
+        for(int pixel = 0; pixel < 7; pixel++)
         {
             if (pixels & 1)
             {
@@ -29,25 +29,21 @@ void qeaii_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
 
 QE_API_IMPL
 void qeaii_to_audio_samples(const qeaii_speaker_frame_t* frame,
-                                    int16_t* output, unsigned output_size)
+                                    int16_t* output, uint32_t output_size)
 {
-    float cycles = frame->end_cycle - frame->start_cycle + 1.0;
+    float cycles = QE_F32(frame->end_cycle - frame->start_cycle) + 1.0f;
     float samples_per_cycle = (float)(output_size) / (float)(cycles);
 
     uint8_t speaker = frame->speaker_state > 0 ? 0 : 255;
-    unsigned tick = 0;
-    unsigned next = output_size;
+    uint32_t tick = 0;
+    uint32_t next = output_size;
     float next_coeff = 0.0;
-    if (frame->tick_count > 0)
-    {
-        int asd = 34;
-    }
 
     if (tick < frame->tick_count)
     {
         next_coeff = (float)(frame->ticks[tick]) * samples_per_cycle;
-        next = next_coeff;
-        next_coeff = next + 1 - next_coeff;
+        next = QE_U32(next_coeff);
+        next_coeff = QE_F32(next + 1) - next_coeff;
     }
     for(unsigned i = 0; i < output_size; i++)
     {
@@ -64,20 +60,20 @@ void qeaii_to_audio_samples(const qeaii_speaker_frame_t* frame,
                 {
                     // decrease
                     speaker = 0;
-                    output[i] -= (float)(output[i]) * next_coeff;
+                    output[i] -= QE_S16(QE_F32(output[i]) * next_coeff);
                 }
                 else
                 {
                     // increase
                     speaker = 255;
-                    output[i] += (float)(255 - output[i]) * next_coeff;
+                    output[i] += QE_S16(QE_F32(255 - output[i]) * next_coeff);
                 }
                 tick++;
                 if (tick < frame->tick_count)
                 {
                     next_coeff = (float)(frame->ticks[tick]) * samples_per_cycle;
-                    next = next_coeff;
-                    next_coeff = next + 1 - next_coeff;
+                    next = QE_U32(next_coeff);
+                    next_coeff = QE_F32(next + 1) - next_coeff;
                 }
                 else
                 {

@@ -51,6 +51,9 @@ void qe6502_version(uint16_t* version,
 //        those tests expect to observe.
 // ------------------------------------------------------------------------
 
+#if !(defined(QE6502_ENABLE_CYCLE_MERGE))
+    #define QE6502_ENABLE_CYCLE_MERGE 0
+#endif
 
 typedef struct qe6502_cycle_t qe6502_cycle_t;
 struct qe6502;
@@ -147,13 +150,13 @@ static const uint8_t qe6502_err_logic_error     = (1 << 3);
 static const uint8_t qe6502_err_unknown_model  = (1 << 4);
 
 #if (QE6502_ENABLE_NMOS_6502 == 1)
-    const static uint8_t qe6502_mos = 0;
-    const static uint8_t qe6502_nes = 1;
+    static const uint8_t qe6502_mos = 0;
+    static const uint8_t qe6502_nes = 1;
 #endif
 #if (QE6502_ENABLE_CMOS_65C02 == 1)
-    const static uint8_t qe6502_wdc = 2;
-    const static uint8_t qe6502_rw = 3;
-    const static uint8_t qe6502_st = 4;
+    static const uint8_t qe6502_wdc = 2;
+    static const uint8_t qe6502_rw = 3;
+    static const uint8_t qe6502_st = 4;
 #endif
 
 static const uint8_t qe6502_flagpos_C = 0;

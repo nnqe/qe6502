@@ -48,5 +48,16 @@ target_compile_definitions(${target}
         $<$<BOOL:${QE6502_ENABLE_CMOS_65C02}>:QE6502_ENABLE_CMOS_65C02>
 )
 
+if(MSVC)
+    target_compile_options(${target} PRIVATE /W4 /WX /we4505)
+else()
+    target_compile_options(${target} PRIVATE
+        -Wall -Wextra -Wpedantic -Werror
+        -Wconversion -Wsign-conversion -Wshadow
+        -Wdouble-promotion -Wformat=2 -Wundef
+        -Wunused-function -Werror=unused-function
+    )
+endif()
+
 # Set C standard
 target_compile_features(${target} PUBLIC c_std_99)

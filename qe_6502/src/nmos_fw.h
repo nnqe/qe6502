@@ -80,9 +80,6 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 
 INSTR_RETTYPE qe6502_cycle_t
-nmos_pre_rw_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-
-INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 
 INSTR_RETTYPE qe6502_cycle_t  //

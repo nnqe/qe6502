@@ -98,12 +98,6 @@ power_on_impl( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     QE_UNREACHABLE();
 }
-
-static int my_new_func()
-{
-  return 3434;
-}
-
 QE_API_IMPL qe6502_cycle_t
 qe6502_power_on(qe6502_t* cpu, uint8_t model)
 {
