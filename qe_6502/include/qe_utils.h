@@ -55,6 +55,15 @@
     #endif
 #endif
 
+#define QE_MAYBE_UNUSED(sym)                                \
+    QE_SIC void qeqe_##sym##___unused_unused(void);         \
+    QE_SIC void qeqe_##sym##___unused_implement(void) {     \
+        qeqe_##sym##___unused_unused(); (void)&sym;         \
+    }                                                       \
+    QE_SIC void qeqe_##sym##___unused_unused(void) {        \
+        qeqe_##sym##___unused_implement();                  \
+    }
+
 #define QE_API QE_EXTERN_C
 #define QE_API_IMPL
 
@@ -73,8 +82,12 @@
 #define QE_NULL ((void*)0)
 
 typedef uint8_t qe_bool;
+
 static const uint8_t qe_false = 0;
+QE_MAYBE_UNUSED(qe_false);
+
 static const uint8_t qe_true = 1;
+QE_MAYBE_UNUSED(qe_true);
 
 #define QE_U8(x) ((uint8_t)(x))
 #define QE_S8(x) ((int8_t)(x))
@@ -83,7 +96,6 @@ static const uint8_t qe_true = 1;
 #define QE_U32(x) ((uint32_t)(x))
 #define QE_S32(x) ((int32_t)(x))
 #define QE_F32(x) ((float)(x))
-
 
 typedef union
 {
@@ -148,7 +160,7 @@ typedef union
 #if (QE_ENABLE_DEBUG_LOG == 1)
     QE_API void qe_log(const char* topic, const char *fmt, ...);
 #else
-    QE_SIC void qe_log(const char* topic, const char *fmt, ...){(void)topic;(void)fmt;}
+    #define qe_log(...)
 #endif // QE_ENABLE_LOG
 
 #define QE_ARRAY_SIZE(arr) ( sizeof(arr) / sizeof((arr)[0]) )
@@ -157,11 +169,13 @@ QE_SIC void qe_memset(void* dst, uint8_t value, size_t count)
 {
     memset(dst, value, count);
 }
+QE_MAYBE_UNUSED(qe_memset);
 
 QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t count)
 {
     memcpy(dst, src, count);
 }
+QE_MAYBE_UNUSED(qe_memcpy);
 
 #define QE_CLEAR_OBJ(obj) qe_memset(&(obj), 0, sizeof(obj));
 #define QE_COPY_OBJ(dst, src) qe_memcpy(&(dst), &(src), sizeof(dst));

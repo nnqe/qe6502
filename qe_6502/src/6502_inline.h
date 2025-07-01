@@ -28,6 +28,7 @@ qe6502_cycle_t resume_to_dummy_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe650
         return (qe6502_cycle_t){ .execute = handler };
     #endif
 }
+QE_MAYBE_UNUSED(resume_to_dummy_read);
 
 QE_SIC
 qe6502_cycle_t resume_to_dummy_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_fn handler)
@@ -40,6 +41,7 @@ qe6502_cycle_t resume_to_dummy_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe65
         return (qe6502_cycle_t){ .execute = handler };
     #endif
 }
+QE_MAYBE_UNUSED(resume_to_dummy_write);
 
 QE_SIC
 qe6502_cycle_t jump_to( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_fn handler)
@@ -52,12 +54,14 @@ QE_SIC void request_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_a
     cpu->cmd.packed = read_address.u16 |
                       (store_offs << 16);
 }
+QE_MAYBE_UNUSED(request_read);
 
 QE_SIC void request_stack_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t store_offs)
 {
     cpu->cmd.packed = ((1 << 8) | stack_address) |
                       (store_offs << 16);
 }
+QE_MAYBE_UNUSED(request_stack_read);
 
 QE_SIC void request_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
 {
@@ -65,6 +69,7 @@ QE_SIC void request_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write
                         (get_offset << 16) |
                         writing_packed_cmd;
 }
+QE_MAYBE_UNUSED(request_write);
 
 QE_SIC void request_stack_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t get_offset)
 {
@@ -72,22 +77,29 @@ QE_SIC void request_stack_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t s
                         (get_offset << 16) |
                         writing_packed_cmd;
 }
+QE_MAYBE_UNUSED(request_stack_write);
 
 QE_SIC void request_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_address, uint8_t store_offs)
 {
     #if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed = read_address.u16 |
                           (store_offs << 16);
+    #else
+        (void)cpu; (void)read_address; (void)store_offs;
     #endif
 }
+QE_MAYBE_UNUSED(request_read_dummy);
 
 QE_SIC void request_stack_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t store_offs)
 {
     #if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed = ((1 << 8) | stack_address) |
                           (store_offs << 16);
+    #else
+        (void)cpu; (void)stack_address; (void)store_offs;
     #endif
 }
+QE_MAYBE_UNUSED(request_stack_read_dummy);
 
 QE_SIC void request_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
 {
@@ -95,8 +107,11 @@ QE_SIC void request_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t
         cpu->cmd.packed =    write_address.u16 |
                             (get_offset << 16) |
                             writing_packed_cmd;
+    #else
+        (void)cpu; (void)write_address; (void)get_offset;
     #endif
 }
+QE_MAYBE_UNUSED(request_write_dummy);
 
 QE_SIC void request_stack_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t get_offset)
 {
@@ -104,13 +119,17 @@ QE_SIC void request_stack_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uin
         cpu->cmd.packed =   ((1 << 8) | stack_address) |
                             (get_offset << 16) |
                             writing_packed_cmd;
+    #else
+        (void)cpu; (void)stack_address; (void)get_offset;
     #endif
 }
+QE_MAYBE_UNUSED(request_stack_write_dummy);
 
 QE_SIC void update_flags( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t mask, uint8_t values)
 {
     cpu->P = ( cpu->P & (~ mask) ) | ( values );
 }
+QE_MAYBE_UNUSED(update_flags);
 
 INSTR_RETTYPE qe6502_cycle_t
 halt( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
@@ -126,6 +145,7 @@ qe6502_cycle_t cpu_error( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t error_co
     cpu->error_code = ( error_code );
     return jump_to(cpu, halt);
 }
+QE_MAYBE_UNUSED(cpu_error);
 
 #endif // QE_6502_INLINE_H__
 

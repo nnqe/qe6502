@@ -5,7 +5,7 @@ static const uint64_t nanos_per_65536_clocks = 64079653ULL;
 QE_API_IMPL
 void qeaii_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
 {
-    for(unsigned byte = 0; byte < qeaii_width * qeaii_height / qeaii_pixels_per_clock; byte++)
+    for(int byte = 0; byte < qeaii_width * qeaii_height / qeaii_pixels_per_clock; byte++)
     {
         uint8_t pixels = frame->bitmap[byte];
         for(int pixel = 0; pixel < 7; pixel++)

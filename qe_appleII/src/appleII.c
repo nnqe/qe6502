@@ -149,9 +149,9 @@ uint8_t video_softswitch_read(qeaii_t* pc, uint8_t softswitch)
     case 0x1b: return QE_U8( (pc->video.is_mixed?1:0) << 7 );
     case 0x1c: return QE_U8( (pc->video.is_page2?1:0) << 7 );
     case 0x1d: return QE_U8( (pc->video.is_hires?1:0) << 7 );
-    default: return (video_softswitch_write(pc, softswitch), 0);
+    default: break;
     }
-    return 0;
+    return (video_softswitch_write(pc, softswitch), 0);
 }
 
 QE_SIC
@@ -531,6 +531,7 @@ void cpu_clock(qeaii_t *pc)
 {
     pc->cycle = pc->cycle.execute(&pc->cpu);
     pc->cycle_counter++;
+    pc->cycle_counter += pc->cpu.merged;
     if (!qe6502_ok(&pc->cpu))
     {
         pc->stop_flags |= qeaii_flag_cpu_error;
@@ -575,67 +576,40 @@ qe_bool qeaii_pc_ok(qeaii_t* pc)
 }
 
 QE_API_IMPL
-uint32_t qeaii_run_instructions(qeaii_t* pc, uint16_t max_instructions)
+uint32_t qeaii_run(qeaii_t *pc, uint32_t requested_cycles)
 {
     if (!pc->is_ok)
     {
         return 0;
     }
-    int32_t instructions_left = max_instructions;
-    uint64_t initial_cycle = pc->cycle_counter;
+    uint64_t target_cycles = pc->cycle_counter + requested_cycles;
     pc->stop_flags = 0;
     cpu_handle_nmi(pc);
-    pc->video.blink = initial_cycle & ( 1 << 19 ) ? 1 : 0;
+    pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
 
-    while(qe_true)
+    while((pc->cycle_counter < target_cycles) && (!pc->stop_flags))
     {
-        if (qe6502_instr_done(&pc->cpu))
-        {
-            instructions_left--;
-            if ((instructions_left <= 0) || (pc->stop_flags))
-            {
-                // If we're not currently executing an instruction
-                // and either there are no instructions left or a stop flag is set
-                break;
-            }
-        }
-
         video_clock(pc);
         bus_clock(pc);
         cpu_clock(pc);
-        #if(QE6502_ENABLE_CYCLE_MERGE == 1)
-            pc->cycle_counter += pc->cpu.merged;
-            pc->cpu.merged = 0;
-        #endif
     }
-    return QE_U32(pc->cycle_counter - initial_cycle);
+    return QE_U32(pc->cycle_counter - requested_cycles);
 }
 
 QE_API_IMPL
-uint32_t qeaii_run_instructions_ex(qeaii_t* pc, uint16_t max_instructions)
+uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t requested_cycles)
 {
     if (!pc->is_ok)
     {
         return 0;
     }
-    int32_t instructions_left = max_instructions;
-    uint64_t initial_cycle = pc->cycle_counter;
+    uint64_t target_cycles = pc->cycle_counter + requested_cycles;
     pc->stop_flags = 0;
     cpu_handle_nmi(pc);
-    pc->video.blink = initial_cycle & ( 1 << 19 ) ? 1 : 0;
+    pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
 
-    while(qe_true)
+    while((pc->cycle_counter < target_cycles) && (!pc->stop_flags))
     {
-        if (qe6502_instr_done(&pc->cpu))
-        {
-            instructions_left--;
-            if ((instructions_left <= 0) || (pc->stop_flags))
-            {
-                // If we're not currently executing an instruction
-                // and either there are no instructions left or a stop flag is set
-                break;
-            }
-        }
         if (QE_NULL == pc->ex_video_handler ||
             qe_false == pc->ex_video_handler(pc))
         {
@@ -650,74 +624,10 @@ uint32_t qeaii_run_instructions_ex(qeaii_t* pc, uint16_t max_instructions)
             qe_false == pc->ex_cpu_handler(pc))
         {
             cpu_clock(pc);
-            #if(QE6502_ENABLE_CYCLE_MERGE == 1)
-                pc->cycle_counter += pc->cpu.merged;
-                pc->cpu.merged = 0;
-            #endif
         }
     }
-    return QE_U32(pc->cycle_counter - initial_cycle);
+    return QE_U32(pc->cycle_counter - requested_cycles);
 }
-
-#if(QE6502_ENABLE_CYCLE_MERGE != 1)
-
-    QE_API_IMPL
-    uint32_t qeaii_run(qeaii_t *pc, uint32_t max_cycles)
-    {
-        if (!pc->is_ok)
-        {
-            return 0;
-        }
-        uint32_t cycles_left = max_cycles;
-        pc->stop_flags = 0;
-        cpu_handle_nmi(pc);
-        pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
-
-        while(cycles_left && (!pc->stop_flags))
-        {
-            video_clock(pc);
-            bus_clock(pc);
-            cpu_clock(pc);
-            cycles_left--;
-        }
-        return cycles_left;
-    }
-
-    QE_API_IMPL
-    uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t max_cycles)
-    {
-        if (!pc->is_ok)
-        {
-            return 0;
-        }
-        uint32_t cycles_left = max_cycles;
-        pc->stop_flags = 0;
-        cpu_handle_nmi(pc);
-        pc->video.blink = pc->cycle_counter & ( 1 << 19 ) ? 1 : 0;
-
-        while(cycles_left && (!pc->stop_flags))
-        {
-            if (QE_NULL == pc->ex_video_handler ||
-                qe_false == pc->ex_video_handler(pc))
-            {
-                video_clock(pc);
-            }
-            if (QE_NULL == pc->ex_bus_handler ||
-                qe_false == pc->ex_bus_handler(pc))
-            {
-                bus_clock(pc);
-            }
-            if (QE_NULL == pc->ex_cpu_handler ||
-                qe_false == pc->ex_cpu_handler(pc))
-            {
-                cpu_clock(pc);
-            }
-            cycles_left--;
-        }
-        return cycles_left;
-    }
-
-#endif // QE6502_ENABLE_CYCLE_MERGE != 1
 
 QE_API_IMPL
 void qeaii_press_key(qeaii_t *pc, uint8_t key)

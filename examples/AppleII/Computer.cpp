@@ -151,10 +151,10 @@ void Computer::Loop()
             PauseLoop();
             break;
         case State::eRunning:
-            RunLoop();
+            RunLoop(1);
             break;
         case State::eTurboRunning:
-            FastRunLoop();
+            RunLoop(10);
             break;
         default:
             break;
@@ -171,59 +171,21 @@ void Computer::PauseLoop()
     }
 }
 
-void Computer::RunLoop()
+void Computer::RunLoop(int timeDiv)
 {
-    static Clock::duration frameDuration = Clock::Millis(8);
-    static uint32_t s_cyclesPerFrame = qeaii_to_cycles(frameDuration.count());
+    static Clock::duration s_frameDuration = Clock::Millis(8);
+    static uint32_t s_cyclesPerFrame = qeaii_to_cycles(s_frameDuration.count());
     auto& display = *ctx_.display;
-    auto timePoint = Clock::now() + Clock::Millis(8);
+    auto timePoint = Clock::now() + Clock::Millis(4);
     while(!Program::Ctx().done && !ChangeRequested())
     {
-        uint32_t cyclesLeft = appleII_->driveII.spinning ? s_cyclesPerFrame * 100 : s_cyclesPerFrame;
-        while(cyclesLeft)
+        //uint32_t target = appleII_->driveII.spinning ? s_cyclesPerFrame * 100 : s_cyclesPerFrame;
+        uint32_t target = s_cyclesPerFrame;
+        uint32_t executed = 0;
+        while(executed < target)
         {
-            cyclesLeft = qeaii_run(appleII_.get(), cyclesLeft);
-            if (qeaii_frame_ready(appleII_.get()) &&
-                display.IsReadyForRawFrame())
-            {
-                // push this frame
-                auto frame = qeaii_frame(appleII_.get());
-                display.NewRawFrame(frame);
-            }
-        }
-        while(!ctx_.speaker->IsReadyForRawFrame())
-        {
-            // not expected!
-            std::this_thread::sleep_for(Clock::Micros(500));
-        }
-        auto newRawAudio = qeaii_speaker_frame(appleII_.get());
-        ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);
-        timePoint += Clock::Millis(8);
-        auto now = Clock::now();
-        if ( now >= timePoint )
-        {
-            // we are too busy
-            timePoint = now + Clock::Micros(100);
-        }
-        else
-        {
-            std::this_thread::sleep_for( (timePoint - now) / 2 );
-        }
-    }
-}
+            executed += qeaii_run(appleII_.get(), target - executed);
 
-void Computer::FastRunLoop()
-{
-    static Clock::duration s_passDuration = Clock::Millis(16);
-    static uint32_t s_cyclesPerPass = qeaii_to_cycles(s_passDuration.count());
-    auto& display = *ctx_.display;
-    auto timePoint = Clock::now() + s_passDuration;
-    while(!Program::Ctx().done && !ChangeRequested())
-    {
-        uint32_t cyclesLeft = appleII_->driveII.spinning ? s_cyclesPerPass * 100 : s_cyclesPerPass * 8;
-        while(cyclesLeft)
-        {
-            cyclesLeft = qeaii_run(appleII_.get(), cyclesLeft);
             if (qeaii_frame_ready(appleII_.get()) &&
                 display.IsReadyForRawFrame())
             {
@@ -238,17 +200,26 @@ void Computer::FastRunLoop()
             std::this_thread::sleep_for(Clock::Micros(500));
         }
         auto newRawAudio = qeaii_speaker_frame(appleII_.get());
-        ctx_.speaker->NewRawFrame(newRawAudio, timePoint, s_passDuration);
-        timePoint += s_passDuration;
-        auto now = Clock::now();
-        if ( now >= timePoint )
+        if (appleII_->driveII.spinning)
         {
-            // we are too busy
-            timePoint = now + Clock::Micros(100);
+            timePoint = Clock::now() + Clock::Millis(4);
+            std::this_thread::yield();
         }
         else
         {
-            std::this_thread::sleep_for( (timePoint - now) / 2 );
+            Clock::duration frameDuration = Clock::Nanos(qeaii_to_nanos(executed) / timeDiv);
+            ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);
+            timePoint += frameDuration;
+            auto now = Clock::now();
+            if ( now > timePoint )
+            {
+                std::this_thread::sleep_for( (timePoint - now) / 2 );
+            }
+            else
+            {
+                // we are too busy
+                std::this_thread::yield();
+            }
         }
     }
 }

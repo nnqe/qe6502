@@ -31,6 +31,18 @@ static const uint16_t qeaii_disk_track_size = 0x1a00;
 static const uint8_t qeaii_flag_cpu_error = (1 << 7);
 static const uint8_t qeaii_flag_new_frame = (1 << 0);
 
+QE_MAYBE_UNUSED(qeaii_width);
+QE_MAYBE_UNUSED(qeaii_height);
+QE_MAYBE_UNUSED(qeaii_frame_size);
+QE_MAYBE_UNUSED(qeaii_pixels_per_clock);
+QE_MAYBE_UNUSED(qeaii_total_clocks_per_line);
+QE_MAYBE_UNUSED(qeaii_dummy_lines);
+QE_MAYBE_UNUSED(qeaii_clocks_per_line_visible_pixels);
+QE_MAYBE_UNUSED(qeaii_disk_tracks);
+QE_MAYBE_UNUSED(qeaii_disk_track_size);
+QE_MAYBE_UNUSED(qeaii_flag_cpu_error);
+QE_MAYBE_UNUSED(qeaii_flag_new_frame);
+
 typedef struct
 {
     qe_bool is_text;
@@ -160,20 +172,12 @@ void qeaii_break(qeaii_t* pc);
 QE_API
 qeaii_frame_t* qeaii_frame(qeaii_t* pc);
 
-
+// Executes at least `requested_cycles` unless interrupted (e.g. new video frame).
+// Returns the exact number of cycles actually executed
 QE_API
-uint32_t qeaii_run_instructions(qeaii_t* pc,
-                 uint16_t max_instructions);
+uint32_t qeaii_run(qeaii_t* pc, uint32_t requested_cycles);
 QE_API
-uint32_t qeaii_run_instructions_ex(qeaii_t* pc,
-                    uint16_t max_instructions);
-
-#if(QE6502_ENABLE_CYCLE_MERGE != 1)
-    QE_API // returns cycles left, not cycles processed
-    uint32_t qeaii_run(qeaii_t* pc, uint32_t max_cycles);
-    QE_API // returns cycles left, not cycles processed
-    uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t max_cycles);
-#endif
+uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t requested_cycles);
 
 QE_API
 void qeaii_press_key(qeaii_t* pc,
