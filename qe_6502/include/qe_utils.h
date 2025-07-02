@@ -163,7 +163,11 @@ typedef union
     #define qe_log(...)
 #endif // QE_ENABLE_LOG
 
-#define QE_ARRAY_SIZE(arr) ( sizeof(arr) / sizeof((arr)[0]) )
+#define QE_ARRAY_LENGTH(arr) ( sizeof(arr) / sizeof((arr)[0]) )
+#define QE_COPY_ARRAY(dst, arr) qe_memcpy((dst), &((arr)[0]), sizeof(arr))
+
+#define QE_CLEAR_OBJ(obj) qe_memset(&(obj), 0, sizeof(obj));
+#define QE_COPY_OBJ(dst, src) qe_memcpy(&(dst), &(src), sizeof(dst));
 
 QE_SIC void qe_memset(void* dst, uint8_t value, size_t count)
 {
@@ -177,7 +181,5 @@ QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t
 }
 QE_MAYBE_UNUSED(qe_memcpy)
 
-#define QE_CLEAR_OBJ(obj) qe_memset(&(obj), 0, sizeof(obj));
-#define QE_COPY_OBJ(dst, src) qe_memcpy(&(dst), &(src), sizeof(dst));
 
 #endif // QE_CORE_H__

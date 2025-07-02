@@ -218,7 +218,7 @@ nmos_instr_SBC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (high < 0)
     {
         result += (10 * 16);
-        flags &= ~qe6502_flag_C; // clear carry
+        flags &= QE_U8(~qe6502_flag_C); // clear carry
     }
 
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
@@ -663,7 +663,7 @@ nmos_instr_BVS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_CLC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_C );
+    cpu->P &= QE_U8( ~qe6502_flag_C );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, nmos_fetch_opcode);
 }
@@ -684,7 +684,7 @@ nmos_instr_CLC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_CLD( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_D );
+    cpu->P &= QE_U8( ~qe6502_flag_D );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, nmos_fetch_opcode);
 }
@@ -705,7 +705,7 @@ nmos_instr_CLD( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_CLI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_I );
+    cpu->P &= QE_U8( ~qe6502_flag_I );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, nmos_fetch_opcode);
 }
@@ -726,7 +726,7 @@ nmos_instr_CLI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_CLV( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_V );
+    cpu->P &= QE_U8( ~qe6502_flag_V );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, nmos_fetch_opcode);
 }
@@ -1539,7 +1539,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_PLP_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->P |= qe6502_flag_UN;
-    cpu->P &= ~qe6502_flag_B;
+    cpu->P &= QE_U8(~qe6502_flag_B);
 
     return jump_to(cpu, nmos_fetch_opcode);
 }
@@ -1698,7 +1698,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_RTI_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->P |= qe6502_flag_UN;
-    cpu->P &= ~qe6502_flag_B;
+    cpu->P &= QE_U8(~qe6502_flag_B);
     cpu->S++;
     request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
     return resume_to(nmos_instr_RTI_5);

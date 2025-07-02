@@ -268,7 +268,7 @@ QE_SIC
 void speaker_io(qeaii_t* pc)
 {
     qeaii_speaker_frame_t* frame = &pc->speaker.frames[pc->speaker.current_frame];
-    if (frame->tick_count < QE_ARRAY_SIZE(frame->ticks))
+    if (frame->tick_count < QE_ARRAY_LENGTH(frame->ticks))
     {
         pc->speaker.last_value = !pc->speaker.last_value;
         frame->ticks[frame->tick_count] = QE_U32(pc->cycle_counter - frame->start_cycle);

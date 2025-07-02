@@ -617,7 +617,7 @@ cmos_instr_BRK_finalize( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
     cpu->P |= qe6502_flag_I;
-    cpu->P &= ~qe6502_flag_D;
+    cpu->P &= QE_U8(~qe6502_flag_D);
     return resume_to(cmos_fetch_opcode);
 }
 
@@ -689,7 +689,7 @@ cmos_instr_BVS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CLC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_C );
+    cpu->P &= QE_U8( ~qe6502_flag_C );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
 }
@@ -710,7 +710,7 @@ cmos_instr_CLC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CLD( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_D );
+    cpu->P &= QE_U8( ~qe6502_flag_D );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
 }
@@ -731,7 +731,7 @@ cmos_instr_CLD( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CLI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_I );
+    cpu->P &= QE_U8( ~qe6502_flag_I );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
 }
@@ -752,7 +752,7 @@ cmos_instr_CLI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_CLV( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->P &= ( ~qe6502_flag_V );
+    cpu->P &= QE_U8( ~qe6502_flag_V );
     request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
     return resume_to_dummy_read(cpu, cmos_fetch_opcode);
 }
@@ -1447,7 +1447,7 @@ cmos_instr_ILLEGAL_NOP( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t i1 = cpu->opcode >> 4;
     uint8_t i2 = illegal_nop_lsb[ cpu->opcode & 0x0f ];
-    if (i2 >= QE_ARRAY_SIZE(illegal_nop_table[0]))
+    if (i2 >= QE_ARRAY_LENGTH(illegal_nop_table[0]))
     {
         return cpu_error(cpu,  qe6502_err_illegal_instr );
     }
@@ -1724,7 +1724,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_PLP_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->P |= qe6502_flag_UN;
-    cpu->P &= ~qe6502_flag_B;
+    cpu->P &= QE_U8(~qe6502_flag_B);
 
     return jump_to(cpu, cmos_fetch_opcode);
 }
@@ -1883,7 +1883,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_RTI_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->P |= qe6502_flag_UN;
-    cpu->P &= ~qe6502_flag_B;
+    cpu->P &= QE_U8(~qe6502_flag_B);
     cpu->S++;
     request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
     return resume_to(cmos_instr_RTI_5);

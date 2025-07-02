@@ -181,6 +181,9 @@ QE_API qe6502_cycle_t
 qe6502_power_on(qe6502_t* cpu, uint8_t model);
 
 QE_API qe6502_cycle_t
+qe6502_execute(qe6502_t* cpu);
+
+QE_API qe6502_cycle_t
 qe6502_reset_instruction(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
 
 QE_SIC qe_bool  qe6502_ok(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_halted); }

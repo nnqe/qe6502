@@ -60,4 +60,4 @@ else()
 endif()
 
 # Set C standard
-target_compile_features(${target} PUBLIC c_std_99)
+target_compile_features(${target} PUBLIC c_std_11)
