@@ -11,29 +11,6 @@ namespace qe::Examples::AppleII
 
 void Speaker::RunModule(Context ctx)
 {
-    // // Desired audio spec
-    // const double frequency = 440.0;
-    // const int sampleRate   = Program::Ctx().audioSpecs.freq;
-    // const int64_t totalSamples = sampleRate * 3;
-    // std::vector<int16_t> buffer;
-    // buffer.reserve(totalSamples);
-
-    // double Phase = 0.0;
-    // double PhaseInc = 2.0 * M_PI * frequency / sampleRate;
-    // for (int64_t i = 0; i < totalSamples; ++i) {
-    //     double value = std::sin(Phase) * 28000.0;
-    //     buffer.push_back(static_cast<Sint16>(value));
-    //     Phase += PhaseInc;
-    //     if (Phase >= 2.0 * M_PI) Phase -= 2.0 * M_PI;
-    // }
-
-    // if (SDL_QueueAudio(Program::Ctx().audioDeviceId,
-    //                    buffer.data(),
-    //                    buffer.size() * sizeof(Sint16)) < 0)
-    // {
-    //     fmt::println("SDL_QueueAudio Error: {}", SDL_GetError());
-    // }
-
     frameConsumed_.test_and_set();
     worker_ = std::thread([this](){AudioLoop();});
 }
@@ -66,7 +43,10 @@ void Speaker::NewRawFrame(qeaii_speaker_frame_t *rawFrame, Clock::time_point sta
     rawFrame_ = rawFrame;
     nextFrameStart_ = start;
     nextFrameDuration_ = duration;
-    frameConsumed_.clear();
+    if (!Program::Ctx().done)
+    {
+        frameConsumed_.clear();
+    }
 }
 
 void Speaker::AudioLoop()
@@ -126,6 +106,7 @@ void Speaker::AudioLoop()
         }
         std::this_thread::sleep_for(1ms);
     }
+    frameConsumed_.test_and_set();
 }
 
 

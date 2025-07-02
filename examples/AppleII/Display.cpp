@@ -26,6 +26,7 @@ void Display::RunModule(Context ctx)
 
 void Display::DestroyModule()
 {
+    frameConsumed_.test_and_set();
     if (rgbTexture_)
     {
         SDL_DestroyTexture(rgbTexture_);

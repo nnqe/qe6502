@@ -209,9 +209,9 @@ int Program::Run( Ptr<IApp> appPtr )
     InitDpi( ctx );
     app.Init();
 
+    ProcessEvents( ctx );
     while(!ctx.done)
     {
-        ProcessEvents( ctx );
         if (ctx.isMinimized)
         {
             app.ProcessOnMinimize();
@@ -223,6 +223,7 @@ int Program::Run( Ptr<IApp> appPtr )
         PrepareRendering( ctx );
         app.CustomRender();
         Present( ctx );
+        ProcessEvents( ctx );
     }
 
     ctx.done = true;
