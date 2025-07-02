@@ -3,6 +3,7 @@
 #include "ControlPanel.h"
 #include "Display.h"
 #include "Speaker.h"
+#include "Keyboard.h"
 #include "Computer.h"
 
 namespace qe::Examples::AppleII
@@ -18,17 +19,20 @@ public:
         ctx_.controlPanel = MakePtr<ControlPanel>();
         ctx_.display = MakePtr<Display>();
         ctx_.speaker = MakePtr<Speaker>();
+        ctx_.keyboard = MakePtr<Keyboard>();
         ctx_.computer = MakePtr<Computer>();
 
         ctx_.controlPanel->RunModule(ctx_);
-        ctx_.speaker->RunModule(ctx_);
         ctx_.display->RunModule(ctx_);
+        ctx_.speaker->RunModule(ctx_);
+        ctx_.keyboard->RunModule(ctx_);
         ctx_.computer->RunModule(ctx_);
     }
     void Draw()
     {
         ctx_.controlPanel->Draw();
         ctx_.display->Draw();
+        ctx_.keyboard->UpdateModule();
     }
     void ProcessOnMinimize()
     {

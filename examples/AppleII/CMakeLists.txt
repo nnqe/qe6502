@@ -20,6 +20,7 @@ target_link_libraries(${target}
         Utils
         App
         SDL2::SDL2
+        imgui
         portable_file_dialogs
 )
 

@@ -344,7 +344,7 @@ void dsk_read( const char *path )
     for ( i = 0; i < TRACKS_PER_DISK; i++ )
     {
 
-        if ( fread( dsk_buf[ i ], BYTES_PER_TRACK, 1, fd ) != BYTES_PER_TRACK )
+        if ( fread( dsk_buf[ i ], BYTES_PER_TRACK, 1, fd ) != 1 )
             fatal( "dsk write failure" );
     }
 
@@ -398,7 +398,7 @@ void nib_write( const char *path )
 
     for ( i = 0; i < TRACKS_PER_DISK; i++ )
         if ( fwrite( nib_buf[ i ], BYTES_PER_NIB_TRACK, 1, fd ) !=
-            BYTES_PER_NIB_TRACK )
+            1 )
                 fatal( "nib write error" );
 
     fclose( fd );
@@ -416,7 +416,7 @@ void cpp_nib_write( const char *path, std::vector<uint8_t>& buff )
             fatal( "cannot open %s for writing", path );
 
     if ( fwrite( buff.data(), buff.size(), 1, fd ) !=
-        buff.size() )
+        1 )
             fatal( "nib write error" );
 
     fclose( fd );

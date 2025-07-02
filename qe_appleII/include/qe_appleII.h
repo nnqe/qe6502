@@ -181,7 +181,7 @@ uint32_t qeaii_run_ex(qeaii_t* pc, uint32_t requested_cycles);
 
 QE_API
 void qeaii_press_key(qeaii_t* pc,
-                   uint8_t key);
+                     uint8_t key);
 QE_API
 qeaii_speaker_frame_t*
 qeaii_speaker_frame(qeaii_t* pc);

@@ -32,7 +32,7 @@ uint8_t kbd_softswitch_read(qeaii_t* pc, uint8_t softswitch)
     if (softswitch == 0x00 && (pc->kbd.key & 0x80))
     {
         pc->kbd.key_register = pc->kbd.key;
-        pc->kbd.key &= 0x7f;
+        pc->kbd.key = 0;
     }
     else if (softswitch == 0x10)
     {
@@ -449,7 +449,7 @@ void bus_write(qeaii_t* pc, qe_word_t address, uint8_t data)
         {
             video_softswitch_write(pc, softswitch);
         }
-        else if (softswitch == 0x00)
+        else if (softswitch == 0x10)
         {
             kbd_softswitch_write(pc);
         }

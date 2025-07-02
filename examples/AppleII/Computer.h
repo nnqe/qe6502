@@ -31,7 +31,7 @@ public:
 private:
     void Loop();
     void PauseLoop();
-    void RunLoop(int timeDiv);
+    void RunLoop(int timeMul, int timeDiv);
 
     void WaitForStateChanged();
     inline bool ChangeRequested() const { return state_ != stateRequest_; }

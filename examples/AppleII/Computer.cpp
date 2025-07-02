@@ -1,9 +1,10 @@
 #include "Computer.h"
 #include "Display.h"
 #include "Speaker.h"
+#include "Keyboard.h"
+#include <App.h>
 #include <qe_appleIIhelpers.h>
 #include <algorithm>
-#include <App.h>
 
 namespace qe::Examples::AppleII
 {
@@ -151,10 +152,10 @@ void Computer::Loop()
             PauseLoop();
             break;
         case State::eRunning:
-            RunLoop(1);
+            RunLoop(1, 1);
             break;
         case State::eTurboRunning:
-            RunLoop(10);
+            RunLoop(1, 10);
             break;
         default:
             break;
@@ -171,7 +172,7 @@ void Computer::PauseLoop()
     }
 }
 
-void Computer::RunLoop(int timeDiv)
+void Computer::RunLoop(int timeMul, int timeDiv)
 {
     static Clock::duration s_frameDuration = Clock::Millis(8);
     static uint32_t s_cyclesPerFrame = qeaii_to_cycles(s_frameDuration.count());
@@ -184,6 +185,17 @@ void Computer::RunLoop(int timeDiv)
         uint32_t executed = 0;
         while(executed < target)
         {
+            if (uint8_t key = ctx_.keyboard->GetKey();
+                key > 0x80)
+            {
+                qeaii_press_key(appleII_.get(), key);
+            }
+            if (bool breakKey = ctx_.keyboard->HasBreakKey();
+                true == breakKey)
+            {
+                qeaii_break(appleII_.get());
+            }
+
             executed += qeaii_run(appleII_.get(), target - executed);
 
             if (qeaii_frame_ready(appleII_.get()) &&
@@ -207,7 +219,7 @@ void Computer::RunLoop(int timeDiv)
         }
         else
         {
-            Clock::duration frameDuration = Clock::Nanos(qeaii_to_nanos(executed) / timeDiv);
+            Clock::duration frameDuration = (timeMul * Clock::Nanos(qeaii_to_nanos(executed)) / timeDiv);
             ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);
             timePoint += frameDuration;
             auto now = Clock::now();

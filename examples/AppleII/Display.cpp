@@ -7,6 +7,7 @@ namespace qe::Examples::AppleII
 
 void Display::RunModule(Context ctx)
 {
+    ctx_ = ctx;
     rgbTexture_ = SDL_CreateTexture(
         Program::Ctx().renderer,
         SDL_PIXELFORMAT_RGB24,
