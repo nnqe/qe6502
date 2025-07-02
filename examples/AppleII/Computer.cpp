@@ -212,12 +212,14 @@ void Computer::RunLoop(int timeMul, int timeDiv)
             std::this_thread::sleep_for(Clock::Micros(500));
         }
         auto newRawAudio = qeaii_speaker_frame(appleII_.get());
-        if (appleII_->driveII.spinning)
-        {
-            timePoint = Clock::now() + Clock::Millis(4);
-            std::this_thread::yield();
-        }
-        else
+
+        // ~50 seconds DOS 3.3
+        // if (appleII_->driveII.spinning)
+        // {
+        //     timePoint = Clock::now() + Clock::Millis(4);
+        //     std::this_thread::yield();
+        // }
+        // else
         {
             Clock::duration frameDuration = (timeMul * Clock::Nanos(qeaii_to_nanos(executed)) / timeDiv);
             ctx_.speaker->NewRawFrame(newRawAudio, timePoint, frameDuration);

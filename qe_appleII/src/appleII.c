@@ -13,6 +13,7 @@
  */
 
 #include <qe_appleII.h>
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////
 //                  KEYBOARD
@@ -316,6 +317,7 @@ void driveII_phase_on(qeaii_drive_state_t* drive, uint8_t phase)
         if ((drive->phase & 1) == 0 && drive->track < qeaii_disk_tracks - 1)
         {
             drive->track++;
+            printf("track: %u, ", (unsigned)drive->track);
         }
     }
     else if (direction == 3)
@@ -324,13 +326,15 @@ void driveII_phase_on(qeaii_drive_state_t* drive, uint8_t phase)
         if ((drive->phase & 1) && drive->track > 0)
         {
             drive->track--;
+            printf("track: %u, ", (unsigned)drive->track);
         }
     }
 }
 
 QE_SIC
-uint8_t driveII_latch_event(qeaii_drive_state_t* drive, uint8_t data, qe_bool sw_reading)
+uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t data, qe_bool sw_reading)
 {
+    static const uint16_t cycles_per_byte = 32;
     if (drive->q7)
     {
         if (!drive->q6)
@@ -339,8 +343,10 @@ uint8_t driveII_latch_event(qeaii_drive_state_t* drive, uint8_t data, qe_bool sw
         }
         if (!sw_reading && !drive->diskette.readonly) // switch not reading (switch writing)
         {
+            drive->track_pos = QE_U16( (pc->cycle_counter / cycles_per_byte) % qeaii_disk_track_size );
+            drive->track_cycle = pc->cycle_counter;
             drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos] = data;
-            drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
+            //drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
             drive->diskette.changed = qe_true;
         }
         return 0x0;
@@ -358,8 +364,27 @@ uint8_t driveII_latch_event(qeaii_drive_state_t* drive, uint8_t data, qe_bool sw
         {
             return 0x0;
         }
+        uint16_t new_pos = QE_U16( (pc->cycle_counter / cycles_per_byte) % qeaii_disk_track_size );
+        if (new_pos > drive->track_pos &&
+            new_pos - drive->track_pos > 1)
+        {
+            int aad = 4;(void)aad;
+        }
+        drive->track_pos = new_pos;
+        drive->track_cycle = pc->cycle_counter;
+
+        //printf("track pos: %u", (unsigned)drive->track_pos);
         uint8_t latch = drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos];
-        drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
+
+        if (pc->cycle_counter % cycles_per_byte < 7)
+        {
+            return latch;
+        }
+        else
+        {
+            return latch & 0x7f;
+        }
+        //drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
         return latch;
     }
 }
@@ -399,10 +424,10 @@ uint8_t driveII_process_softswitch(qeaii_t* pc, uint8_t softswitch, uint8_t data
     case 0xeA:   pc->driveII.active_drive = 0;       return 0x00;
     case 0xeB:   pc->driveII.active_drive = 1;       return 0x00;
     // Data read/write
-    case 0xeC:   drive->q6 = qe_false;               return driveII_latch_event(drive, data, sw_reading);
-    case 0xeD:   drive->q6 = qe_true;                return driveII_latch_event(drive, data, sw_reading);
-    case 0xeE:   drive->q7 = qe_false;               return driveII_latch_event(drive, data, sw_reading);
-    case 0xeF:   drive->q7 = qe_true;                return driveII_latch_event(drive, data, sw_reading);
+    case 0xeC:   drive->q6 = qe_false;               return driveII_latch_event(pc, drive, data, sw_reading);
+    case 0xeD:   drive->q6 = qe_true;                return driveII_latch_event(pc, drive, data, sw_reading);
+    case 0xeE:   drive->q7 = qe_false;               return driveII_latch_event(pc, drive, data, sw_reading);
+    case 0xeF:   drive->q7 = qe_true;                return driveII_latch_event(pc, drive, data, sw_reading);
     default: break;
     }
     return 0x00;

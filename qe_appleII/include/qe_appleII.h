@@ -122,6 +122,7 @@ typedef struct
     uint8_t phase;
     uint16_t track;           // from 0 to 34
     uint16_t track_pos;
+    uint64_t track_cycle;
     qe_bool phases[4];
     qeaii_diskette_t diskette;
 } qeaii_drive_state_t;
