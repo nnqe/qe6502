@@ -331,6 +331,8 @@ void driveII_phase_on(qeaii_drive_state_t* drive, uint8_t phase)
     }
 }
 
+
+#if defined(QE_WORKING_VERSION)
 QE_SIC
 uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t data, qe_bool sw_reading)
 {
@@ -385,6 +387,45 @@ uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t dat
             return latch & 0x7f;
         }
         //drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
+        return latch;
+    }
+}
+#endif
+
+QE_SIC
+uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t data, qe_bool sw_reading)
+{
+    static const uint16_t cycles_per_byte = 32;
+    if (drive->q7)
+    {
+        if (!drive->q6)
+        {
+            return 0x80;
+        }
+        if (!sw_reading && !drive->diskette.readonly) // switch not reading (switch writing)
+        {
+            drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos] = data;
+            drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
+            drive->diskette.changed = qe_true;
+        }
+        return 0x0;
+    }
+    else
+    {
+        if (drive->q6)
+        {
+            return drive->diskette.readonly ? 0xff : 0; // return write-protected flag
+        }
+
+        // read mode and cpu do not need info
+        // prepare and retun the data
+        if (drive->phase != 0 && drive->phase != 2)
+        {
+            return 0x0;
+        }
+
+        uint8_t latch = drive->diskette.data[ drive->track * qeaii_disk_track_size + drive->track_pos];
+        drive->track_pos = QE_U16( (drive->track_pos + 1) % qeaii_disk_track_size );
         return latch;
     }
 }
