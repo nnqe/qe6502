@@ -4,22 +4,10 @@
 #if defined(_MSC_VER)
 #include <intrin.h>
 #endif
+#include "Platform.h"
 
 namespace qe::Examples
 {
-    /// @brief Gives hint to processor that improves performance of spin-wait loops.
-    static inline void SpinWaitHint()
-    {
-        // Generates the PAUSE x86 instruction if available
-#if defined(_MSC_VER)
-        _mm_pause();
-#elif defined(__GNUC__)
-        __builtin_ia32_pause();
-#else
-        std::this_thread::yield();
-#endif
-    }
-
     /// @brief TTAS (test and test-and-set) spin lock with PAUSE instruction hint
     class SpinLock
     {
@@ -50,7 +38,7 @@ namespace qe::Examples
                 // Wait for lock to be released before attempting to lock again.
                 while (m_locked.load(std::memory_order::relaxed))  // test
                 {
-                    SpinWaitHint();
+                    Platform::CpuRelax();
                 }
             }
         }

@@ -33,3 +33,7 @@
 
 # Cmake
 *.user
+
+# Mac files
+**/.DS_Store
+
