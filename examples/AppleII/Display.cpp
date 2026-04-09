@@ -46,7 +46,8 @@ void Display::Draw()
 void Display::Render()
 {
     int winW, winH;
-    SDL_GetRendererOutputSize(Program::Ctx().renderer, &winW, &winH);
+    //SDL_GetRendererOutputSize(Program::Ctx().renderer, &winW, &winH);
+    SDL_GetWindowSize(Program::Ctx().window, &winW, &winH);
 
     const int texW = 280, texH = 192;
     float scaleX = winW / float(texW);
