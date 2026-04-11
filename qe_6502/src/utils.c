@@ -5,6 +5,13 @@
     #include <stdarg.h>
     #include <time.h>
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define QE_PRINTF_LIKE(fmt_index, va_index) __attribute__((format(printf, fmt_index, va_index)))
+#else
+    #define QE_PRINTF_LIKE(fmt_index, va_index)
+#endif
+    void qe_log(const char* topic, const char *fmt, ...) QE_PRINTF_LIKE(2, 3);
+
     void qe_log(const char* topic, const char *fmt, ...)
     {
         /* HH:MM:SS timestamp */
