@@ -2,6 +2,7 @@
 
 static const uint64_t nanos_per_65536_clocks = 64079653ULL;
 
+// implement your own video converter, use this only for demos
 QE_API_IMPL
 void qeaii_to_rgb(const qeaii_frame_t *frame, uint8_t *rgb_frame)
 {

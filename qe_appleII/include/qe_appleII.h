@@ -112,6 +112,7 @@ typedef struct
 {
     uint16_t firts_rom_address;
     qeaii_memory_t memory;
+    uint8_t floating_bus;
 } qeaii_bus_t;
 
 typedef struct

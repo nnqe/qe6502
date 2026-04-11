@@ -51,8 +51,22 @@ void kbd_softswitch_write(qeaii_t* pc)
 ///////////////////////////////////////////////////////
 //                  VIDEO
 ///////////////////////////////////////////////////////
+/*
 
-static const uint32_t s_video_offsets[192] =
+Scheme "40 bytes work / 25 cycles rest"
+
+Unit                  Value                 Meaning
+---------------------------------------------------------------------
+CPU cycles per line     65      The entire horizontal scanline according to the 6502
+Visible bytes/line      40      Each cycle reads 1 byte from VRAM and draws 7 pixels
+Idle cycles/line        25      Left + right border and HSYNC – nothing is copied
+Visible scanlines       192     24 character rows × 8 internal lines
+Total scanlines         262     +70 lines of vertical blanking
+
+Total 262 scanlines  *  65 cycles each = 17 030 cycles per frame
+
+*/
+static const uint32_t s_video_offsets[192 + 1] =
 {
     // 0xGGGGTTTT ((gr_address << 16) | txt_address)
     0x00000000,0x04000000,0x08000000,0x0C000000,0x10000000,0x14000000,0x18000000,0x1C000000,
@@ -78,7 +92,8 @@ static const uint32_t s_video_offsets[192] =
     0x02500250,0x06500250,0x0A500250,0x0E500250,0x12500250,0x16500250,0x1A500250,0x1E500250,
     0x02D002D0,0x06D002D0,0x0AD002D0,0x0ED002D0,0x12D002D0,0x16D002D0,0x1AD002D0,0x1ED002D0,
     0x03500350,0x07500350,0x0B500350,0x0F500350,0x13500350,0x17500350,0x1B500350,0x1F500350,
-    0x03D003D0,0x07D003D0,0x0BD003D0,0x0FD003D0,0x13D003D0,0x17D003D0,0x1BD003D0,0x1FD003D0
+    0x03D003D0,0x07D003D0,0x0BD003D0,0x0FD003D0,0x13D003D0,0x17D003D0,0x1BD003D0,0x1FD003D0,
+    0x00000000 // dummy read after the last visible line
 };
 
 QE_API_IMPL
@@ -152,7 +167,8 @@ uint8_t video_softswitch_read(qeaii_t* pc, uint8_t softswitch)
     case 0x1d: return QE_U8( (pc->video.is_hires?1:0) << 7 );
     default: break;
     }
-    return (video_softswitch_write(pc, softswitch), 0);
+    //return pc->bus.floating_bus;
+    return (video_softswitch_write(pc, softswitch), pc->bus.floating_bus);
 }
 
 QE_SIC
@@ -160,6 +176,24 @@ void video_clock(qeaii_t* pc)
 {
     qeaii_videocard_t* video = &pc->video;
     qeaii_bus_t* bus = &pc->bus;
+
+    qe_word32_t address;
+    address.u32 = video->offsets.u32 + video_address(pc);
+    uint8_t data;
+    if (video->is_text ||
+        (video->is_mixed && video->line >= 160) ||
+        !video->is_hires)
+    {
+      data = bus->memory.data[ address.lsw.u16 ];
+    }
+    else
+    {
+      data = bus->memory.data[ address.msw.u16 ];
+    }
+    bus->floating_bus = data;
+    // incrementh both counters (text and graphics)
+    video->offsets.u32 += 0x00010001;
+
     if (video->line < qeaii_height)
     {
         if (video->col < qeaii_clocks_per_line_visible_pixels)
@@ -169,7 +203,8 @@ void video_clock(qeaii_t* pc)
                 (video->is_mixed && video->line >= 160))
             {
                 // draw text
-                uint8_t symbol = bus->memory.data[ video->offsets.lsw.u16 ];
+                uint8_t symbol = data;
+
                 uint8_t symbol_line = video->line % 8;
                 uint8_t bitmap_idx = symbol % 64;
 
@@ -193,12 +228,12 @@ void video_clock(qeaii_t* pc)
             else if (video->is_hires)
             {
                 // draw hires
-                frame->bitmap[ video->frame_pos++ ] = bus->memory.data[ video->offsets.msw.u16 ];
+                frame->bitmap[ video->frame_pos++ ] = data;
             }
             else
             {
                 // draw lores
-                uint8_t code = bus->memory.data[ video->offsets.lsw.u16 ];
+                uint8_t code = data;
                 if (video->line & 0xC) //0b00001100
                 {
                     code >>= 4;
@@ -210,8 +245,6 @@ void video_clock(qeaii_t* pc)
                 frame->bitmap[ video->frame_pos++ ] = code;
             }
             video->col++;
-            // incrementh both counters (text and graphics)
-            video->offsets.u32 += 0x00010001;
         }
         else
         {
@@ -220,12 +253,13 @@ void video_clock(qeaii_t* pc)
             {
                 video->col = 0;
                 video->line++;
-                video->offsets.u32 = s_video_offsets[video->line] + video_address(pc);
+                video->offsets.u32 = s_video_offsets[video->line];
             }
         }
     }
     else
     {
+        bus->floating_bus = 0xff;
         video->col++;
         if (video->col == qeaii_dummy_lines * qeaii_total_clocks_per_line)
         {
@@ -233,7 +267,7 @@ void video_clock(qeaii_t* pc)
             video->frame_pos = 0;
             video->col = 0;
             video->line = 0;
-            video->offsets.u32 = s_video_offsets[0] + video_address(pc);
+            video->offsets.u32 = s_video_offsets[0];
         }
     }
 }
@@ -395,7 +429,7 @@ uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t dat
 QE_SIC
 uint8_t driveII_latch_event(qeaii_t* pc, qeaii_drive_state_t* drive, uint8_t data, qe_bool sw_reading)
 {
-    static const uint16_t cycles_per_byte = 32;
+    (void)(pc);
     if (drive->q7)
     {
         if (!drive->q6)
@@ -601,6 +635,7 @@ void cpu_clock(qeaii_t *pc)
     if (!qe6502_ok(&pc->cpu))
     {
         pc->stop_flags |= qeaii_flag_cpu_error;
+        pc->is_ok = qe_false;
     }
 }
 
@@ -609,8 +644,8 @@ void cpu_handle_nmi(qeaii_t *pc)
 {
     if (pc->nmi)
     {
-        pc->cpu.PC.u8_lsb = pc->bus.memory.data[ 0xFFFA ];
-        pc->cpu.PC.u8_msb = pc->bus.memory.data[ 0xFFFB ];
+        qe6502_nmi_lo(&pc->cpu);
+        qe6502_nmi_hi(&pc->cpu);
         pc->nmi = qe_false;
     }
 }
@@ -622,6 +657,7 @@ void cpu_handle_nmi(qeaii_t *pc)
 QE_API_IMPL
 qe_bool qeaii_power_on(qeaii_t *pc, qeaii_bootstrap_t* bootstrap)
 {
+    QE_CLEAR_OBJ(*pc);
     pc->ex_video_handler = bootstrap->ex_video_handler;
     pc->ex_bus_handler = bootstrap->ex_bus_handler;
     pc->ex_cpu_handler = bootstrap->ex_cpu_handler;
