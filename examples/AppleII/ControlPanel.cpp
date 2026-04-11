@@ -142,11 +142,11 @@ std::vector<uint8_t> ControlPanel::LoadDiskette(Fs::Path file)
     {
         std::filesystem::path p(file);
         std::string ext = p.extension().string();
-        if (ext == ".dsk")
+        if (ext == ".dsk" || ext == ".DSK")
         {
             diskette = Fs::Dsk2Nib(file.string().c_str());
         }
-        else if (ext == ".nib")
+        else if (ext == ".nib" || ext == ".NIB")
         {
             diskette = Fs::LoadBinaryFile(file.string());
         }

@@ -57,8 +57,8 @@ void Display::Render()
     SDL_Rect dst;
     dst.w = int(texW * scale);
     dst.h = int(texH * scale);
-    dst.x = (winW - dst.w) / 2;
-    dst.y = (winH - dst.h) / 2;
+    dst.x = 8;//(winW - dst.w) / 2;
+    dst.y = 8;//(winH - dst.h) / 2;
 
     SDL_RenderCopy(Program::Ctx().renderer, rgbTexture_, nullptr, &dst);
 }
