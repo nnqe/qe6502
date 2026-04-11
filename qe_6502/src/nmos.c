@@ -12,7 +12,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#if (QE6502_ENABLE_NMOS_6502 == 1)
+#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 
 #include "nmos_opcodes.h"
 
@@ -3185,4 +3185,6 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to(nmos_nmi);
 }
 
-#endif // QE_ENABLE_NMOS_6502
+#else
+    typedef int qe_nmos_empty_translation_unit_dummy;
+#endif // QE6502_ENABLE_NMOS_6502

@@ -1,5 +1,0 @@
-add_subdirectory(json)
-add_subdirectory(fmt)
-add_subdirectory(sdl)
-add_subdirectory(imgui)
-add_subdirectory(filedialog)

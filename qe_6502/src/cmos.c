@@ -13,7 +13,7 @@
  */
 
 
-#if (QE6502_ENABLE_CMOS_65C02 == 1)
+#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
 
 #include "cmos_opcodes.h"
 
@@ -4053,5 +4053,6 @@ cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     return resume_to(cmos_nmi);
 }
-
+#else
+    typedef int qe_cmos_empty_translation_unit_dummy;
 #endif // QE6502_ENABLE_CMOS_65C02

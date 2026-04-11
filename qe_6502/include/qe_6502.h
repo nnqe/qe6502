@@ -158,11 +158,11 @@ static const uint8_t qe6502_err_interrupt_error = (1 << 7);
 
 
 static const uint8_t qe6502_model_max   = 0x0F;
-#if (QE6502_ENABLE_NMOS_6502 == 1)
+#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
     static const uint8_t qe6502_mos     = 0;
     static const uint8_t qe6502_nes     = 1;
 #endif
-#if (QE6502_ENABLE_CMOS_65C02 == 1)
+#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
     static const uint8_t qe6502_wdc     = 2;
     static const uint8_t qe6502_rw      = 3;
     static const uint8_t qe6502_st      = 4;
@@ -206,7 +206,7 @@ QE_SIC qe_bool  qe6502_instr_done(const qe6502_t* cpu) { return (cpu->cmd.flags 
 QE_SIC qe_bool  qe6502_started(const qe6502_t* cpu) { return qe6502_ok(cpu) && ((cpu->cmd.flags & qe6502_starting)?0:1); }
 QE_SIC qe_bool  qe6502_model(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
 
-QE_SIC uint8_t  qe6502_nmi_pin(qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
+QE_SIC uint8_t  qe6502_nmi_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
 QE_SIC void     qe6502_nmi_hi(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }
 QE_SIC void     qe6502_nmi_lo(qe6502_t* cpu) { if (qe6502_nmi_pin(cpu)){cpu->istate |= qe6502_nmi_pin_chg;} cpu->istate |= qe6502_nmi_pin_lo; }
 

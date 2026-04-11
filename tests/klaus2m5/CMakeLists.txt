@@ -1,5 +1,3 @@
-# qeappleII/CMakeLists.txt
-# qeappleII: depends on qe6502
 
 set(target klaus2m5)
 
@@ -19,19 +17,19 @@ add_executable(${target}
 
 # Include directories
 
-# Link dependency on lib1
+# Link dependency
 target_link_libraries(${target}
     PRIVATE qe6502
 )
 
 # Compile definitions (propagated to users)
-target_compile_definitions(${target}
-    PUBLIC
-        $<$<BOOL:${QE_ENABLE_DEBUG_LOG}>:QE_ENABLE_DEBUG_LOG>
-        $<$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>:QE6502_ENABLE_CYCLE_MERGE>
-        $<$<BOOL:${QE6502_ENABLE_NMOS_6502}>:QE6502_ENABLE_NMOS_6502>
-        $<$<BOOL:${QE6502_ENABLE_CMOS_65C02}>:QE6502_ENABLE_CMOS_65C02>
-)
+#target_compile_definitions(${target}
+#    PUBLIC
+#        $<$<BOOL:${QE6502_ENABLE_DEBUG_LOG}>:QE6502_ENABLE_DEBUG_LOG>
+#        $<$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>:QE6502_ENABLE_CYCLE_MERGE>
+#        $<$<BOOL:${QE6502_ENABLE_NMOS_6502}>:QE6502_ENABLE_NMOS_6502>
+#        $<$<BOOL:${QE6502_ENABLE_CMOS_65C02}>:QE6502_ENABLE_CMOS_65C02>
+#)
 
 if(MSVC)
     target_compile_options(${target} PRIVATE /W4 /WX /we4505)

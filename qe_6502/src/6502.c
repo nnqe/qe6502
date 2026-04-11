@@ -14,6 +14,44 @@
 
 #include "6502_inline.h"
 
+#if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
+    #include <stdio.h>
+    #include <stdarg.h>
+    #include <time.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define QE_PRINTF_LIKE(fmt_index, va_index) __attribute__((format(printf, fmt_index, va_index)))
+#else
+    #define QE_PRINTF_LIKE(fmt_index, va_index)
+#endif
+    void qe_log(const char* topic, const char *fmt, ...) QE_PRINTF_LIKE(2, 3);
+
+    void qe_log(const char* topic, const char *fmt, ...)
+    {
+        /* HH:MM:SS timestamp */
+        char timeBuf[9];
+        time_t now = time(NULL);
+        struct tm tm_now;
+
+    #ifdef _MSC_VER
+        localtime_s(&tm_now, &now);
+    #else
+        localtime_r(&now, &tm_now);
+    #endif
+        strftime(timeBuf, sizeof timeBuf, "%H:%M:%S", &tm_now);
+
+        printf("[%s | %s] ", timeBuf, topic);
+
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        va_end(ap);
+
+        putchar('\n');
+        fflush(stdout);
+    }
+#endif
+
 QE_API_IMPL
 void qe6502_version(uint16_t* version,
                     uint8_t* version_major,
@@ -30,11 +68,11 @@ void qe6502_version(uint16_t* version,
  *
  ********************************************************/
 
-#if (QE6502_ENABLE_NMOS_6502 == 1)
+#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
     qe6502_cycle_t mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
     qe6502_cycle_t nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 #endif
-#if (QE6502_ENABLE_CMOS_65C02 == 1)
+#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
     qe6502_cycle_t rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
     qe6502_cycle_t wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
     qe6502_cycle_t st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
@@ -42,11 +80,11 @@ void qe6502_version(uint16_t* version,
 
 qe6502_cycle_t select_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    #if (QE6502_ENABLE_NMOS_6502 == 1)
+    #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
         if(qe6502_mos == qe6502_model(cpu))   return mos_fetch_opcode_bridge(cpu);
         if(qe6502_nes == qe6502_model(cpu))   return nes_fetch_opcode_bridge(cpu);
     #endif
-    #if (QE6502_ENABLE_CMOS_65C02 == 1)
+    #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
         if(qe6502_wdc == qe6502_model(cpu))   return wdc_fetch_opcode_bridge(cpu);
         if(qe6502_rw == qe6502_model(cpu))    return rw_fetch_opcode_bridge(cpu);
         if(qe6502_st == qe6502_model(cpu))    return st_fetch_opcode_bridge(cpu);
@@ -226,11 +264,11 @@ qe6502_power_on(qe6502_t* cpu, uint8_t model)
         return cpu_error(cpu,  qe6502_err_unknown_model );
     }
     cpu->model = model;
-#if (QE6502_ENABLE_NMOS_6502 == 1)
+#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
     if(qe6502_mos == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'MOS 6502'");       else
     if(qe6502_nes == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'NES 6502'");       else
 #endif
-#if (QE6502_ENABLE_CMOS_65C02 == 1)
+#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
     if(qe6502_wdc == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'WDC 65C02'");      else
     if(qe6502_rw == qe6502_model(cpu))    qe_log("qe6502", "Model set to 'Rockwell 65C02'"); else
     if(qe6502_st == qe6502_model(cpu))    qe_log("qe6502", "Model set to 'Synertek 65C02'"); else
@@ -409,5 +447,72 @@ qe6502_offsets(qe6502_offsets_t* offsets)
     offsets->sizeof_P                   = sizeof(obj.P);
 }
 
+// Foreign Function Interface (FFI)
 
+#if defined(QE6502_ENABLE_FFI) && (QE6502_ENABLE_FFI == 1)
+#include "qe_6502_ffi.h"
 
+typedef struct qe6502_cpuwrap
+{
+    qe6502_t cpu;
+    qe6502_cycle_t cycle;
+} qe6502_cpuwrap_t;
+
+#define CPU(wrap) (&((qe6502_cpuwrap_t*)(wrap))->cpu)
+#define CPU_CONST(wrap) (&((const qe6502_cpuwrap_t*)(wrap))->cpu)
+
+QE_FFI_API_IMPL(size_t)
+qe6502_ffi_cpu_size(void)
+{
+    return sizeof(qe6502_cpuwrap_t);
+}
+
+//
+
+QE_FFI_API(uint8_t)
+qe6502_ffi_cpu_create(void* cpu_memory, size_t memory_size)
+{
+    if (memory_size < qe6502_ffi_cpu_size())
+    {
+        qe_log("qe6502", "Error: memory buffer too small, must be %zu bytes", qe6502_ffi_cpu_size());
+        return 0;
+    }
+    qe_memset(cpu_memory, 0, memory_size);
+    return 1;
+}
+
+QE_FFI_API_IMPL(void)
+qe6502_ffi_cpu_power_on(void* cpu, uint8_t model)
+{
+    qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
+    wrap->cycle = qe6502_power_on(&wrap->cpu, model);
+}
+
+QE_FFI_API_IMPL(void)
+qe6502_ffi_cpu_tick(void* cpu)
+{
+    qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
+    wrap->cycle = wrap->cycle.execute(&wrap->cpu);
+}
+
+//
+
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_ok(const void* cpu) { return qe6502_ok(CPU(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_needs_data(const void* cpu) { return qe6502_needs_data(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_has_data(const void* cpu) { return qe6502_has_data(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_ffi_feed_data(void* cpu, uint8_t byte) { qe6502_feed_data(CPU(cpu), byte);}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_data(const void* cpu) { return qe6502_data(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint16_t) qe6502_ffi_address(const void* cpu) { return qe6502_address(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_instr_done(const void* cpu) { return qe6502_instr_done(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_started(const void* cpu) { return qe6502_started(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_model(const void* cpu) { return qe6502_model(CPU_CONST(cpu));}
+
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_nmi_pin(const void* cpu) { return qe6502_nmi_pin(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_ffi_nmi_hi(void* cpu) { qe6502_nmi_hi(CPU(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_ffi_nmi_lo(void* cpu) { qe6502_nmi_lo(CPU(cpu));}
+
+QE_FFI_API_IMPL(uint8_t)  qe6502_ffi_irq_pin(const void* cpu) { return qe6502_irq_pin(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_ffi_irq_hi(void* cpu) { qe6502_irq_hi(CPU(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_ffi_irq_lo(void* cpu) { qe6502_irq_lo(CPU(cpu));}
+
+#endif // QE6502_ENABLE_FFI

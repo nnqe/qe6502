@@ -5,10 +5,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if !(defined(QE_ENABLE_DEBUG_LOG))
-    #define QE_ENABLE_DEBUG_LOG 0
-#endif
-
 #if defined(_MSC_VER)
     #define QE_LITTLE_ENDIAN 1
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -54,6 +50,27 @@
         #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
     #endif
 #endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+    #ifdef QE6502_BUILD_SHARED
+        #define QE_EXPORT __declspec(dllexport)
+    #else
+        #define QE_EXPORT __declspec(dllimport)
+    #endif
+#elif defined(__GNUC__) || defined(__clang__)
+    #define QE_EXPORT __attribute__((visibility("default")))
+#else
+    #define QE_EXPORT
+#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+    #define QE_CALL __cdecl
+#else
+    #define QE_CALL
+#endif
+
+#define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
+#define QE_FFI_API_IMPL(rettype) rettype
 
 #define QE_MAYBE_UNUSED(sym)                                \
     QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
@@ -157,7 +174,7 @@ typedef union
 #endif
 } qe_word32_t;
 
-#if (QE_ENABLE_DEBUG_LOG == 1)
+#if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
     QE_API void qe_log(const char* topic, const char *fmt, ...);
 #else
     #define qe_log(...)
