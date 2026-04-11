@@ -12,9 +12,8 @@ endif()
 
 # Public header files
 set(QE6502_PUBLIC_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe_6502.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe_6502_ffi.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe_utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502_macros.h
 )
 
 # Private source files
@@ -36,13 +35,12 @@ target_include_directories(${target}
 
 # Compile definitions (propagated to users)
 target_compile_definitions(${target}
-    PUBLIC
-        $<$<BOOL:${QE6502_BUILD_SHARED}>:QE6502_BUILD_SHARED>
-        $<$<BOOL:${QE6502_ENABLE_DEBUG_LOG}>:QE6502_ENABLE_DEBUG_LOG>
-        $<$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>:QE6502_ENABLE_CYCLE_MERGE>
-        $<$<BOOL:${QE6502_ENABLE_NMOS_6502}>:QE6502_ENABLE_NMOS_6502>
-        $<$<BOOL:${QE6502_ENABLE_CMOS_65C02}>:QE6502_ENABLE_CMOS_65C02>
-        $<$<BOOL:${QE6502_ENABLE_FFI}>:QE6502_ENABLE_FFI>
+    PUBLIC        
+        QE6502_BUILD_SHARED=$<BOOL:${QE6502_BUILD_SHARED}>
+        QE6502_ENABLE_DEBUG_LOG=$<BOOL:${QE6502_ENABLE_DEBUG_LOG}>
+        QE6502_ENABLE_CYCLE_MERGE=$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>
+        QE6502_ENABLE_NMOS_6502=$<BOOL:${QE6502_ENABLE_NMOS_6502}>
+        QE6502_ENABLE_CMOS_65C02=$<BOOL:${QE6502_ENABLE_CMOS_65C02}>
 )
 
 if(MSVC)

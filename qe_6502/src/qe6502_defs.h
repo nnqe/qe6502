@@ -12,10 +12,10 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE_QE6502_H__
-#define QE_QE6502_H__
+#ifndef QE6502_DEFS_H__
+#define QE6502_DEFS_H__
 
-#include <qe_utils.h>
+#include "qe6502_cross_build.h"
 
 // Version
 #define QE6502_VERSION_MAJOR 1
@@ -25,10 +25,10 @@
 
 // Major++ on ABI break, Minor++ on backwards-compatible extension.
 // Any pointer may be NULL.
-QE_API
-void qe6502_version(uint16_t* version,
-                    uint8_t* version_major,
-                    uint8_t* version_minor);
+QE_INTERNAL_API(void)
+qe6502_version_impl(uint16_t* version,
+               uint8_t* version_major,
+               uint8_t* version_minor);
 
 //
 // Strongly recommended to keep QE6502_ENABLE_CYCLE_MERGE **OFF**
@@ -159,13 +159,13 @@ static const uint8_t qe6502_err_interrupt_error = (1 << 7);
 
 static const uint8_t qe6502_model_max   = 0x0F;
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-    static const uint8_t qe6502_mos     = 0;
-    static const uint8_t qe6502_nes     = 1;
+    static const uint8_t qe6502_mos     = QE6502_MODEL_MOS;
+    static const uint8_t qe6502_nes     = QE6502_MODEL_NES;
 #endif
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-    static const uint8_t qe6502_wdc     = 2;
-    static const uint8_t qe6502_rw      = 3;
-    static const uint8_t qe6502_st      = 4;
+    static const uint8_t qe6502_wdc     = QE6502_MODEL_WDC;
+    static const uint8_t qe6502_rw      = QE6502_MODEL_RW;
+    static const uint8_t qe6502_st      = QE6502_MODEL_ST;
 #endif
 
 static const uint8_t qe6502_nmi_pin_chg = (1 << 4);
@@ -190,82 +190,33 @@ static const uint8_t qe6502_flag_UN = ( 1 << 5 ); //qe6502_flagpos_UN
 static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
 static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
 
-QE_API qe6502_cycle_t
-qe6502_power_on(qe6502_t* cpu, uint8_t model);
+QE_INTERNAL_API(qe6502_cycle_t)
+qe6502_power_on_impl(qe6502_t* cpu, uint8_t model);
 
-QE_API qe6502_cycle_t
-qe6502_reset_instruction(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
+QE_INTERNAL_API(qe6502_cycle_t)
+qe6502_reset_instruction_impl(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
 
-QE_SIC qe_bool  qe6502_ok(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_halted); }
-QE_SIC qe_bool  qe6502_needs_data(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_writing); }
-QE_SIC qe_bool  qe6502_has_data(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_writing)?1:0; }
-QE_SIC void     qe6502_feed_data(qe6502_t* cpu, uint8_t byte) { ((uint8_t*)(cpu))[cpu->cmd.offset] = byte; }
-QE_SIC uint8_t  qe6502_data(const qe6502_t* cpu) { return ((uint8_t*)(cpu))[cpu->cmd.offset]; }
-QE_SIC uint16_t qe6502_address(const qe6502_t* cpu) { return cpu->cmd.address; }
-QE_SIC qe_bool  qe6502_instr_done(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_wait_opcode)?1:0; }
-QE_SIC qe_bool  qe6502_started(const qe6502_t* cpu) { return qe6502_ok(cpu) && ((cpu->cmd.flags & qe6502_starting)?0:1); }
-QE_SIC qe_bool  qe6502_model(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
-
-QE_SIC uint8_t  qe6502_nmi_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
-QE_SIC void     qe6502_nmi_hi(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }
-QE_SIC void     qe6502_nmi_lo(qe6502_t* cpu) { if (qe6502_nmi_pin(cpu)){cpu->istate |= qe6502_nmi_pin_chg;} cpu->istate |= qe6502_nmi_pin_lo; }
-
-QE_SIC uint8_t  qe6502_irq_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
-QE_SIC void     qe6502_irq_hi(qe6502_t* cpu) { cpu->istate &= (~qe6502_irq_pin_lo); }
-QE_SIC void     qe6502_irq_lo(qe6502_t* cpu) { cpu->istate |= qe6502_irq_pin_lo; }
-
-typedef struct
+QE_SIC qe_bool  qe6502_ok_impl(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_halted); }
+QE_SIC qe_bool  qe6502_needs_data_impl(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_writing); }
+QE_SIC qe_bool  qe6502_has_data_impl(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_writing)?1:0; }
+QE_SIC void     qe6502_feed_data_impl(qe6502_t* cpu, uint8_t byte) { ((uint8_t*)(cpu))[cpu->cmd.offset] = byte; }
+QE_SIC uint8_t  qe6502_data_impl(const qe6502_t* cpu) { return ((uint8_t*)(cpu))[cpu->cmd.offset]; }
+QE_SIC uint16_t qe6502_address_impl(const qe6502_t* cpu) { return cpu->cmd.address; }
+QE_SIC qe_bool  qe6502_instr_done_impl(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_wait_opcode)?1:0; }
+QE_SIC qe_bool  qe6502_started_impl(const qe6502_t* cpu)
 {
-    uint8_t word_lsb;
-    uint8_t word_msb;
-    uint8_t word32_lsw;
-    uint8_t word32_msw;
-    uint8_t cmd_address;
-    uint8_t cmd_offset;
-    uint8_t cmd_flags;
-    uint8_t cmd_packed;
-    uint8_t address;
-    uint8_t pointer;
-    uint8_t error_code;
-    uint8_t instr;
-    uint8_t merged;
-    uint8_t data;
-    uint8_t pagecross_overflow;
-    uint8_t model;
-    uint8_t istate;
-    uint8_t opcode;
-    uint8_t PC;
-    uint8_t S;
-    uint8_t A;
-    uint8_t X;
-    uint8_t Y;
-    uint8_t P;
-    //
-    uint8_t sizeof_word;
-    uint8_t sizeof_word32;
-    uint8_t sizeof_cmd_address;
-    uint8_t sizeof_cmd_offset;
-    uint8_t sizeof_cmd_flags;
-    uint8_t sizeof_cmd_packed;
-    uint8_t sizeof_address;
-    uint8_t sizeof_pointer;
-    uint8_t sizeof_error_code;
-    uint8_t sizeof_instr;
-    uint8_t sizeof_merged;
-    uint8_t sizeof_data;
-    uint8_t sizeof_pagecross_overflow;
-    uint8_t sizeof_model;
-    uint8_t sizeof_istate;
-    uint8_t sizeof_opcode;
-    uint8_t sizeof_PC;
-    uint8_t sizeof_S;
-    uint8_t sizeof_A;
-    uint8_t sizeof_X;
-    uint8_t sizeof_Y;
-    uint8_t sizeof_P;
-} qe6502_offsets_t;
+    qe_bool isok = qe6502_ok_impl(cpu);
+    qe_bool isstarted = ((cpu->cmd.flags & qe6502_starting)?0:1);
+    return isok && isstarted;
+}
+QE_SIC qe_bool  qe6502_model_impl(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
 
-QE_API void
-qe6502_offsets(qe6502_offsets_t* offsets);
+QE_SIC uint8_t  qe6502_nmi_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
+QE_SIC void     qe6502_nmi_hi_impl(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }
+QE_SIC void     qe6502_nmi_lo_impl(qe6502_t* cpu) { if (qe6502_nmi_pin_impl(cpu)){cpu->istate |= qe6502_nmi_pin_chg;} cpu->istate |= qe6502_nmi_pin_lo; }
 
-#endif // QE_QE6502_H__
+QE_SIC uint8_t  qe6502_irq_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
+QE_SIC void     qe6502_irq_hi_impl(qe6502_t* cpu) { cpu->istate &= (~qe6502_irq_pin_lo); }
+QE_SIC void     qe6502_irq_lo_impl(qe6502_t* cpu) { cpu->istate |= qe6502_irq_pin_lo; }
+
+#endif // QE6502_DEFS_H__

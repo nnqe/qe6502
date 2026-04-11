@@ -14,7 +14,7 @@
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 
-#include "nmos_opcodes.h"
+#include "qe6502_nmos_opcodes.h"
 
 /********************************************************
  *
@@ -56,12 +56,12 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to( nmos_opcode_dispatcher );
 }
 
-qe6502_cycle_t mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return nmos_fetch_opcode(cpu);
 }
 
-qe6502_cycle_t nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return nmos_fetch_opcode(cpu);
 }
@@ -252,7 +252,7 @@ nmos_instr_ADC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     else
     {
-        if (qe6502_model(cpu) == qe6502_nes)
+        if (qe6502_model_impl(cpu) == qe6502_nes)
         {
             return jump_to(cpu, nmos_instr_ADC_impl_bin);
         }
@@ -1828,7 +1828,7 @@ nmos_instr_SBC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     else
     {
-        if (qe6502_model(cpu) == qe6502_nes)
+        if (qe6502_model_impl(cpu) == qe6502_nes)
         {
             return jump_to(cpu, nmos_instr_SBC_impl_bin);
         }

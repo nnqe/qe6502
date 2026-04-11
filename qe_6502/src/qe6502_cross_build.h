@@ -1,7 +1,8 @@
-#ifndef QE_CORE_H__
-#define QE_CORE_H__
+#ifndef QE6502_CROSS_BUILD_H__
+#define QE6502_CROSS_BUILD_H__
 
 
+#include "qe6502.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -35,11 +36,9 @@
 #endif
 
 #ifdef __cplusplus
-    #define QE_EXTERN_C extern "C"
     #define QE_RESTRICT
     #define QE_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
 #else
-    #define QE_EXTERN_C
     #define QE_RESTRICT restrict
 
     #if defined(_MSC_VER)
@@ -51,26 +50,13 @@
     #endif
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-    #ifdef QE6502_BUILD_SHARED
-        #define QE_EXPORT __declspec(dllexport)
-    #else
-        #define QE_EXPORT __declspec(dllimport)
-    #endif
-#elif defined(__GNUC__) || defined(__clang__)
-    #define QE_EXPORT __attribute__((visibility("default")))
-#else
-    #define QE_EXPORT
-#endif
+#define QE_FFI_API_IMPL(rettype) QE_FFI_API(rettype)
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-    #define QE_CALL __cdecl
+#if defined(__GNUC__) || defined(__clang__)
+    #define QE_INTERNAL_API(rettype) rettype __attribute__((visibility("hidden"))) QE_CALL
 #else
-    #define QE_CALL
+    #define QE_INTERNAL_API(rettype) rettype QE_CALL
 #endif
-
-#define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
-#define QE_FFI_API_IMPL(rettype) rettype
 
 #define QE_MAYBE_UNUSED(sym)                                \
     QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
@@ -199,4 +185,4 @@ QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t
 QE_MAYBE_UNUSED(qe_memcpy)
 
 
-#endif // QE_CORE_H__
+#endif // QE6502_CROSS_BUILD_H__

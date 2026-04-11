@@ -1,7 +1,7 @@
-#ifndef QE_6502_INLINE_H__
-#define QE_6502_INLINE_H__
+#ifndef QE6502_INLINE_H__
+#define QE6502_INLINE_H__
 
-#include <qe_6502.h>
+#include "qe6502_defs.h"
 #include <stddef.h>
 
 #define INSTR_FW_DECL(funcname) INSTR_RETTYPE qe6502_cycle_t funcname( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
@@ -151,5 +151,5 @@ qe6502_cycle_t cpu_error( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t error_co
 }
 QE_MAYBE_UNUSED(cpu_error)
 
-#endif // QE_6502_INLINE_H__
+#endif // QE6502_INLINE_H__
 

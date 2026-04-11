@@ -1,47 +1,53 @@
-#include <qe_6502.h>
+#include <qe6502.h>
 
 const char* test_klaus2m5(uint8_t cpu_model,
                           uint8_t* memory,
                           uint16_t success_address,
                           uint64_t expected_cycles,
-                          qe_bool* result)
+                          uint8_t* result)
 {
-    *result = qe_false;
-    qe6502_t cpu;
+    *result = 0;
+    uint8_t cpu_memory[64];
+    void* cpu_ptr = &(cpu_memory[0]);
 
     memory[0xFFFC] = 0x00;
     memory[0xFFFD] = 0x04;
-    qe6502_cycle_t cycle = qe6502_power_on(&cpu, cpu_model);
-    if (!qe6502_ok(&cpu))
+    if (!qe6502_cpu_create(cpu_memory, sizeof(cpu_memory)))
+    {
+        return "Memory error";
+    }
+
+    qe6502_cpu_power_on(cpu_ptr, cpu_model);
+    if (!qe6502_ok(cpu_ptr))
     {
         return "CPU power on error!";
     }
 
     // booting
-    while(!qe6502_started(&cpu))
+    while(!qe6502_started(cpu_ptr))
     {
-        uint16_t address = qe6502_address(&cpu);
-        qe_bool is_read = qe6502_needs_data(&cpu);
-        uint8_t data = is_read ? memory[address] : qe6502_data(&cpu);
+        uint16_t address = qe6502_address(cpu_ptr);
+        uint8_t is_read = qe6502_needs_data(cpu_ptr);
+        uint8_t data = is_read ? memory[address] : qe6502_data(cpu_ptr);
         if (is_read)
         {
-            qe6502_feed_data(&cpu, data);
+            qe6502_feed_data(cpu_ptr, data);
         }
         else
         {
             memory[address] = data;
         }
-        cycle = cycle.execute(&cpu);
+        qe6502_cpu_tick(cpu_ptr);
     }
-    if (!qe6502_ok(&cpu))
+    if (!qe6502_ok(cpu_ptr))
     {
         return "CPU boot error";
     }
 
     uint64_t cycles = 0;
-    while(qe6502_ok(&cpu))
+    while(qe6502_ok(cpu_ptr))
     {
-        uint16_t address = qe6502_address(&cpu);
+        uint16_t address = qe6502_address(cpu_ptr);
         if (address == success_address)
         {
             if (expected_cycles != cycles)
@@ -50,23 +56,23 @@ const char* test_klaus2m5(uint8_t cpu_model,
             }
             else
             {
-                *result = qe_true;
+                *result = 1;
                 return "OK";
             }
         }
-        qe_bool is_read = qe6502_needs_data(&cpu);
-        uint8_t data = is_read ? memory[address] : qe6502_data(&cpu);
+        uint8_t is_read = qe6502_needs_data(cpu_ptr);
+        uint8_t data = is_read ? memory[address] : qe6502_data(cpu_ptr);
         if (is_read)
         {
-            qe6502_feed_data(&cpu, data);
+            qe6502_feed_data(cpu_ptr, data);
         }
         else
         {
             memory[address] = data;
         }
-        cycle = cycle.execute(&cpu);
+        qe6502_cpu_tick(cpu_ptr);
 
-        if (qe6502_instr_done(&cpu))
+        if (qe6502_instr_done(cpu_ptr))
         {
             cycles++;
             if (cycles > 2 * expected_cycles)

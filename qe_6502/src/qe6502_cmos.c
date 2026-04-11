@@ -15,7 +15,7 @@
 
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
 
-#include "cmos_opcodes.h"
+#include "qe6502_cmos_opcodes.h"
 
 /********************************************************
  *
@@ -57,17 +57,20 @@ cmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to( cmos_opcode_dispatcher );
 }
 
-qe6502_cycle_t rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t)
+rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return cmos_fetch_opcode(cpu);
 }
 
-qe6502_cycle_t wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t)
+wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return cmos_fetch_opcode(cpu);
 }
 
-qe6502_cycle_t st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t)
+st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return cmos_fetch_opcode(cpu);
 }
@@ -267,7 +270,7 @@ cmos_instr_ADC_Immediate( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     else
     {
         // 0x0059 Rockwell, 0x007f wdc
-        uint8_t model = qe6502_model(cpu);
+        uint8_t model = qe6502_model_impl(cpu);
         qe_word_t dummy_addres =
                 model==qe6502_rw  ?(qe_word_t){.u16 = 0x0059}:
                 model==qe6502_wdc ?(qe_word_t){.u16 = 0x007f}:
@@ -1499,7 +1502,7 @@ cmos_instr_ILLEGAL_NOP_loop( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ILLEGAL_NOP_st_xXf( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    if (qe6502_model(cpu) == qe6502_st)
+    if (qe6502_model_impl(cpu) == qe6502_st)
     {
         if (0x1f == (cpu->opcode & 0x1f)) // $1f,$3f,$5f...$ff
         {
@@ -2617,7 +2620,7 @@ cmos_instr_TSB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    if (qe6502_model(cpu) == qe6502_st)
+    if (qe6502_model_impl(cpu) == qe6502_st)
     {
         return jump_to(cpu, cmos_fetch_opcode);
     }
@@ -3525,7 +3528,7 @@ cmos_pre_rw_zeropage_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_rw_zeropage_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    if (qe6502_model(cpu) == qe6502_st)
+    if (qe6502_model_impl(cpu) == qe6502_st)
     {
         if (0x17 == (cpu->opcode & 0x17)) // $17,$37,$57...$f7
         {
@@ -3866,7 +3869,7 @@ INSTR_FW_DECL(cmos_pre_rw_bbr_bbs_zeropage_relative_7);
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_rw_bbr_zeropage_relative( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    if (qe6502_model(cpu) == qe6502_st)
+    if (qe6502_model_impl(cpu) == qe6502_st)
     {
         return jump_to(cpu, cmos_pre_w_absolute);
     }
@@ -3915,7 +3918,7 @@ INSTR_FW_DECL( cmos_pre_rw_bbs_zeropage_relative_4 );
 INSTR_RETTYPE qe6502_cycle_t
 cmos_pre_rw_bbs_zeropage_relative( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    if (qe6502_model(cpu) == qe6502_st)
+    if (qe6502_model_impl(cpu) == qe6502_st)
     {
         return jump_to(cpu, cmos_pre_w_absolute);
     }
