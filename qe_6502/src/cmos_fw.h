@@ -351,5 +351,11 @@ cmos_pre_rw_zeropage_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ILLEGAL_NOP_st_xXf( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 
+INSTR_RETTYPE qe6502_cycle_t  // irq handle
+cmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
+
+INSTR_RETTYPE qe6502_cycle_t  // nmi handle
+cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
+
 #endif // QE_CMOS_FW_H__
 

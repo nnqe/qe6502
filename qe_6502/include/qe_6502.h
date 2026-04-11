@@ -119,7 +119,11 @@ typedef struct qe6502
         uint8_t data;                   // 1
         int8_t pagecross_overflow;
     };
-    uint8_t model;
+    union
+    {
+        uint8_t model;
+        uint8_t istate;
+    };
     uint8_t opcode;                     // 1
 
     /******** cpu data ********/
@@ -140,24 +144,33 @@ QE_STATIC_ASSERT(sizeof(qe6502_t) <= 32, "qe6502_t must be at most 32 bytes");
 static const uint8_t qe6502_writing     = (1 << 0);
 static const uint8_t qe6502_starting    = (1 << 1);
 static const uint8_t qe6502_wait_opcode = (1 << 2);
-static const uint8_t qe6502_halted      = (1 << 3);
+
+static const uint8_t qe6502_halted      = (1 << 7);
 
 // Errors
 static const uint8_t qe6502_err_compile_error   = (1 << 0);
 static const uint8_t qe6502_err_illegal_instr   = (1 << 1);
 static const uint8_t qe6502_err_poweron_error   = (1 << 2);
 static const uint8_t qe6502_err_logic_error     = (1 << 3);
-static const uint8_t qe6502_err_unknown_model  = (1 << 4);
+static const uint8_t qe6502_err_unknown_model   = (1 << 4);
+static const uint8_t qe6502_err_boot_error      = (1 << 6);
+static const uint8_t qe6502_err_interrupt_error = (1 << 7);
 
+
+static const uint8_t qe6502_model_max   = 0x0F;
 #if (QE6502_ENABLE_NMOS_6502 == 1)
-    static const uint8_t qe6502_mos = 0;
-    static const uint8_t qe6502_nes = 1;
+    static const uint8_t qe6502_mos     = 0;
+    static const uint8_t qe6502_nes     = 1;
 #endif
 #if (QE6502_ENABLE_CMOS_65C02 == 1)
-    static const uint8_t qe6502_wdc = 2;
-    static const uint8_t qe6502_rw = 3;
-    static const uint8_t qe6502_st = 4;
+    static const uint8_t qe6502_wdc     = 2;
+    static const uint8_t qe6502_rw      = 3;
+    static const uint8_t qe6502_st      = 4;
 #endif
+
+static const uint8_t qe6502_nmi_pin_chg = (1 << 4);
+static const uint8_t qe6502_nmi_pin_lo  = (1 << 5);
+static const uint8_t qe6502_irq_pin_lo  = (1 << 6);
 
 static const uint8_t qe6502_flagpos_C = 0;
 static const uint8_t qe6502_flagpos_Z = 1;
@@ -181,9 +194,6 @@ QE_API qe6502_cycle_t
 qe6502_power_on(qe6502_t* cpu, uint8_t model);
 
 QE_API qe6502_cycle_t
-qe6502_execute(qe6502_t* cpu);
-
-QE_API qe6502_cycle_t
 qe6502_reset_instruction(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
 
 QE_SIC qe_bool  qe6502_ok(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_halted); }
@@ -194,14 +204,35 @@ QE_SIC uint8_t  qe6502_data(const qe6502_t* cpu) { return ((uint8_t*)(cpu))[cpu-
 QE_SIC uint16_t qe6502_address(const qe6502_t* cpu) { return cpu->cmd.address; }
 QE_SIC qe_bool  qe6502_instr_done(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_wait_opcode)?1:0; }
 QE_SIC qe_bool  qe6502_started(const qe6502_t* cpu) { return qe6502_ok(cpu) && ((cpu->cmd.flags & qe6502_starting)?0:1); }
+QE_SIC qe_bool  qe6502_model(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
+
+QE_SIC uint8_t  qe6502_nmi_pin(qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
+QE_SIC void     qe6502_nmi_hi(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }
+QE_SIC void     qe6502_nmi_lo(qe6502_t* cpu) { if (qe6502_nmi_pin(cpu)){cpu->istate |= qe6502_nmi_pin_chg;} cpu->istate |= qe6502_nmi_pin_lo; }
+
+QE_SIC uint8_t  qe6502_irq_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
+QE_SIC void     qe6502_irq_hi(qe6502_t* cpu) { cpu->istate &= (~qe6502_irq_pin_lo); }
+QE_SIC void     qe6502_irq_lo(qe6502_t* cpu) { cpu->istate |= qe6502_irq_pin_lo; }
 
 typedef struct
 {
+    uint8_t word_lsb;
+    uint8_t word_msb;
+    uint8_t word32_lsw;
+    uint8_t word32_msw;
+    uint8_t cmd_address;
+    uint8_t cmd_offset;
+    uint8_t cmd_flags;
+    uint8_t cmd_packed;
     uint8_t address;
     uint8_t pointer;
     uint8_t error_code;
+    uint8_t instr;
+    uint8_t merged;
     uint8_t data;
     uint8_t pagecross_overflow;
+    uint8_t model;
+    uint8_t istate;
     uint8_t opcode;
     uint8_t PC;
     uint8_t S;
@@ -209,6 +240,29 @@ typedef struct
     uint8_t X;
     uint8_t Y;
     uint8_t P;
+    //
+    uint8_t sizeof_word;
+    uint8_t sizeof_word32;
+    uint8_t sizeof_cmd_address;
+    uint8_t sizeof_cmd_offset;
+    uint8_t sizeof_cmd_flags;
+    uint8_t sizeof_cmd_packed;
+    uint8_t sizeof_address;
+    uint8_t sizeof_pointer;
+    uint8_t sizeof_error_code;
+    uint8_t sizeof_instr;
+    uint8_t sizeof_merged;
+    uint8_t sizeof_data;
+    uint8_t sizeof_pagecross_overflow;
+    uint8_t sizeof_model;
+    uint8_t sizeof_istate;
+    uint8_t sizeof_opcode;
+    uint8_t sizeof_PC;
+    uint8_t sizeof_S;
+    uint8_t sizeof_A;
+    uint8_t sizeof_X;
+    uint8_t sizeof_Y;
+    uint8_t sizeof_P;
 } qe6502_offsets_t;
 
 QE_API void

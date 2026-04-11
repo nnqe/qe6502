@@ -268,5 +268,11 @@ nmos_instr_TXS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
 INSTR_RETTYPE qe6502_cycle_t  // TYA - Transfer Y to Accumulator
 nmos_instr_TYA( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
 
+INSTR_RETTYPE qe6502_cycle_t  // irq handle
+nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
+
+INSTR_RETTYPE qe6502_cycle_t  // nmi handle
+nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
+
 #endif // QE_NMOS_FW_H__
 

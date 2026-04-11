@@ -35,6 +35,22 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->PC, OFFSETOF(opcode));
 
+    if (cpu->istate & ( qe6502_nmi_pin_chg | qe6502_irq_pin_lo ))
+    {
+        if (cpu->istate & qe6502_nmi_pin_chg)
+        {
+            cpu->address.u8_lsb = 0;
+            return resume_to_dummy_read( cpu, nmos_nmi );
+        }
+
+        if (  (cpu->istate & qe6502_irq_pin_lo) &&
+              (!(cpu->P & qe6502_flag_I)) )
+        {
+            cpu->address.u8_lsb = 0;
+            return resume_to_dummy_read( cpu, nmos_irq );
+        }
+    }
+
     cpu->cmd.flags |= qe6502_wait_opcode;
 
     return resume_to( nmos_opcode_dispatcher );
@@ -236,7 +252,7 @@ nmos_instr_ADC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     else
     {
-        if (cpu->model == qe6502_nes)
+        if (qe6502_model(cpu) == qe6502_nes)
         {
             return jump_to(cpu, nmos_instr_ADC_impl_bin);
         }
@@ -1812,7 +1828,7 @@ nmos_instr_SBC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     else
     {
-        if (cpu->model == qe6502_nes)
+        if (qe6502_model(cpu) == qe6502_nes)
         {
             return jump_to(cpu, nmos_instr_SBC_impl_bin);
         }
@@ -3094,6 +3110,79 @@ nmos_pre_w_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     cpu->address.u8_lsb += cpu->Y;
 
     return resume_to_dummy_read(cpu, cpu->instr);
+}
+
+/********************************************************
+ *
+ *
+ *  NMI/IRQ Interrupts Routineс
+ *
+ *
+ ********************************************************/
+
+INSTR_RETTYPE qe6502_cycle_t  //
+nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    cpu->address.u8_lsb++;
+    switch(cpu->address.u8_lsb)
+    {
+    case 1:
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+        cpu->S--;
+        break;
+    case 2:
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+        cpu->S--;
+        break;
+    case 3:
+        request_stack_write(cpu, cpu->S, OFFSETOF(P));
+        cpu->S--;
+        break;
+    case 4:
+        cpu->P |= qe6502_flag_I;
+        request_read(cpu, (qe_word_t){.u16=0xfffe}, OFFSETOF(PC.u8_lsb));
+        break;
+    case 5:
+        request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
+        return resume_to(nmos_fetch_opcode);
+    default:
+        qe_log("qe6502", "Interrupt Error, unexpected!");
+        return cpu_error(cpu,  qe6502_err_interrupt_error);
+    }
+    return resume_to(nmos_irq);
+}
+
+INSTR_RETTYPE qe6502_cycle_t  //
+nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    cpu->address.u8_lsb++;
+    switch(cpu->address.u8_lsb)
+    {
+    case 1:
+        cpu->istate &= (~qe6502_nmi_pin_chg);
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+        cpu->S--;
+        break;
+    case 2:
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+        cpu->S--;
+        break;
+    case 3:
+        request_stack_write(cpu, cpu->S, OFFSETOF(P));
+        cpu->S--;
+        break;
+    case 4:
+        cpu->P |= qe6502_flag_I;
+        request_read(cpu, (qe_word_t){.u16=0xfffa}, OFFSETOF(PC.u8_lsb));
+        break;
+    case 5:
+        request_read(cpu, (qe_word_t){.u16=0xfffb}, OFFSETOF(PC.u8_msb));
+        return resume_to(nmos_fetch_opcode);
+    default:
+        qe_log("qe6502", "Interrupt Error, unexpected!");
+        return cpu_error(cpu,  qe6502_err_interrupt_error);
+    }
+    return resume_to(nmos_nmi);
 }
 
 #endif // QE_ENABLE_NMOS_6502

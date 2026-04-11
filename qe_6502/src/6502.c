@@ -43,15 +43,15 @@ void qe6502_version(uint16_t* version,
 qe6502_cycle_t select_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     #if (QE6502_ENABLE_NMOS_6502 == 1)
-        if(qe6502_mos == cpu->model)   return mos_fetch_opcode_bridge(cpu);
-        if(qe6502_nes == cpu->model)   return nes_fetch_opcode_bridge(cpu);
+        if(qe6502_mos == qe6502_model(cpu))   return mos_fetch_opcode_bridge(cpu);
+        if(qe6502_nes == qe6502_model(cpu))   return nes_fetch_opcode_bridge(cpu);
     #endif
     #if (QE6502_ENABLE_CMOS_65C02 == 1)
-        if(qe6502_wdc == cpu->model)   return wdc_fetch_opcode_bridge(cpu);
-        if(qe6502_rw == cpu->model)    return rw_fetch_opcode_bridge(cpu);
-        if(qe6502_st == cpu->model)    return st_fetch_opcode_bridge(cpu);
+        if(qe6502_wdc == qe6502_model(cpu))   return wdc_fetch_opcode_bridge(cpu);
+        if(qe6502_rw == qe6502_model(cpu))    return rw_fetch_opcode_bridge(cpu);
+        if(qe6502_st == qe6502_model(cpu))    return st_fetch_opcode_bridge(cpu);
     #endif
-    qe_log("qe6502", "Error: unknown model: %d", (unsigned)cpu->model);
+    qe_log("qe6502", "Error: unknown model: %d", (unsigned)(qe6502_model(cpu)));
     return cpu_error(cpu,  qe6502_err_unknown_model );
 }
 
@@ -66,8 +66,8 @@ power_on_impl( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         cpu->PC.u16++;
         request_read(cpu, cpu->PC, OFFSETOF(data));
         cpu->cmd.flags = qe6502_starting;
-
         return resume_to(power_on_impl);
+
     case 3:
     case 4:
     case 5:
@@ -78,25 +78,27 @@ power_on_impl( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_stack_read(cpu, cpu->S, OFFSETOF(data));
         cpu->cmd.flags = qe6502_starting;
         cpu->S--;
-
         return resume_to(power_on_impl);
+
     case 6:
         cpu->address.u16 = 0xFFFC;
         request_read(cpu, cpu->address, OFFSETOF(PC.u8_lsb));
         cpu->cmd.flags = qe6502_starting;
-
         return resume_to(power_on_impl);
+
     case 7:
         cpu->address.u16++;
         request_read(cpu, cpu->address, OFFSETOF(PC.u8_msb));
         cpu->cmd.flags = qe6502_starting;
-
         return resume_to(power_on_impl);
-    default:
 
+    case 8:
         return select_fetch_opcode_bridge(cpu);
+
+    default:
+        break;
     }
-    QE_UNREACHABLE();
+    return cpu_error(cpu,  qe6502_err_boot_error );
 }
 QE_API_IMPL qe6502_cycle_t
 qe6502_power_on(qe6502_t* cpu, uint8_t model)
@@ -200,16 +202,38 @@ qe6502_power_on(qe6502_t* cpu, uint8_t model)
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
+    // istate
+    cpu->istate = 0;
+
     // check model
+    if ( (qe6502_model_max + 1) & qe6502_model_max )
+    {
+        qe_log("qe6502", "Error: qe6502_model_max shoud be mask");
+        return cpu_error(cpu,  qe6502_err_compile_error );
+    }
+
+    if (qe6502_model_max >= qe6502_nmi_pin_chg ||
+        qe6502_model_max >= qe6502_nmi_pin_lo  ||
+        qe6502_model_max >= qe6502_irq_pin_lo )
+    {
+        qe_log("qe6502", "Error: istate pin values must be greater than qe6502_model_max");
+        return cpu_error(cpu,  qe6502_err_compile_error );
+    }
+
+    if (model > qe6502_model_max)
+    {
+        qe_log("qe6502", "Error: Model id too big");
+        return cpu_error(cpu,  qe6502_err_unknown_model );
+    }
     cpu->model = model;
 #if (QE6502_ENABLE_NMOS_6502 == 1)
-    if(qe6502_mos == cpu->model)   qe_log("qe6502", "Model set to 'MOS 6502'");       else
-    if(qe6502_nes == cpu->model)   qe_log("qe6502", "Model set to 'NES 6502'");       else
+    if(qe6502_mos == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'MOS 6502'");       else
+    if(qe6502_nes == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'NES 6502'");       else
 #endif
 #if (QE6502_ENABLE_CMOS_65C02 == 1)
-    if(qe6502_wdc == cpu->model)   qe_log("qe6502", "Model set to 'WDC 65C02'");      else
-    if(qe6502_rw == cpu->model)    qe_log("qe6502", "Model set to 'Rockwell 65C02'"); else
-    if(qe6502_st == cpu->model)    qe_log("qe6502", "Model set to 'Synertek 65C02'"); else
+    if(qe6502_wdc == qe6502_model(cpu))   qe_log("qe6502", "Model set to 'WDC 65C02'");      else
+    if(qe6502_rw == qe6502_model(cpu))    qe_log("qe6502", "Model set to 'Rockwell 65C02'"); else
+    if(qe6502_st == qe6502_model(cpu))    qe_log("qe6502", "Model set to 'Synertek 65C02'"); else
 #endif
     {
         qe_log("qe6502", "Error: unknown model: %d", (unsigned)model);
@@ -316,7 +340,7 @@ qe6502_power_on(qe6502_t* cpu, uint8_t model)
     // Let's go ...
 
     QE_CLEAR_OBJ(*cpu);
-    cpu->model = model;
+    cpu->model = model; // this will also clear internal istate
 
     request_read(cpu, cpu->PC, OFFSETOF(data));
     cpu->cmd.flags = qe6502_starting;
@@ -335,11 +359,23 @@ qe6502_reset_instruction(qe6502_t *cpu)
 QE_API_IMPL void
 qe6502_offsets(qe6502_offsets_t* offsets)
 {
+    offsets->word_lsb           = offsetof(qe_word_t, u8_lsb);
+    offsets->word_msb           = offsetof(qe_word_t, u8_msb);
+    offsets->word32_lsw         = offsetof(qe_word32_t, lsw);
+    offsets->word32_msw         = offsetof(qe_word32_t, msw);
+    offsets->cmd_address        = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, address);
+    offsets->cmd_offset         = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, offset);
+    offsets->cmd_flags          = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, flags);
+    offsets->cmd_packed         = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, packed);
     offsets->address            = OFFSETOF(address);
     offsets->pointer            = OFFSETOF(pointer);
     offsets->error_code         = OFFSETOF(error_code);
+    offsets->instr              = OFFSETOF(instr);
+    offsets->merged             = OFFSETOF(merged);
     offsets->data               = OFFSETOF(data);
     offsets->pagecross_overflow = OFFSETOF(pagecross_overflow);
+    offsets->model              = OFFSETOF(model);
+    offsets->istate             = OFFSETOF(istate);
     offsets->opcode             = OFFSETOF(opcode);
     offsets->PC                 = OFFSETOF(PC);
     offsets->S                  = OFFSETOF(S);
@@ -347,6 +383,30 @@ qe6502_offsets(qe6502_offsets_t* offsets)
     offsets->X                  = OFFSETOF(X);
     offsets->Y                  = OFFSETOF(Y);
     offsets->P                  = OFFSETOF(P);
+
+    qe6502_t obj;
+    offsets->sizeof_word                = sizeof(qe_word_t);
+    offsets->sizeof_word32              = sizeof(qe_word32_t);
+    offsets->sizeof_cmd_address         = sizeof(obj.cmd.address);
+    offsets->sizeof_cmd_offset          = sizeof(obj.cmd.offset);
+    offsets->sizeof_cmd_flags           = sizeof(obj.cmd.flags);
+    offsets->sizeof_cmd_packed          = sizeof(obj.cmd.packed);
+    offsets->sizeof_address             = sizeof(obj.address);
+    offsets->sizeof_pointer             = sizeof(obj.pointer);
+    offsets->sizeof_error_code          = sizeof(obj.error_code);
+    offsets->sizeof_instr               = sizeof(obj.instr);
+    offsets->sizeof_merged              = sizeof(obj.merged);
+    offsets->sizeof_data                = sizeof(obj.data);
+    offsets->sizeof_pagecross_overflow  = sizeof(obj.pagecross_overflow);
+    offsets->sizeof_model               = sizeof(obj.model);
+    offsets->sizeof_istate              = sizeof(obj.istate);
+    offsets->sizeof_opcode              = sizeof(obj.opcode);
+    offsets->sizeof_PC                  = sizeof(obj.PC);
+    offsets->sizeof_S                   = sizeof(obj.S);
+    offsets->sizeof_A                   = sizeof(obj.A);
+    offsets->sizeof_X                   = sizeof(obj.X);
+    offsets->sizeof_Y                   = sizeof(obj.Y);
+    offsets->sizeof_P                   = sizeof(obj.P);
 }
 
 
