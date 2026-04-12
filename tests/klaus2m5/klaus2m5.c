@@ -83,4 +83,3 @@ const char* test_klaus2m5(uint8_t cpu_model,
     }
     return "CPU Error";
 }
-
