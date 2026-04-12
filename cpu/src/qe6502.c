@@ -12,7 +12,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#include "qe6502.h"
+#include <qe6502/qe6502.h>
 #include "qe6502_inline.h"
 
 #if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
@@ -25,9 +25,9 @@
 #else
     #define QE_PRINTF_LIKE(fmt_index, va_index)
 #endif
-    void qe_log(const char* topic, const char *fmt, ...) QE_PRINTF_LIKE(2, 3);
+    QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...) QE_PRINTF_LIKE(2, 3);
 
-    void qe_log(const char* topic, const char *fmt, ...)
+    QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)
     {
         /* HH:MM:SS timestamp */
         char timeBuf[9];
@@ -53,8 +53,8 @@
     }
 #endif
 
-QE_API_IMPL
-void qe6502_version_impl(uint16_t* version,
+QE_INTERNAL_API(void)
+qe6502_version_impl(uint16_t* version,
                     uint8_t* version_major,
                     uint8_t* version_minor)
 {
@@ -139,7 +139,7 @@ power_on_routine( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     return cpu_error(cpu,  qe6502_err_boot_error );
 }
-QE_API_IMPL qe6502_cycle_t
+QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
 {
     qe_log("qe6502", "Power ON");
@@ -387,7 +387,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     return resume_to(power_on_routine);
 }
 
-QE_API_IMPL qe6502_cycle_t
+QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_reset_instruction_impl(qe6502_t *cpu)
 {
     cpu->P |= qe6502_flag_UN;
@@ -422,16 +422,21 @@ qe6502_cpu_size(void)
 
 //
 
-QE_FFI_API_IMPL(uint8_t)
+QE_FFI_API_IMPL(size_t)
 qe6502_cpu_create(void* cpu_memory, size_t memory_size)
 {
+    if (QE_NULL == cpu_memory)
+    {
+        qe_log("qe6502", "Error: memory buffer NULL, must be %zu bytes valid buffer", qe6502_cpu_size());
+        return 0;
+    }
     if (memory_size < qe6502_cpu_size())
     {
         qe_log("qe6502", "Error: memory buffer too small, must be %zu bytes", qe6502_cpu_size());
         return 0;
     }
-    qe_memset(cpu_memory, 0, memory_size);
-    return 1;
+    qe_memset(cpu_memory, 0, qe6502_cpu_size());
+    return qe6502_cpu_size();
 }
 
 QE_FFI_API_IMPL(void)

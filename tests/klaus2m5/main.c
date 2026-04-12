@@ -1,4 +1,4 @@
-#include <qe6502.h>
+#include <qe6502/qe6502.h>
 #include <stdio.h>
 
 const char* test_klaus2m5(uint8_t cpu_model,

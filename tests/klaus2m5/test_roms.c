@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <qe6502.h>
+#include <qe6502/qe6502.h>
 #include <string.h>
 
 static const uint8_t s_nmos_klaus2m5_rom[0x10000] =

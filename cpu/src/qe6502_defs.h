@@ -209,7 +209,7 @@ QE_SIC qe_bool  qe6502_started_impl(const qe6502_t* cpu)
     qe_bool isstarted = ((cpu->cmd.flags & qe6502_starting)?0:1);
     return isok && isstarted;
 }
-QE_SIC qe_bool  qe6502_model_impl(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
+QE_SIC uint8_t  qe6502_model_impl(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
 
 QE_SIC uint8_t  qe6502_nmi_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
 QE_SIC void     qe6502_nmi_hi_impl(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }

@@ -38,7 +38,7 @@ qe6502_cpu_size(void);
 
 //
 
-QE_FFI_API(uint8_t)
+QE_FFI_API(size_t)
 qe6502_cpu_create(void* cpu_memory, size_t memory_size);
 
 QE_FFI_API(void)

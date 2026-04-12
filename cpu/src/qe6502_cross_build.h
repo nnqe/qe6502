@@ -2,7 +2,7 @@
 #define QE6502_CROSS_BUILD_H__
 
 
-#include "qe6502.h"
+#include <qe6502/qe6502.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -68,7 +68,6 @@
     }
 
 #define QE_API QE_EXTERN_C
-#define QE_API_IMPL
 
 #if defined(_MSC_VER)
     #define QE_ALWAYS_INLINE __forceinline
@@ -161,7 +160,7 @@ typedef union
 } qe_word32_t;
 
 #if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
-    QE_API void qe_log(const char* topic, const char *fmt, ...);
+    QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...);
 #else
     #define qe_log(...)
 #endif // QE_ENABLE_LOG
