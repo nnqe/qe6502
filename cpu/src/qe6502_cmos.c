@@ -4031,7 +4031,7 @@ cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     switch(cpu->address.u8_lsb)
     {
     case 1:
-        cpu->istate &= (~qe6502_nmi_pin_chg);
+        cpu->istate &= QE_U8(~qe6502_nmi_pin_chg);
         request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
         cpu->S--;
         break;

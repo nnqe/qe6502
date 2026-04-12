@@ -67,6 +67,8 @@ QE_FFI_API(uint8_t)  qe6502_irq_pin(const void* cpu);
 QE_FFI_API(void)     qe6502_irq_hi(void* cpu);
 QE_FFI_API(void)     qe6502_irq_lo(void* cpu);
 
+QE_FFI_API(uint16_t)  qe6502_error_code(const void* cpu);
+QE_FFI_API(const char*)  qe6502_error_string(uint16_t error_code);
 
 typedef struct
 {

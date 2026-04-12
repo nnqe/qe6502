@@ -476,6 +476,32 @@ QE_FFI_API_IMPL(uint8_t)  qe6502_irq_pin(const void* cpu) { return qe6502_irq_pi
 QE_FFI_API_IMPL(void)     qe6502_irq_hi(void* cpu) { qe6502_irq_hi_impl(CPU(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_irq_lo(void* cpu) { qe6502_irq_lo_impl(CPU(cpu));}
 
+QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const void* cpu)
+{
+    if (qe6502_ok_impl(CPU_CONST(cpu)))
+    {
+        return 0;
+    }
+    return CPU(cpu)->error_code;
+}
+
+QE_FFI_API_IMPL(const char*)  qe6502_error_string(uint16_t error_code)
+{
+    switch(error_code)
+    {
+        case 0: return "";
+        case (1 << 0): return "qe6502_err_compile_error  ";
+        case (1 << 1): return "qe6502_err_illegal_instr  ";
+        case (1 << 2): return "qe6502_err_poweron_error  ";
+        case (1 << 3): return "qe6502_err_logic_error    ";
+        case (1 << 4): return "qe6502_err_unknown_model  ";
+        case (1 << 6): return "qe6502_err_boot_error     ";
+        case (1 << 7): return "qe6502_err_interrupt_error";
+        default:
+          break;
+    }
+    return "Unknowo error!";
+}
 
 QE_FFI_API_IMPL(void)
 qe6502_offsets(qe6502_offsets_t* offsets)

@@ -212,11 +212,11 @@ QE_SIC qe_bool  qe6502_started_impl(const qe6502_t* cpu)
 QE_SIC uint8_t  qe6502_model_impl(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
 
 QE_SIC uint8_t  qe6502_nmi_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
-QE_SIC void     qe6502_nmi_hi_impl(qe6502_t* cpu) {  cpu->istate &= (~qe6502_nmi_pin_lo); }
+QE_SIC void     qe6502_nmi_hi_impl(qe6502_t* cpu) {  cpu->istate &= QE_U8(~qe6502_nmi_pin_lo); }
 QE_SIC void     qe6502_nmi_lo_impl(qe6502_t* cpu) { if (qe6502_nmi_pin_impl(cpu)){cpu->istate |= qe6502_nmi_pin_chg;} cpu->istate |= qe6502_nmi_pin_lo; }
 
 QE_SIC uint8_t  qe6502_irq_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
-QE_SIC void     qe6502_irq_hi_impl(qe6502_t* cpu) { cpu->istate &= (~qe6502_irq_pin_lo); }
+QE_SIC void     qe6502_irq_hi_impl(qe6502_t* cpu) { cpu->istate &= QE_U8(~qe6502_irq_pin_lo); }
 QE_SIC void     qe6502_irq_lo_impl(qe6502_t* cpu) { cpu->istate |= qe6502_irq_pin_lo; }
 
 #endif // QE6502_DEFS_H__
