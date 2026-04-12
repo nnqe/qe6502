@@ -25,7 +25,6 @@ The core follows a **cycle-accurate, bus-accurate, bus-driven model**, allowing 
 - No dynamic memory allocation
 - Small and predictable CPU state
 - FFI-friendly interface
-- Clear separation between public and internal code
 
 ---
 

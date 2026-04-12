@@ -1,6 +1,6 @@
 # /CMakeLists.txt
 cmake_minimum_required(VERSION 3.15)
-project(QuickAndEasy6502 LANGUAGES C)
+project(qe6502 LANGUAGES C)
 
 # Public build-time options for qe6502
 option(QE6502_BUILD_TESTS "Build tests" OFF)
