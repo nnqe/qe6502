@@ -18,6 +18,7 @@
 #include "qe6502_macros.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <stdalign.h>
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 #define QE6502_MODEL_MOS 0
@@ -29,6 +30,14 @@
 #define QE6502_MODEL_ST  4
 #endif
 
+#define QE_CONTEXT_SIZE   40u
+#define QE_CONTEXT_ALIGN  8u
+
+typedef struct qe6502_cpu_t {
+    alignas(QE_CONTEXT_ALIGN)
+    unsigned char bytes[QE_CONTEXT_SIZE];
+} qe6502_cpu_t;
+
 QE_FFI_API(uint32_t)
 qe6502_version(void);
 //
@@ -36,40 +45,41 @@ qe6502_version(void);
 QE_FFI_API(size_t)
 qe6502_cpu_size(void);
 
-//
-
 QE_FFI_API(size_t)
-qe6502_cpu_create(void* cpu_memory, size_t memory_size);
-
-QE_FFI_API(void)
-qe6502_cpu_power_on(void* cpu, uint8_t model);
-
-QE_FFI_API(void)
-qe6502_cpu_tick(void* cpu);
+qe6502_cpu_align(void);
 
 //
 
-QE_FFI_API(uint8_t)  qe6502_ok(const void* cpu);
-QE_FFI_API(uint8_t)  qe6502_needs_data(const void* cpu);
-QE_FFI_API(uint8_t)  qe6502_has_data(const void* cpu);
-QE_FFI_API(void)     qe6502_feed_data(void* cpu, uint8_t byte);
-QE_FFI_API(uint8_t)  qe6502_data(const void* cpu);
-QE_FFI_API(uint16_t) qe6502_address(const void* cpu);
-QE_FFI_API(uint8_t)  qe6502_instr_done(const void* cpu);
-QE_FFI_API(uint8_t)  qe6502_started(const void* cpu);
-QE_FFI_API(uint8_t)  qe6502_model(const void* cpu);
+QE_FFI_API(void)
+qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model);
 
-QE_FFI_API(uint8_t)  qe6502_nmi_pin(const void* cpu);
-QE_FFI_API(void)     qe6502_nmi_hi(void* cpu);
-QE_FFI_API(void)     qe6502_nmi_lo(void* cpu);
+QE_FFI_API(void)
+qe6502_cpu_tick(qe6502_cpu_t* cpu);
 
-QE_FFI_API(uint8_t)  qe6502_irq_pin(const void* cpu);
-QE_FFI_API(void)     qe6502_irq_hi(void* cpu);
-QE_FFI_API(void)     qe6502_irq_lo(void* cpu);
+//
 
-QE_FFI_API(uint16_t)  qe6502_error_code(const void* cpu);
-QE_FFI_API(const char*)  qe6502_error_string(uint16_t error_code);
+QE_FFI_API(uint8_t)     qe6502_ok(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_needs_data(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_has_data(const qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_feed_data(qe6502_cpu_t* cpu, uint8_t byte);
+QE_FFI_API(uint8_t)     qe6502_data(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint16_t)    qe6502_address(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_instr_done(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_is_started(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_model(const qe6502_cpu_t* cpu);
 
+QE_FFI_API(uint8_t)     qe6502_nmi_pin(const qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_nmi_hi(qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_nmi_lo(qe6502_cpu_t* cpu);
+
+QE_FFI_API(uint8_t)     qe6502_irq_pin(const qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_irq_hi(qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
+
+QE_FFI_API(uint16_t)    qe6502_error_code(const qe6502_cpu_t* cpu);
+QE_FFI_API(const char*) qe6502_error_string(uint16_t error_code);
+
+// Use only if you are very familiar with the internal implementation of the library.
 typedef struct
 {
     uint8_t word_lsb;

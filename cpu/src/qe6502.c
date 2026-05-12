@@ -417,37 +417,26 @@ qe6502_version(void)
 QE_FFI_API_IMPL(size_t)
 qe6502_cpu_size(void)
 {
-    return sizeof(qe6502_cpuwrap_t);
+    return QE_CONTEXT_SIZE;
+}
+
+QE_FFI_API_IMPL(size_t)
+qe6502_cpu_align(void)
+{
+    return QE_CONTEXT_ALIGN;
 }
 
 //
 
-QE_FFI_API_IMPL(size_t)
-qe6502_cpu_create(void* cpu_memory, size_t memory_size)
-{
-    if (QE_NULL == cpu_memory)
-    {
-        qe_log("qe6502", "Error: memory buffer NULL, must be %zu bytes valid buffer", qe6502_cpu_size());
-        return 0;
-    }
-    if (memory_size < qe6502_cpu_size())
-    {
-        qe_log("qe6502", "Error: memory buffer too small, must be %zu bytes", qe6502_cpu_size());
-        return 0;
-    }
-    qe_memset(cpu_memory, 0, qe6502_cpu_size());
-    return qe6502_cpu_size();
-}
-
 QE_FFI_API_IMPL(void)
-qe6502_cpu_power_on(void* cpu, uint8_t model)
+qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model)
 {
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
     wrap->cycle = qe6502_power_on_impl(&wrap->cpu, model);
 }
 
 QE_FFI_API_IMPL(void)
-qe6502_cpu_tick(void* cpu)
+qe6502_cpu_tick(qe6502_cpu_t* cpu)
 {
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
     wrap->cycle = wrap->cycle.execute(&wrap->cpu);
@@ -455,28 +444,28 @@ qe6502_cpu_tick(void* cpu)
 
 //
 
-QE_FFI_API_IMPL(uint8_t)  qe6502_ok(const void* cpu) { return qe6502_ok_impl(CPU(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_needs_data(const void* cpu) { return qe6502_needs_data_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_has_data(const void* cpu) { return qe6502_has_data_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(void)     qe6502_feed_data(void* cpu, uint8_t byte) { qe6502_feed_data_impl(CPU(cpu), byte);}
-QE_FFI_API_IMPL(uint8_t)  qe6502_data(const void* cpu) { return qe6502_data_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint16_t) qe6502_address(const void* cpu) { return qe6502_address_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_instr_done(const void* cpu) { return qe6502_instr_done_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_started(const void* cpu)
+QE_FFI_API_IMPL(uint8_t)  qe6502_ok(const qe6502_cpu_t* cpu) { return qe6502_ok_impl(CPU(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_needs_data(const qe6502_cpu_t* cpu) { return qe6502_needs_data_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_has_data(const qe6502_cpu_t* cpu) { return qe6502_has_data_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_feed_data(qe6502_cpu_t* cpu, uint8_t byte) { qe6502_feed_data_impl(CPU(cpu), byte);}
+QE_FFI_API_IMPL(uint8_t)  qe6502_data(const qe6502_cpu_t* cpu) { return qe6502_data_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint16_t) qe6502_address(const qe6502_cpu_t* cpu) { return qe6502_address_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_instr_done(const qe6502_cpu_t* cpu) { return qe6502_instr_done_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_is_started(const qe6502_cpu_t* cpu)
 {
     return qe6502_started_impl(CPU_CONST(cpu));
 }
-QE_FFI_API_IMPL(uint8_t)  qe6502_model(const void* cpu) { return qe6502_model_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_model(const qe6502_cpu_t* cpu) { return qe6502_model_impl(CPU_CONST(cpu));}
 
-QE_FFI_API_IMPL(uint8_t)  qe6502_nmi_pin(const void* cpu) { return qe6502_nmi_pin_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(void)     qe6502_nmi_hi(void* cpu) { qe6502_nmi_hi_impl(CPU(cpu));}
-QE_FFI_API_IMPL(void)     qe6502_nmi_lo(void* cpu) { qe6502_nmi_lo_impl(CPU(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_nmi_pin(const qe6502_cpu_t* cpu) { return qe6502_nmi_pin_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_nmi_hi(qe6502_cpu_t* cpu) { qe6502_nmi_hi_impl(CPU(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_nmi_lo(qe6502_cpu_t* cpu) { qe6502_nmi_lo_impl(CPU(cpu));}
 
-QE_FFI_API_IMPL(uint8_t)  qe6502_irq_pin(const void* cpu) { return qe6502_irq_pin_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(void)     qe6502_irq_hi(void* cpu) { qe6502_irq_hi_impl(CPU(cpu));}
-QE_FFI_API_IMPL(void)     qe6502_irq_lo(void* cpu) { qe6502_irq_lo_impl(CPU(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_irq_pin(const qe6502_cpu_t* cpu) { return qe6502_irq_pin_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_irq_hi(qe6502_cpu_t* cpu) { qe6502_irq_hi_impl(CPU(cpu));}
+QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(CPU(cpu));}
 
-QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const void* cpu)
+QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
 {
     if (qe6502_ok_impl(CPU_CONST(cpu)))
     {
