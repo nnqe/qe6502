@@ -162,7 +162,7 @@ typedef union
 #if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
     QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...);
 #else
-    #define qe_log(...)
+#define qe_log(...) (void)0
 #endif // QE_ENABLE_LOG
 
 #define QE_ARRAY_LENGTH(arr) ( sizeof(arr) / sizeof((arr)[0]) )

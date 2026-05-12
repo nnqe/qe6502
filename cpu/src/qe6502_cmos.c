@@ -146,7 +146,7 @@ cmos_instr_ADC_impl_bin( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint8_t u = cpu->data;
     qe_word_t r16 = (qe_word_t){.u16 = cpu->A};
 
-    uint8_t carry = ((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
+    uint8_t carry = QE_U8(QE_U8(cpu->P & qe6502_flag_C ) >> QE_U8(qe6502_flagpos_C));
     r16.u16 += QE_U16(u + carry);
     uint8_t c = r16.u16 > 0xff;
 
@@ -166,7 +166,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ADC_impl_dec( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t data = cpu->data;
-    uint8_t carry = ((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
+    uint8_t carry = QE_U8(QE_U8(cpu->P & qe6502_flag_C ) >> QE_U8(qe6502_flagpos_C));
     uint16_t result = 0;
     uint8_t flags = 0;
 
@@ -355,7 +355,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ASL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->data >> 7;
-    cpu->data <<= 1;
+    cpu->data = QE_U8(cpu->data << 1);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                         carry|
                         (cpu->data?0:qe6502_flag_Z)|
@@ -369,7 +369,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ASL_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->A >> 7;
-    cpu->A <<= 1;
+    cpu->A = QE_U8(cpu->A << 1);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                         carry|
                         (cpu->A?0:qe6502_flag_Z)|
@@ -1494,9 +1494,9 @@ cmos_instr_ILLEGAL_NOP_loop( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return jump_to(cpu, cmos_fetch_opcode);
     }
     cpu->pointer.u8_lsb--;
-    request_read_dummy(cpu, cpu->PC, OFFSETOF(data));
+    request_read(cpu, cpu->PC, OFFSETOF(data));
     cpu->PC.u16++;
-    return resume_to_dummy_read(cpu, cmos_instr_ILLEGAL_NOP_loop);
+    return resume_to(cmos_instr_ILLEGAL_NOP_loop);
 }
 
 INSTR_RETTYPE qe6502_cycle_t
@@ -1777,7 +1777,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ROL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->data >> 7;
-    cpu->data <<= 1;
+    cpu->data = QE_U8(cpu->data << 1);
     cpu->data |= (qe6502_flag_C & cpu->P);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                             carry  |
@@ -1792,7 +1792,7 @@ INSTR_RETTYPE qe6502_cycle_t
 cmos_instr_ROL_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->A >> 7;
-    cpu->A <<= 1;
+    cpu->A = QE_U8(cpu->A << 1);
     cpu->A |= (qe6502_flag_C & cpu->P);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                             carry  |
@@ -1833,7 +1833,7 @@ cmos_instr_ROR( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->data & 1;
     cpu->data >>= 1;
-    cpu->data |= (cpu->P << 7);
+    cpu->data |= QE_U8(cpu->P << 7);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                             carry  |
                             (cpu->data?0:qe6502_flag_Z)|
@@ -1848,7 +1848,7 @@ cmos_instr_ROR_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t carry = cpu->A & 1;
     cpu->A >>= 1;
-    cpu->A |= (cpu->P << 7);
+    cpu->A |= QE_U8(cpu->P << 7);
     update_flags(cpu, qe6502_flag_C|qe6502_flag_Z|qe6502_flag_N,
                             carry  |
                             (cpu->A?0:qe6502_flag_Z)|
@@ -2628,13 +2628,13 @@ cmos_instr_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (bit < 8)
     {
         // RMB
-        cpu->data &= ~QE_U8(1 << bit);
+        cpu->data &= QE_U8(~(1 << bit));
     }
     else
     {
         // SMB
         bit -= 8;
-        cpu->data |= (1 << bit);
+        cpu->data |= QE_U8(1 << bit);
     }
     request_write(cpu, cpu->address, OFFSETOF(data));
     return resume_to(cmos_fetch_opcode);

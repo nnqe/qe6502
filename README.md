@@ -46,7 +46,7 @@ cmake --build build
 | `QE6502_ENABLE_NMOS_6502` | Enable NMOS core | ON |
 | `QE6502_ENABLE_CMOS_65C02` | Enable CMOS cores | ON |
 | `QE6502_ENABLE_CYCLE_MERGE` | Faster, non cycle-accurate mode | OFF |
-| `QE6502_BUILD_TESTS` | Build test programs | OFF |
+| `QE6502_BUILD_TESTS` | Build test programs | ON |
 
 ---
 

@@ -7,8 +7,6 @@
 
 #include "qe6502_inline.h"
 
-INSTR_RETTYPE qe6502_cycle_t
-halt( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 
 INSTR_RETTYPE qe6502_cycle_t
 cmos_opcode_dispatcher( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );

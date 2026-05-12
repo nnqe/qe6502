@@ -9,6 +9,16 @@
 #define INSTR_RETTYPE QE_SIC
 #define INSTR_ARGS
 
+#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
+    QE_INTERNAL_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_INTERNAL_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+#endif
+#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
+    QE_INTERNAL_API(qe6502_cycle_t) rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_INTERNAL_API(qe6502_cycle_t) wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_INTERNAL_API(qe6502_cycle_t) st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+#endif
+
 static const uint32_t writing_packed_cmd = (1 << 24); //(uint32_t)qe6502_writing << 24;
 
 QE_SIC
@@ -52,31 +62,31 @@ qe6502_cycle_t jump_to( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_f
 QE_SIC void request_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_address, uint8_t store_offs)
 {
     cpu->cmd.packed =   QE_U32(read_address.u16) |
-                        QE_U32(store_offs) << 16;
+                        QE_U32(QE_U32(store_offs) << 16);
 }
 QE_MAYBE_UNUSED(request_read)
 
 QE_SIC void request_stack_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t store_offs)
 {
-    cpu->cmd.packed =   (1 << 8) |
+    cpu->cmd.packed =   QE_U32(1 << 8) |
                         QE_U32(stack_address) |
-                        QE_U32(store_offs) << 16;
+                        QE_U32(QE_U32(store_offs) << 16);
 }
 QE_MAYBE_UNUSED(request_stack_read)
 
 QE_SIC void request_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
 {
     cpu->cmd.packed =   QE_U32(write_address.u16) |
-                        QE_U32(get_offset) << 16 |
+                        QE_U32(QE_U32(get_offset) << 16) |
                         QE_U32(writing_packed_cmd);
 }
 QE_MAYBE_UNUSED(request_write)
 
 QE_SIC void request_stack_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t get_offset)
 {
-    cpu->cmd.packed =   (1 << 8) |
+    cpu->cmd.packed =   QE_U32(1 << 8) |
                         QE_U32(stack_address) |
-                        QE_U32(get_offset << 16) |
+                        QE_U32(QE_U32(get_offset << 16)) |
                         QE_U32(writing_packed_cmd);
 }
 QE_MAYBE_UNUSED(request_stack_write)
@@ -85,7 +95,7 @@ QE_SIC void request_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t 
 {
     #if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(read_address.u16) |
-                            QE_U32(store_offs) << 16;
+                            QE_U32(QE_U32(store_offs) << 16);
     #else
         (void)cpu; (void)read_address; (void)store_offs;
     #endif
@@ -95,9 +105,9 @@ QE_MAYBE_UNUSED(request_read_dummy)
 QE_SIC void request_stack_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t store_offs)
 {
     #if(QE6502_ENABLE_CYCLE_MERGE != 1)
-        cpu->cmd.packed =   (1 << 8) |
+        cpu->cmd.packed =   QE_U32(1 << 8) |
                             QE_U32(stack_address) |
-                            QE_U32(store_offs) << 16;
+                            QE_U32(QE_U32(store_offs) << 16);
     #else
         (void)cpu; (void)stack_address; (void)store_offs;
     #endif
@@ -119,7 +129,7 @@ QE_MAYBE_UNUSED(request_write_dummy)
 QE_SIC void request_stack_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t get_offset)
 {
     #if(QE6502_ENABLE_CYCLE_MERGE != 1)
-        cpu->cmd.packed =   (1 << 8) |
+        cpu->cmd.packed =   QE_U32(1 << 8) |
                             QE_U32(stack_address) |
                             QE_U32(get_offset) << 16 |
                             QE_U32(writing_packed_cmd);
@@ -131,7 +141,7 @@ QE_MAYBE_UNUSED(request_stack_write_dummy)
 
 QE_SIC void update_flags( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t mask, uint8_t values)
 {
-    cpu->P = ( cpu->P & (~ mask) ) | ( values );
+    cpu->P = QE_U8(( cpu->P & QE_U8(~mask) ) | ( values ));
 }
 QE_MAYBE_UNUSED(update_flags)
 

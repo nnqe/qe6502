@@ -1,4 +1,5 @@
 #include <qe6502/qe6502.h>
+#include <stdalign.h>
 
 const char* test_klaus2m5(uint8_t cpu_model,
                           uint8_t* memory,
@@ -7,24 +8,20 @@ const char* test_klaus2m5(uint8_t cpu_model,
                           uint8_t* result)
 {
     *result = 0;
-    uint8_t cpu_memory[64];
-    void* cpu_ptr = &(cpu_memory[0]);
+    qe6502_cpu_t cpu;
+    qe6502_cpu_t* cpu_ptr = &cpu;
 
     memory[0xFFFC] = 0x00;
     memory[0xFFFD] = 0x04;
-    if (!qe6502_cpu_create(cpu_memory, sizeof(cpu_memory)))
-    {
-        return "Memory error";
-    }
-
     qe6502_cpu_power_on(cpu_ptr, cpu_model);
+
     if (!qe6502_ok(cpu_ptr))
     {
         return "CPU power on error!";
     }
 
     // booting
-    while(!qe6502_started(cpu_ptr))
+    while(!qe6502_is_started(cpu_ptr))
     {
         uint16_t address = qe6502_address(cpu_ptr);
         uint8_t is_read = qe6502_needs_data(cpu_ptr);

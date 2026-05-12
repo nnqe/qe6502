@@ -15,6 +15,14 @@
 #include <qe6502/qe6502.h>
 #include "qe6502_inline.h"
 
+#if (!defined(QE6502_ENABLE_NMOS_6502)) || (QE6502_ENABLE_NMOS_6502 != 1)
+#if (!defined(QE6502_ENABLE_CMOS_65C02)) || (QE6502_ENABLE_CMOS_65C02 != 1)
+
+#error "Invalid qe6502 build: at least one of QE6502_ENABLE_NMOS_6502 or QE6502_ENABLE_CMOS_65C02 must be enabled."
+
+#endif
+#endif
+
 #if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
     #include <stdio.h>
     #include <stdarg.h>
@@ -58,9 +66,9 @@ qe6502_version_impl(uint16_t* version,
                     uint8_t* version_major,
                     uint8_t* version_minor)
 {
-    if (version)        *version = QE6502_VERSION;
-    if (version_major)  *version_major = QE6502_VERSION_MAJOR;
-    if (version_minor)  *version_minor = QE6502_VERSION_MINOR;
+    if (version)        *version = QE_U16(QE6502_VERSION);
+    if (version_major)  *version_major = QE_U8(QE6502_VERSION_MAJOR);
+    if (version_minor)  *version_minor = QE_U8(QE6502_VERSION_MINOR);
 }
 
 /********************************************************
@@ -68,16 +76,6 @@ qe6502_version_impl(uint16_t* version,
  *  Power on sequence
  *
  ********************************************************/
-
-#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-    QE_INTERNAL_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-#endif
-#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-    QE_INTERNAL_API(qe6502_cycle_t) rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-#endif
 
 static qe6502_cycle_t select_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
@@ -154,7 +152,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         cpu->cmd.offset != 0xA2)
     {
         qe_log("qe6502", "Error: request_read");
-        return cpu_error(cpu,  qe6502_err_compile_error );
+        return cpu_error(cpu, qe6502_err_compile_error );
     }
 
     // test stack read
@@ -471,7 +469,7 @@ QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
     {
         return 0;
     }
-    return CPU(cpu)->error_code;
+    return CPU_CONST(cpu)->error_code;
 }
 
 QE_FFI_API_IMPL(const char*)  qe6502_error_string(uint16_t error_code)
@@ -484,12 +482,13 @@ QE_FFI_API_IMPL(const char*)  qe6502_error_string(uint16_t error_code)
         case (1 << 2): return "qe6502_err_poweron_error  ";
         case (1 << 3): return "qe6502_err_logic_error    ";
         case (1 << 4): return "qe6502_err_unknown_model  ";
-        case (1 << 6): return "qe6502_err_boot_error     ";
-        case (1 << 7): return "qe6502_err_interrupt_error";
+        case (1 << 5): return "qe6502_err_boot_error     ";
+        case (1 << 6): return "qe6502_err_interrupt_error";
+        case (1 << 7): return "qe6502_err_resume_error"   ;
         default:
           break;
     }
-    return "Unknowo error!";
+    return "Unknown error!";
 }
 
 QE_FFI_API_IMPL(void)
