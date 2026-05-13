@@ -42,3 +42,6 @@ build*/
 
 # Cache folders
 .cache*/
+
+# VS Code
+.vscode/
