@@ -4,7 +4,6 @@
 
 #include <qe6502/qe6502.h>
 #include <stdint.h>
-#include <string.h>
 
 #if defined(_MSC_VER)
     #define QE_LITTLE_ENDIAN 1
@@ -173,13 +172,25 @@ typedef union
 
 QE_SIC void qe_memset(void* dst, uint8_t value, size_t count)
 {
-    memset(dst, value, count);
+    uint8_t *d = (uint8_t *)dst;
+    while (count != 0u)
+    {
+        *d++ = value;
+        --count;
+    }
 }
 QE_MAYBE_UNUSED(qe_memset)
 
 QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t count)
 {
-    memcpy(dst, src, count);
+    uint8_t* d = (uint8_t*)dst;
+    const uint8_t* s = (const uint8_t*)src;
+
+    while (count != 0u)
+    {
+        *d++ = *s++;
+        --count;
+    }
 }
 QE_MAYBE_UNUSED(qe_memcpy)
 

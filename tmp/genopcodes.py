@@ -45,7 +45,7 @@ from typing import Any
 
 HEADER_NAME = "QE6502_OPCODES_H"
 ADDR_MODE_TYPE = "qe6502_addr_mode_t"
-OPCODE_INFO_TYPE = "qe6502_opcode_info_t"
+OPCODE_INFO_TYPE = "qe6502_opcode_meta_t"
 OPCODE_TABLE_NAME = "qe6502_opcode_table"
 
 ENUM_PREFIX = "QE6502_ADDR_MODE_"

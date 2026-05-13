@@ -45,4 +45,16 @@
 
 #define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
 
+#if defined(__cplusplus)
+#  define QE_ALIGNAS(n) alignas(n)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#  define QE_ALIGNAS(n) _Alignas(n)
+#elif defined(_MSC_VER)
+#  define QE_ALIGNAS(n) __declspec(align(n))
+#elif defined(__GNUC__) || defined(__clang__)
+#  define QE_ALIGNAS(n) __attribute__((aligned(n)))
+#else
+#  error "qe6502 requires alignment support"
+#endif
+
 #endif // QE6502_MACROS_H__

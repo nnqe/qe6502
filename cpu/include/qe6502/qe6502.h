@@ -18,7 +18,6 @@
 #include "qe6502_macros.h"
 #include <stdint.h>
 #include <stddef.h>
-#include <stdalign.h>
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 #define QE6502_MODEL_MOS 0
@@ -33,51 +32,92 @@
 #define QE_CONTEXT_SIZE   40u
 #define QE_CONTEXT_ALIGN  8u
 
-typedef struct qe6502_cpu_t {
-    alignas(QE_CONTEXT_ALIGN)
+typedef struct qe6502_cpu_t
+{
+    QE_ALIGNAS(QE_CONTEXT_ALIGN)
     unsigned char bytes[QE_CONTEXT_SIZE];
 } qe6502_cpu_t;
 
-QE_FFI_API(uint32_t)
-qe6502_version(void);
+typedef enum
+{
+    QE6502_ADDR_MODE_ILLEGAL        = 0,
+    QE6502_ADDR_MODE_ABSOLUTE       = 1,
+    QE6502_ADDR_MODE_ABSOLUTE_X     = 2,
+    QE6502_ADDR_MODE_ABSOLUTE_Y     = 3,
+    QE6502_ADDR_MODE_ACCUMULATOR    = 4,
+    QE6502_ADDR_MODE_IDX_INDIRECT_X = 5,
+    QE6502_ADDR_MODE_IMMEDIATE      = 6,
+    QE6502_ADDR_MODE_IMPLIED        = 7,
+    QE6502_ADDR_MODE_INDIRECT       = 8,
+    QE6502_ADDR_MODE_INDIRECT_IDX_Y = 9,
+    QE6502_ADDR_MODE_INDIRECT_ZP    = 10,
+    QE6502_ADDR_MODE_RELATIVE       = 11,
+    QE6502_ADDR_MODE_ZP             = 12,
+    QE6502_ADDR_MODE_ZP_RELATIVE    = 13,
+    QE6502_ADDR_MODE_ZP_X           = 14,
+    QE6502_ADDR_MODE_ZP_Y           = 15
+} qe6502_addr_mode_t;
+
+typedef struct
+{
+    const char* name;
+    const char* description;
+    const char* addr_mode_str;
+    const void* reserved_ptr;
+    uint8_t opcode;
+    uint8_t bytes;
+    uint8_t addr_mode;
+    uint8_t is_cmos_extension;
+    uint8_t reserved_data[4];
+} qe6502_opcode_meta_t;
+
+QE_FFI_API(uint32_t)    qe6502_version(void);
 //
-
-QE_FFI_API(size_t)
-qe6502_cpu_size(void);
-
-QE_FFI_API(size_t)
-qe6502_cpu_align(void);
-
+QE_FFI_API(size_t)      qe6502_cpu_size(void);
+QE_FFI_API(size_t)      qe6502_cpu_align(void);
 //
-
-QE_FFI_API(void)
-qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model);
-
-QE_FFI_API(void)
-qe6502_cpu_tick(qe6502_cpu_t* cpu);
-
+QE_FFI_API(void)        qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model);
+QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
 //
-
 QE_FFI_API(uint8_t)     qe6502_ok(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_needs_data(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_has_data(const qe6502_cpu_t* cpu);
 QE_FFI_API(void)        qe6502_feed_data(qe6502_cpu_t* cpu, uint8_t byte);
-QE_FFI_API(uint8_t)     qe6502_data(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_read_data(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint16_t)    qe6502_address(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_instr_done(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_is_instr_done(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_is_started(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_model(const qe6502_cpu_t* cpu);
 
-QE_FFI_API(uint8_t)     qe6502_nmi_pin(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_read_nmi_pin(const qe6502_cpu_t* cpu);
 QE_FFI_API(void)        qe6502_nmi_hi(qe6502_cpu_t* cpu);
 QE_FFI_API(void)        qe6502_nmi_lo(qe6502_cpu_t* cpu);
 
-QE_FFI_API(uint8_t)     qe6502_irq_pin(const qe6502_cpu_t* cpu);
+QE_FFI_API(uint8_t)     qe6502_read_irq_pin(const qe6502_cpu_t* cpu);
 QE_FFI_API(void)        qe6502_irq_hi(qe6502_cpu_t* cpu);
 QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
 
+/*
+ * Returns a packed snapshot of the visible CPU registers.
+ *
+ * Bit layout:
+ *   bits [ 0..15] : PC
+ *   bits [16..23] : A
+ *   bits [24..31] : X
+ *   bits [32..39] : Y
+ *   bits [40..47] : S
+ *   bits [48..55] : P
+ *   bits [56..63] : OPCODE
+ *
+ * This is a numeric bit encoding. Decode with shifts and masks.
+ */
+QE_FFI_API(uint64_t)    qe6502_read_regs_packed(const qe6502_cpu_t* cpu);
+
 QE_FFI_API(uint16_t)    qe6502_error_code(const qe6502_cpu_t* cpu);
-QE_FFI_API(const char*) qe6502_error_string(uint16_t error_code);
+QE_FFI_API(const char*) qe6502_error_string(const qe6502_cpu_t* cpu);
+QE_FFI_API(const char*) qe6502_decode_error(uint16_t error_code);
+
+QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
 
 // Use only if you are very familiar with the internal implementation of the library.
 typedef struct
@@ -133,6 +173,5 @@ typedef struct
 
 QE_FFI_API(void)
 qe6502_offsets(qe6502_offsets_t* offsets);
-
 
 #endif // QE6502_H__

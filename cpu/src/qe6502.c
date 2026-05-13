@@ -14,6 +14,8 @@
 
 #include <qe6502/qe6502.h>
 #include "qe6502_inline.h"
+#include "qe6502_defs.h"
+#include "qe6502_cross_build.h"
 
 #if (!defined(QE6502_ENABLE_NMOS_6502)) || (QE6502_ENABLE_NMOS_6502 != 1)
 #if (!defined(QE6502_ENABLE_CMOS_65C02)) || (QE6502_ENABLE_CMOS_65C02 != 1)
@@ -446,22 +448,45 @@ QE_FFI_API_IMPL(uint8_t)  qe6502_ok(const qe6502_cpu_t* cpu) { return qe6502_ok_
 QE_FFI_API_IMPL(uint8_t)  qe6502_needs_data(const qe6502_cpu_t* cpu) { return qe6502_needs_data_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(uint8_t)  qe6502_has_data(const qe6502_cpu_t* cpu) { return qe6502_has_data_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_feed_data(qe6502_cpu_t* cpu, uint8_t byte) { qe6502_feed_data_impl(CPU(cpu), byte);}
-QE_FFI_API_IMPL(uint8_t)  qe6502_data(const qe6502_cpu_t* cpu) { return qe6502_data_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_read_data(const qe6502_cpu_t* cpu) { return qe6502_data_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(uint16_t) qe6502_address(const qe6502_cpu_t* cpu) { return qe6502_address_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_instr_done(const qe6502_cpu_t* cpu) { return qe6502_instr_done_impl(CPU_CONST(cpu));}
-QE_FFI_API_IMPL(uint8_t)  qe6502_is_started(const qe6502_cpu_t* cpu)
-{
-    return qe6502_started_impl(CPU_CONST(cpu));
-}
+QE_FFI_API_IMPL(uint8_t)  qe6502_is_instr_done(const qe6502_cpu_t* cpu) { return qe6502_instr_done_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_is_started(const qe6502_cpu_t* cpu) { return qe6502_started_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(uint8_t)  qe6502_model(const qe6502_cpu_t* cpu) { return qe6502_model_impl(CPU_CONST(cpu));}
 
-QE_FFI_API_IMPL(uint8_t)  qe6502_nmi_pin(const qe6502_cpu_t* cpu) { return qe6502_nmi_pin_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_read_nmi_pin(const qe6502_cpu_t* cpu) { return qe6502_nmi_pin_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_nmi_hi(qe6502_cpu_t* cpu) { qe6502_nmi_hi_impl(CPU(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_nmi_lo(qe6502_cpu_t* cpu) { qe6502_nmi_lo_impl(CPU(cpu));}
 
-QE_FFI_API_IMPL(uint8_t)  qe6502_irq_pin(const qe6502_cpu_t* cpu) { return qe6502_irq_pin_impl(CPU_CONST(cpu));}
+QE_FFI_API_IMPL(uint8_t)  qe6502_read_irq_pin(const qe6502_cpu_t* cpu) { return qe6502_irq_pin_impl(CPU_CONST(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_irq_hi(qe6502_cpu_t* cpu) { qe6502_irq_hi_impl(CPU(cpu));}
 QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(CPU(cpu));}
+
+/*
+ * Returns a packed snapshot of the visible CPU registers.
+ *
+ * Bit layout:
+ *   bits [ 0..15] : PC
+ *   bits [16..23] : A
+ *   bits [24..31] : X
+ *   bits [32..39] : Y
+ *   bits [40..47] : S
+ *   bits [48..55] : P
+ *   bits [56..63] : OPCODE
+ *
+ * This is a numeric bit encoding. Decode with shifts and masks.
+ */
+QE_FFI_API_IMPL(uint64_t) qe6502_read_regs_packed(const qe6502_cpu_t* cpu)
+{
+    const qe6502_t* cpuPtr = CPU_CONST(cpu);
+    return  (((uint64_t)cpuPtr->PC.u16) <<  0) |
+            (((uint64_t)cpuPtr->A)      << 16) |
+            (((uint64_t)cpuPtr->X)      << 24) |
+            (((uint64_t)cpuPtr->Y)      << 32) |
+            (((uint64_t)cpuPtr->S)      << 40) |
+            (((uint64_t)cpuPtr->P)      << 48) |
+            (((uint64_t)cpuPtr->opcode) << 56);
+}
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
 {
@@ -472,19 +497,24 @@ QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
     return CPU_CONST(cpu)->error_code;
 }
 
-QE_FFI_API_IMPL(const char*)  qe6502_error_string(uint16_t error_code)
+QE_FFI_API_IMPL(const char*) qe6502_error_string(const qe6502_cpu_t* cpu)
+{
+    return qe6502_decode_error( qe6502_error_code(cpu) );
+}
+
+QE_FFI_API_IMPL(const char*)  qe6502_decode_error(uint16_t error_code)
 {
     switch(error_code)
     {
         case 0: return "";
-        case (1 << 0): return "qe6502_err_compile_error  ";
-        case (1 << 1): return "qe6502_err_illegal_instr  ";
-        case (1 << 2): return "qe6502_err_poweron_error  ";
-        case (1 << 3): return "qe6502_err_logic_error    ";
-        case (1 << 4): return "qe6502_err_unknown_model  ";
-        case (1 << 5): return "qe6502_err_boot_error     ";
-        case (1 << 6): return "qe6502_err_interrupt_error";
-        case (1 << 7): return "qe6502_err_resume_error"   ;
+        case (1 << 0): return "qe6502 compile error";
+        case (1 << 1): return "qe6502 illegal instruction error";
+        case (1 << 2): return "qe6502 power on error";
+        case (1 << 3): return "qe6502 logic error";
+        case (1 << 4): return "qe6502 unknown model error";
+        case (1 << 5): return "qe6502 boot error";
+        case (1 << 6): return "qe6502 interrupt error";
+        case (1 << 7): return "qe6502 resume error";
         default:
           break;
     }
