@@ -78,6 +78,23 @@ QE_FFI_API(size_t)      qe6502_cpu_align(void);
 //
 QE_FFI_API(void)        qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model);
 QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
+
+/*
+ * Returns a packed CPU state and BUS operation *
+ * Bit layout:
+ *
+ *   bits [ 0..15]  : Memory address
+ *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
+ *   bits [17]      : 0 == Started | 1 == Starting
+ *   bits [18]      : 0 == During instruction | 1 == Instruction done
+ *   bits [19]      : 0 == OK | 1 == Halted / not OK
+ *   bits [20..23]  : Reserved
+ *   bits [24..31]  : Data out, valid only when bit [16] == 1
+ *
+ * This is a numeric bit encoding. Decode with shifts and masks.
+ */
+QE_FFI_API(uint32_t)    qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in);
+
 //
 QE_FFI_API(uint8_t)     qe6502_ok(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_needs_data(const qe6502_cpu_t* cpu);
@@ -118,6 +135,12 @@ QE_FFI_API(const char*) qe6502_error_string(const qe6502_cpu_t* cpu);
 QE_FFI_API(const char*) qe6502_decode_error(uint16_t error_code);
 
 QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
+
+#if defined(QE6502_ENABLE_MEM_ALLOC) && (QE6502_ENABLE_MEM_ALLOC == 1)
+    QE_FFI_API(void)        qe6502_cpu_pool_reset(void);
+    QE_FFI_API(void*)       qe6502_cpu_alloc(void);
+    QE_FFI_API(void)        qe6502_cpu_free(void* ptr);
+#endif
 
 // Use only if you are very familiar with the internal implementation of the library.
 typedef struct

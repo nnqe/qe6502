@@ -43,6 +43,12 @@
 #define QE_CALL
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define QE_HIDDEN __attribute__((visibility("hidden")))
+#else
+#define QE_HIDDEN
+#endif
+
 #define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
 
 #if defined(__cplusplus)

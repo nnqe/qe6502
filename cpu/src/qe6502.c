@@ -41,7 +41,7 @@
     {
         /* HH:MM:SS timestamp */
         char timeBuf[9];
-        time_t now = time(NULL);
+        time_t now = time(QE_NULL);
         struct tm tm_now;
 
     #ifdef _MSC_VER
@@ -442,6 +442,40 @@ qe6502_cpu_tick(qe6502_cpu_t* cpu)
     wrap->cycle = wrap->cycle.execute(&wrap->cpu);
 }
 
+/*
+ * Returns a packed CPU state and BUS operation *
+ * Bit layout:
+ *
+ *   bits [ 0..15]  : Memory address
+ *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
+ *   bits [17]      : 0 == Started | 1 == Starting
+ *   bits [18]      : 0 == During instruction | 1 == Instruction done
+ *   bits [19]      : 0 == OK | 1 == Halted / not OK
+ *   bits [20..23]  : Reserved
+ *   bits [24..31]  : Data out, valid only when bit [16] == 1
+ *
+ * This is a numeric bit encoding. Decode with shifts and masks.
+ */
+QE_FFI_API_IMPL(uint32_t)
+qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in)
+{
+    qe6502_t* cpuPtr = CPU(cpu);
+    qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
+
+    if( qe6502_needs_data_impl(cpuPtr) )
+    {
+        qe6502_feed_data_impl(cpuPtr, data_in);
+    }
+    wrap->cycle = wrap->cycle.execute(&wrap->cpu);
+    uint32_t packed = qe6502_has_data_impl(cpuPtr) ? qe6502_data_impl(cpuPtr) : 0;
+    packed <<= 8;
+    packed |= cpuPtr->cmd.flags;
+    packed <<= 16;
+    packed |= qe6502_address_impl(cpuPtr);
+
+    return packed;
+}
+
 //
 
 QE_FFI_API_IMPL(uint8_t)  qe6502_ok(const qe6502_cpu_t* cpu) { return qe6502_ok_impl(CPU(cpu));}
@@ -573,3 +607,78 @@ qe6502_offsets(qe6502_offsets_t* offsets)
     offsets->sizeof_Y                   = sizeof(obj.Y);
     offsets->sizeof_P                   = sizeof(obj.P);
 }
+
+#if defined(QE6502_ENABLE_MEM_ALLOC) && (QE6502_ENABLE_MEM_ALLOC == 1)
+
+QE_STATIC_ASSERT(QE6502_MEM_ALLOC_CAPACITY > 0, "Memory pool should have atleast 1 element capacity");
+
+static qe6502_cpu_t memory_pool[QE6502_MEM_ALLOC_CAPACITY];
+static qe6502_cpu_t* free_chunks[QE6502_MEM_ALLOC_CAPACITY];
+static qe_bool is_free_lookup[QE6502_MEM_ALLOC_CAPACITY];
+static size_t free_chunk_idx = 0;
+static uint8_t is_mem_inited = 0;
+
+QE_FFI_API_IMPL(void)
+qe6502_cpu_pool_reset(void)
+{
+    for(size_t i = 0; i < QE6502_MEM_ALLOC_CAPACITY; i++)
+    {
+        free_chunks[i] = memory_pool + i;
+        is_free_lookup[i] = qe_true;
+    }
+    free_chunk_idx = QE6502_MEM_ALLOC_CAPACITY;
+    is_mem_inited = 1;
+}
+
+QE_FFI_API_IMPL(void*)
+qe6502_cpu_alloc(void)
+{
+    if (!is_mem_inited)
+    {
+        qe6502_cpu_pool_reset();
+    }
+    if (0 == free_chunk_idx)
+    {
+        return QE_NULL;
+    }
+    free_chunk_idx--;
+    ptrdiff_t pool_idx = free_chunks[free_chunk_idx] - memory_pool;
+    is_free_lookup[(size_t)pool_idx] = qe_false;
+    return free_chunks[free_chunk_idx];
+}
+
+QE_FFI_API_IMPL(void)
+qe6502_cpu_free(void* ptr)
+{
+    if (!is_mem_inited || !ptr)
+    {
+        return;
+    }
+
+    uintptr_t ptrInt = (uintptr_t)ptr;
+    uintptr_t poolFirst = (uintptr_t)memory_pool;
+    uintptr_t poolLastValid = (uintptr_t)(memory_pool + QE6502_MEM_ALLOC_CAPACITY - 1);
+
+    if (ptrInt < poolFirst || ptrInt > poolLastValid)
+    {
+        return;
+    }
+    if(((ptrInt - poolFirst) % sizeof(qe6502_cpu_t)) != 0)
+    {
+        return;
+    }
+    if (free_chunk_idx >= QE6502_MEM_ALLOC_CAPACITY)
+    {
+        return;
+    }
+    ptrdiff_t pool_idx = (qe6502_cpu_t*)ptr - memory_pool;
+    if (is_free_lookup[(size_t)pool_idx])
+    {
+        return;
+    }
+    free_chunks[free_chunk_idx] = (qe6502_cpu_t*)ptr;
+    is_free_lookup[(size_t)pool_idx] = qe_true;
+    free_chunk_idx++;
+}
+
+#endif

@@ -25,7 +25,7 @@ const char* test_klaus2m5(uint8_t cpu_model,
     {
         uint16_t address = qe6502_address(cpu_ptr);
         uint8_t is_read = qe6502_needs_data(cpu_ptr);
-        uint8_t data = is_read ? memory[address] : qe6502_data(cpu_ptr);
+        uint8_t data = is_read ? memory[address] : qe6502_read_data(cpu_ptr);
         if (is_read)
         {
             qe6502_feed_data(cpu_ptr, data);
@@ -58,7 +58,7 @@ const char* test_klaus2m5(uint8_t cpu_model,
             }
         }
         uint8_t is_read = qe6502_needs_data(cpu_ptr);
-        uint8_t data = is_read ? memory[address] : qe6502_data(cpu_ptr);
+        uint8_t data = is_read ? memory[address] : qe6502_read_data(cpu_ptr);
         if (is_read)
         {
             qe6502_feed_data(cpu_ptr, data);
@@ -69,7 +69,7 @@ const char* test_klaus2m5(uint8_t cpu_model,
         }
         qe6502_cpu_tick(cpu_ptr);
 
-        if (qe6502_instr_done(cpu_ptr))
+        if (qe6502_is_instr_done(cpu_ptr))
         {
             cycles++;
             if (cycles > 2 * expected_cycles)

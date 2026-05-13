@@ -51,11 +51,7 @@
 
 #define QE_FFI_API_IMPL(rettype) QE_FFI_API(rettype)
 
-#if defined(__GNUC__) || defined(__clang__)
-    #define QE_INTERNAL_API(rettype) rettype __attribute__((visibility("hidden"))) QE_CALL
-#else
-    #define QE_INTERNAL_API(rettype) rettype QE_CALL
-#endif
+#define QE_INTERNAL_API(rettype) QE_HIDDEN rettype QE_CALL
 
 #define QE_MAYBE_UNUSED(sym)                                \
     QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \

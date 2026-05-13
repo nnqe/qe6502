@@ -56,12 +56,14 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to( nmos_opcode_dispatcher );
 }
 
-QE_INTERNAL_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t)
+mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return nmos_fetch_opcode(cpu);
 }
 
-QE_INTERNAL_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+QE_INTERNAL_API(qe6502_cycle_t)
+nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     return nmos_fetch_opcode(cpu);
 }
