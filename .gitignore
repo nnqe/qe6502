@@ -37,3 +37,8 @@
 # Mac files
 **/.DS_Store
 
+# Build folders
+build*/
+
+# Cache folders
+.cache*/
