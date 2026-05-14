@@ -1,8 +1,8 @@
 export const QE6502_MODEL_MOS = 0;
 export const QE6502_MODEL_NES = 1;
 export const QE6502_MODEL_WDC = 2;
-export const QE6502_MODEL_RW  = 3;
-export const QE6502_MODEL_ST  = 4;
+export const QE6502_MODEL_RW = 3;
+export const QE6502_MODEL_ST = 4;
 
 const DEBUG_QE6502 = false;
 
@@ -56,11 +56,11 @@ const REQUIRED_EXPORTS = [
 // bits [24..31]  : Data out, valid only when bit [16] == 1
 
 const TICK_EX_ADDRESS_MASK = 0x0000ffff;
-const TICK_EX_BUS_WRITE    = 0x00010000;
-const TICK_EX_STARTING     = 0x00020000;
-const TICK_EX_INSTR_DONE   = 0x00040000;
-const TICK_EX_NOT_OK       = 0x00800000;
-const TICK_EX_DATA_SHIFT   = 24;
+const TICK_EX_BUS_WRITE = 0x00010000;
+const TICK_EX_STARTING = 0x00020000;
+const TICK_EX_INSTR_DONE = 0x00040000;
+const TICK_EX_NOT_OK = 0x00800000;
+const TICK_EX_DATA_SHIFT = 24;
 
 function readCStringFromMemory(memory, ptr) {
   ptr = ptr >>> 0;
@@ -93,7 +93,7 @@ export async function loadQE6502(wasmUrlOrBuffer, options = {}) {
   } else if (ArrayBuffer.isView(wasmUrlOrBuffer)) {
     wasmBuffer = wasmUrlOrBuffer.buffer.slice(
       wasmUrlOrBuffer.byteOffset,
-      wasmUrlOrBuffer.byteOffset + wasmUrlOrBuffer.byteLength
+      wasmUrlOrBuffer.byteOffset + wasmUrlOrBuffer.byteLength,
     );
   } else if (
     typeof wasmUrlOrBuffer === "string" ||
@@ -103,14 +103,14 @@ export async function loadQE6502(wasmUrlOrBuffer, options = {}) {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch WASM module: ${response.status} ${response.statusText}`
+        `Failed to fetch WASM module: ${response.status} ${response.statusText}`,
       );
     }
 
     wasmBuffer = await response.arrayBuffer();
   } else {
     throw new TypeError(
-      "loadQE6502 expects a URL, string, ArrayBuffer, or typed array"
+      "loadQE6502 expects a URL, string, ArrayBuffer, or typed array",
     );
   }
 
@@ -176,29 +176,29 @@ class QE6502 {
   }
 
   #getMemoryU8() {
-   return new Uint8Array(this.#memory.buffer);
+    return new Uint8Array(this.#memory.buffer);
   }
 
   #readCString(ptr) {
-     ptr = ptr >>> 0;
+    ptr = ptr >>> 0;
 
-     if (ptr === 0) {
-       return "";
-   }
+    if (ptr === 0) {
+      return "";
+    }
 
-   const memory = this.#getMemoryU8();
+    const memory = this.#getMemoryU8();
 
-   let end = ptr;
+    let end = ptr;
 
-   while (end < memory.length && memory[end] !== 0) {
-     end++;
-   }
+    while (end < memory.length && memory[end] !== 0) {
+      end++;
+    }
 
-   if (end >= memory.length) {
-     throw new Error(`Unterminated C string at pointer ${ptr}`);
-   }
+    if (end >= memory.length) {
+      throw new Error(`Unterminated C string at pointer ${ptr}`);
+    }
 
-   return this.#textDecoder.decode(memory.subarray(ptr, end));
+    return this.#textDecoder.decode(memory.subarray(ptr, end));
   }
 
   getOpcodeMeta(opcode) {
@@ -207,7 +207,9 @@ class QE6502 {
     const ptr = this.#exports.qe6502_opcode_meta(opcode);
 
     if (!ptr) {
-      throw new Error(`qe6502_opcode_meta returned null for opcode 0x${opcode.toString(16).padStart(2, "0")}`);
+      throw new Error(
+        `qe6502_opcode_meta returned null for opcode 0x${opcode.toString(16).padStart(2, "0")}`,
+      );
     }
 
     const view = new DataView(this.#memory.buffer);
@@ -242,7 +244,6 @@ class QE6502 {
       isIllegal: name === "ILL",
     };
   }
-
 }
 
 class QE6502CPU {
@@ -286,7 +287,7 @@ class QE6502CPU {
 
     const packed = this.#exports.qe6502_cpu_tick_ex(
       this.#ptr,
-      this.#dataIn & 0xff
+      this.#dataIn & 0xff,
     );
 
     this.#dataIn = 0;
@@ -378,7 +379,7 @@ class QE6502CPU {
 
     const packed = BigInt.asUintN(
       64,
-      this.#exports.qe6502_read_regs_packed(this.#ptr)
+      this.#exports.qe6502_read_regs_packed(this.#ptr),
     );
 
     const pcl = Number(packed & 0xffn);
@@ -386,11 +387,11 @@ class QE6502CPU {
     const pc = pcl | (pch << 8);
     return {
       pc,
-      a:      Number((packed >> 16n) & 0xffn),
-      x:      Number((packed >> 24n) & 0xffn),
-      y:      Number((packed >> 32n) & 0xffn),
-      s:      Number((packed >> 40n) & 0xffn),
-      p:      Number((packed >> 48n) & 0xffn),
+      a: Number((packed >> 16n) & 0xffn),
+      x: Number((packed >> 24n) & 0xffn),
+      y: Number((packed >> 32n) & 0xffn),
+      s: Number((packed >> 40n) & 0xffn),
+      p: Number((packed >> 48n) & 0xffn),
       opcode: Number((packed >> 56n) & 0xffn),
     };
   }
@@ -411,9 +412,9 @@ class QE6502CPU {
       (BigInt(p & 0xff) << 48n) |
       (BigInt(opcode & 0xff) << 56n);
 
-      this.#exports.qe6502_overwrite_regs(this.#ptr, packed);
-      this.#exports.qe6502_reset_to_normal_state(this.#ptr);
-      this.#refreshStateSlow();
+    this.#exports.qe6502_overwrite_regs(this.#ptr, packed);
+    this.#exports.qe6502_reset_to_normal_state(this.#ptr);
+    this.#refreshStateSlow();
   }
 
   dispose() {

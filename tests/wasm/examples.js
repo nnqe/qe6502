@@ -1,27 +1,27 @@
 const EXAMPLES = {
-  "hello_world": {
+  hello_world: {
     title: "Hello World",
     module: "./example_hello_world.js",
   },
 
-  "klaus2m5": {
+  klaus2m5: {
     title: "Klaus2m5",
     module: "./example_klaus2m5.js",
   },
 
-  "print_meta": {
+  print_meta: {
     title: "Opcodes metadata",
     module: "./example_print_meta.js",
   },
-  "serialize": {
+  serialize: {
     title: "Serialize CPU",
     module: "./example_serialize.js",
   },
-  "single_step_core_test": {
+  single_step_core_test: {
     title: "Single Test Core Test",
     module: "./example_single_step_core_test.js",
   },
-  "single_step": {
+  single_step: {
     title: "Single Step Test",
     module: "./example_single_step.js",
   },
@@ -62,7 +62,8 @@ if (!exampleId) {
       await mod.run({ output });
     } catch (error) {
       output.textContent += "\nERROR:\n";
-      output.textContent += error instanceof Error ? error.stack : String(error);
+      output.textContent +=
+        error instanceof Error ? error.stack : String(error);
     }
   }
 }

@@ -7,9 +7,7 @@ import {
   QE6502_MODEL_ST,
 } from "./qe6502.js";
 
-import {
-  runSingleStepCase,
-} from "./single_step_core.js";
+import { runSingleStepCase } from "./single_step_core.js";
 
 import {
   sourceFromLocalFile,
@@ -75,12 +73,18 @@ export async function run({ output }) {
     const value = getSelectedModelKey();
 
     switch (value) {
-      case "mos": return QE6502_MODEL_MOS;
-      case "nes": return QE6502_MODEL_NES;
-      case "wdc": return QE6502_MODEL_WDC;
-      case "rw": return QE6502_MODEL_RW;
-      case "st": return QE6502_MODEL_ST;
-      default: throw new Error(`Unknown CPU model: ${value}`);
+      case "mos":
+        return QE6502_MODEL_MOS;
+      case "nes":
+        return QE6502_MODEL_NES;
+      case "wdc":
+        return QE6502_MODEL_WDC;
+      case "rw":
+        return QE6502_MODEL_RW;
+      case "st":
+        return QE6502_MODEL_ST;
+      default:
+        throw new Error(`Unknown CPU model: ${value}`);
     }
   }
 
@@ -205,7 +209,9 @@ export async function run({ output }) {
   const runButton = document.getElementById("ss-run");
   const clearButton = document.getElementById("ss-clear");
 
-  const githubBaseOpcodeInput = document.getElementById("ss-github-base-opcode");
+  const githubBaseOpcodeInput = document.getElementById(
+    "ss-github-base-opcode",
+  );
   const githubBaseFullInput = document.getElementById("ss-github-base-full");
   const githubOpcodeInput = document.getElementById("ss-github-opcode");
   const opcodeMetaPanel = document.getElementById("ss-opcode-meta");
@@ -249,10 +255,14 @@ export async function run({ output }) {
   function updateVisiblePanel() {
     const mode = modeSelect.value;
 
-    document.getElementById("ss-local-file-panel").hidden = mode !== "local-file";
-    document.getElementById("ss-local-folder-panel").hidden = mode !== "local-folder";
-    document.getElementById("ss-github-opcode-panel").hidden = mode !== "github-opcode";
-    document.getElementById("ss-github-full-panel").hidden = mode !== "github-full";
+    document.getElementById("ss-local-file-panel").hidden =
+      mode !== "local-file";
+    document.getElementById("ss-local-folder-panel").hidden =
+      mode !== "local-folder";
+    document.getElementById("ss-github-opcode-panel").hidden =
+      mode !== "github-opcode";
+    document.getElementById("ss-github-full-panel").hidden =
+      mode !== "github-full";
 
     updateOpcodeMetaPanel();
   }
@@ -388,7 +398,9 @@ export async function run({ output }) {
 
     print("");
     print("FAIL");
-    print(`Opcode: ${hex8(result.opcode)} ${result.meta.name} ${result.meta.addrModeStr}`);
+    print(
+      `Opcode: ${hex8(result.opcode)} ${result.meta.name} ${result.meta.addrModeStr}`,
+    );
     print(`File:   ${result.name}`);
     print(`Case:   #${result.caseIndex} ${failure.name}`);
     print(`Reason: ${failure.reason}`);
@@ -412,10 +424,16 @@ export async function run({ output }) {
     if (failure.expectedRegs || failure.actualRegs) {
       print("");
       print("Registers:");
-      print(JSON.stringify({
-        expected: failure.expectedRegs,
-        actual: failure.actualRegs,
-      }, null, 2));
+      print(
+        JSON.stringify(
+          {
+            expected: failure.expectedRegs,
+            actual: failure.actualRegs,
+          },
+          null,
+          2,
+        ),
+      );
     }
 
     if (failure.addressHex) {
@@ -438,7 +456,9 @@ export async function run({ output }) {
       const model = getSelectedModel();
       const descriptors = await getDescriptorsFromUi();
 
-      print(`CPU model: ${modelSelect.options[modelSelect.selectedIndex].textContent}`);
+      print(
+        `CPU model: ${modelSelect.options[modelSelect.selectedIndex].textContent}`,
+      );
       print(`Loaded ${descriptors.length} opcode file descriptor(s).`);
       print("");
 
@@ -471,10 +491,10 @@ export async function run({ output }) {
 
         print(
           `${hex8(result.opcode)} ${result.meta.name.padEnd(4)} ` +
-          `${result.meta.addrModeStr.padEnd(16)} PASS  ` +
-          `cases=${formatNumber(result.cases)}  ` +
-          `cycles=${formatNumber(result.cycles)}  ` +
-          `elapsed=${result.elapsedMs.toFixed(2)} ms`
+            `${result.meta.addrModeStr.padEnd(16)} PASS  ` +
+            `cases=${formatNumber(result.cases)}  ` +
+            `cycles=${formatNumber(result.cycles)}  ` +
+            `elapsed=${result.elapsedMs.toFixed(2)} ms`,
         );
 
         await new Promise(requestAnimationFrame);

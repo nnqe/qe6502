@@ -1,7 +1,6 @@
 import { loadQE6502 } from "./qe6502.js";
 
 export async function run({ output }) {
-
   function print(message = "") {
     output.textContent += message + "\n";
   }
@@ -50,7 +49,7 @@ export async function run({ output }) {
           `cmos=${meta.isCmosExtension ? "yes" : "no "}`,
           `illegal=${meta.isIllegal ? "yes" : "no "}`,
           meta.description,
-        ].join("  ")
+        ].join("  "),
       );
     }
 

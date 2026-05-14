@@ -1,11 +1,6 @@
-import {
-  loadQE6502,
-  QE6502_MODEL_MOS,
-} from "./qe6502.js";
+import { loadQE6502, QE6502_MODEL_MOS } from "./qe6502.js";
 
-import {
-  runSingleStepCase,
-} from "./single_step_core.js";
+import { runSingleStepCase } from "./single_step_core.js";
 
 export async function run({ output }) {
   function print(message = "") {
@@ -85,11 +80,7 @@ export async function run({ output }) {
   print("=".repeat(72));
   print("");
 
-  const correctResult = runSingleStepCase(
-    qe,
-    QE6502_MODEL_MOS,
-    correctTest
-  );
+  const correctResult = runSingleStepCase(qe, QE6502_MODEL_MOS, correctTest);
 
   printResult("Correct test result:", correctResult);
 
@@ -97,11 +88,7 @@ export async function run({ output }) {
     throw new Error("Expected correct test to pass");
   }
 
-  const wrongResult = runSingleStepCase(
-    qe,
-    QE6502_MODEL_MOS,
-    wrongTest
-  );
+  const wrongResult = runSingleStepCase(qe, QE6502_MODEL_MOS, wrongTest);
 
   printResult("Wrong test result:", wrongResult);
 

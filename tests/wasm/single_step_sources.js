@@ -94,7 +94,7 @@ export function sourceFromGithubOpcode(baseUrl, opcode) {
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch ${url}: ${response.status} ${response.statusText}`
+            `Failed to fetch ${url}: ${response.status} ${response.statusText}`,
           );
         }
 
@@ -122,7 +122,7 @@ export function sourceFromGithubFull(baseUrl) {
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch ${url}: ${response.status} ${response.statusText}`
+            `Failed to fetch ${url}: ${response.status} ${response.statusText}`,
           );
         }
 

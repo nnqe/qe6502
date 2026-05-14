@@ -7,7 +7,6 @@ import {
 } from "./qe6502.js";
 
 export async function run({ output }) {
-
   function print(message = "") {
     output.textContent += message + "\n";
   }
@@ -28,7 +27,9 @@ export async function run({ output }) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch ${url}: ${response.status} ${response.statusText}`,
+      );
     }
 
     const text = await response.text();
@@ -40,9 +41,10 @@ export async function run({ output }) {
     }
 
     const bytes = matches.map((token) => {
-      const value = token.startsWith("0x") || token.startsWith("0X")
-        ? Number.parseInt(token, 16)
-        : Number.parseInt(token, 10);
+      const value =
+        token.startsWith("0x") || token.startsWith("0X")
+          ? Number.parseInt(token, 16)
+          : Number.parseInt(token, 10);
 
       if (!Number.isInteger(value) || value < 0 || value > 0xff) {
         throw new Error(`Invalid byte value in ${url}: ${token}`);
@@ -53,7 +55,7 @@ export async function run({ output }) {
 
     if (bytes.length !== 0x10000) {
       throw new Error(
-        `${url}: expected 65,536 bytes, got ${formatNumber(bytes.length)}`
+        `${url}: expected 65,536 bytes, got ${formatNumber(bytes.length)}`,
       );
     }
 
@@ -86,13 +88,8 @@ export async function run({ output }) {
   }
 
   async function runKlausTest(qe, options) {
-    const {
-      name,
-      model,
-      romUrl,
-      successAddress,
-      expectedInstructions,
-    } = options;
+    const { name, model, romUrl, successAddress, expectedInstructions } =
+      options;
 
     print("=".repeat(72));
     print(name);
@@ -137,8 +134,8 @@ export async function run({ output }) {
           if (instructions !== expectedInstructions) {
             throw new Error(
               `Reached success address ${hex16(successAddress)}, ` +
-              `but expected ${formatNumber(expectedInstructions)} instructions, ` +
-              `got ${formatNumber(instructions)}`
+                `but expected ${formatNumber(expectedInstructions)} instructions, ` +
+                `got ${formatNumber(instructions)}`,
             );
           }
 
@@ -171,7 +168,7 @@ export async function run({ output }) {
 
           if (instructions > expectedInstructions * 2) {
             throw new Error(
-              `Instruction limit exceeded: ${formatNumber(instructions)}`
+              `Instruction limit exceeded: ${formatNumber(instructions)}`,
             );
           }
         }

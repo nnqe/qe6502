@@ -1,10 +1,6 @@
-import {
-  loadQE6502,
-  QE6502_MODEL_MOS,
-} from "./qe6502.js";
+import { loadQE6502, QE6502_MODEL_MOS } from "./qe6502.js";
 
 export async function run({ output }) {
-
   function print(message = "") {
     output.textContent += message + "\n";
   }
@@ -20,7 +16,7 @@ export async function run({ output }) {
   function assertEqual(name, actual, expected) {
     if (actual !== expected) {
       throw new Error(
-        `${name}: expected ${hex16(expected)}, got ${hex16(actual)}`
+        `${name}: expected ${hex16(expected)}, got ${hex16(actual)}`,
       );
     }
 
@@ -167,5 +163,4 @@ export async function run({ output }) {
     output.textContent += "\nERROR:\n";
     output.textContent += error instanceof Error ? error.stack : String(error);
   }
-
 }

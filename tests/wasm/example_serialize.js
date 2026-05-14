@@ -1,7 +1,4 @@
-import {
-  loadQE6502,
-  QE6502_MODEL_MOS,
-} from "./qe6502.js";
+import { loadQE6502, QE6502_MODEL_MOS } from "./qe6502.js";
 
 export async function run({ output }) {
   function print(message = "") {
@@ -183,5 +180,7 @@ export async function run({ output }) {
   cpu.dispose();
 
   print("");
-  print("SUCCESS: CPU was serialized, destroyed, restored, and continued correctly.");
+  print(
+    "SUCCESS: CPU was serialized, destroyed, restored, and continued correctly.",
+  );
 }

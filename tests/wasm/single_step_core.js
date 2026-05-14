@@ -84,7 +84,11 @@ export function runSingleStepCase(qe, model, testCase) {
       opcode: 0,
     });
 
-    for (let cycleIndex = 0; cycleIndex < testCase.cycles.length; cycleIndex++) {
+    for (
+      let cycleIndex = 0;
+      cycleIndex < testCase.cycles.length;
+      cycleIndex++
+    ) {
       const [expectedAddressRaw, expectedDataRaw, expectedType] =
         testCase.cycles[cycleIndex];
 
@@ -97,7 +101,7 @@ export function runSingleStepCase(qe, model, testCase) {
         cpu,
         memory,
         actualAddress,
-        actualType
+        actualType,
       );
 
       if (actualAddress !== expectedAddress) {
@@ -164,9 +168,13 @@ export function runSingleStepCase(qe, model, testCase) {
     }
 
     if (!cpu.isInstrDone()) {
-      return makeFailure(testName, "instruction not completed after expected cycles", {
-        regs: cpu.readRegs(),
-      });
+      return makeFailure(
+        testName,
+        "instruction not completed after expected cycles",
+        {
+          regs: cpu.readRegs(),
+        },
+      );
     }
 
     if (!cpu.ok()) {
@@ -201,7 +209,7 @@ export function runSingleStepCase(qe, model, testCase) {
         registerName,
         actualFinal[registerName],
         expectedFinal[registerName],
-        testName
+        testName,
       );
 
       if (failure) {
