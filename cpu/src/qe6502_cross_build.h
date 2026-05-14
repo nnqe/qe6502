@@ -34,18 +34,20 @@
     #define QE_UNLIKELY(x) (x)
 #endif
 
+#define QE_CONCAT_IMPL(a, b) a##b
+#define QE_CONCAT(a, b) QE_CONCAT_IMPL(a, b)
+
 #ifdef __cplusplus
     #define QE_RESTRICT
     #define QE_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
 #else
     #define QE_RESTRICT restrict
 
-    #if defined(_MSC_VER)
-        #define QE_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
-    #elif defined(__GNUC__) || defined(__clang__)
+    #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
         #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
     #else
-        #define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+        #define QE_STATIC_ASSERT(cond, msg) \
+            typedef char QE_CONCAT(qe_static_assertion_, __LINE__)[(cond) ? 1 : -1]
     #endif
 #endif
 

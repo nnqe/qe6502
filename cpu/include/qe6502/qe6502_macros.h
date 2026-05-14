@@ -22,7 +22,7 @@
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#if QE6502_BUILD_SHARED
+#if defined(QE6502_BUILD_SHARED) && (QE6502_BUILD_SHARED == 1)
 #if QE6502_BUILDING_LIBRARY
 #define QE_EXPORT __declspec(dllexport)
 #else
