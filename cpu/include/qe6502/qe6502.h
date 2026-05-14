@@ -87,8 +87,8 @@ QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
  *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
  *   bits [17]      : 0 == Started | 1 == Starting
  *   bits [18]      : 0 == During instruction | 1 == Instruction done
- *   bits [19]      : 0 == OK | 1 == Halted / not OK
- *   bits [20..23]  : Reserved
+ *   bits [19..22]  : Reserved
+ *   bits [23]      : 0 == OK | 1 == Halted / not OK
  *   bits [24..31]  : Data out, valid only when bit [16] == 1
  *
  * This is a numeric bit encoding. Decode with shifts and masks.

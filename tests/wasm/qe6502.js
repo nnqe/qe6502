@@ -47,19 +47,19 @@ const REQUIRED_EXPORTS = [
 
 // qe6502_cpu_tick_ex() packed state layout:
 //
-//   bits [ 0..15] : Memory address
-//   bits [16]     : Bus direction, 0 = read request, 1 = write request
-//   bits [17]     : 0 = started, 1 = starting
-//   bits [18]     : 0 = during instruction, 1 = instruction done
-//   bits [19]     : 0 = OK, 1 = halted / not OK
-//   bits [20..23] : reserved
-//   bits [24..31] : data out, valid only when bit 16 is set
+// bits [ 0..15]  : Memory address
+// bits [16]      : Bus direction, 0 == Read request, 1 == Write request
+// bits [17]      : 0 == Started | 1 == Starting
+// bits [18]      : 0 == During instruction | 1 == Instruction done
+// bits [19..22]  : Reserved
+// bits [23]      : 0 == OK | 1 == Halted / not OK
+// bits [24..31]  : Data out, valid only when bit [16] == 1
 
 const TICK_EX_ADDRESS_MASK = 0x0000ffff;
 const TICK_EX_BUS_WRITE    = 0x00010000;
 const TICK_EX_STARTING     = 0x00020000;
 const TICK_EX_INSTR_DONE   = 0x00040000;
-const TICK_EX_NOT_OK       = 0x00080000;
+const TICK_EX_NOT_OK       = 0x00800000;
 const TICK_EX_DATA_SHIFT   = 24;
 
 export async function loadQE6502(wasmUrlOrBuffer) {

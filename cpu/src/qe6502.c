@@ -90,7 +90,7 @@ static qe6502_cycle_t select_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRI
         if(qe6502_rw == qe6502_model_impl(cpu))    return rw_fetch_opcode_bridge(cpu);
         if(qe6502_st == qe6502_model_impl(cpu))    return st_fetch_opcode_bridge(cpu);
     #endif
-    qe_log("qe6502", "Error: unknown model: %d", (unsigned)(qe6502_model(cpu)));
+    qe_log("qe6502", "Error: unknown model: %d", (unsigned)(qe6502_model_impl(cpu)));
     return cpu_error(cpu,  qe6502_err_unknown_model );
 }
 
@@ -411,6 +411,12 @@ typedef struct qe6502_cpuwrap
     qe6502_cycle_t cycle;
 } qe6502_cpuwrap_t;
 
+QE_STATIC_ASSERT(sizeof(qe6502_cpuwrap_t) <= QE_CONTEXT_SIZE,
+                 "qe6502_cpu_t is too small");
+
+QE_STATIC_ASSERT(_Alignof(qe6502_cpuwrap_t) <= QE_CONTEXT_ALIGN,
+                 "qe6502_cpu_t alignment is too small");
+
 #define CPU(wrap) (&((qe6502_cpuwrap_t*)(wrap))->cpu)
 #define CPU_CONST(wrap) (&((const qe6502_cpuwrap_t*)(wrap))->cpu)
 
@@ -458,8 +464,8 @@ qe6502_cpu_tick(qe6502_cpu_t* cpu)
  *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
  *   bits [17]      : 0 == Started | 1 == Starting
  *   bits [18]      : 0 == During instruction | 1 == Instruction done
- *   bits [19]      : 0 == OK | 1 == Halted / not OK
- *   bits [20..23]  : Reserved
+ *   bits [19..22]  : Reserved
+ *   bits [23]      : 0 == OK | 1 == Halted / not OK
  *   bits [24..31]  : Data out, valid only when bit [16] == 1
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
