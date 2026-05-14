@@ -42,6 +42,8 @@ message(STATUS "  QE6502_MEM_ALLOC_CAPACITY = ${QE6502_MEM_ALLOC_CAPACITY}")
 
 # Add subdirectories
 add_subdirectory(cpu)
+add_subdirectory(binds)
+
 if(QE6502_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
