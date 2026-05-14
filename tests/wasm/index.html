@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <title>QE6502 WASM examples</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+      }
+
+      pre {
+        background: #111;
+        color: #eee;
+        padding: 1rem;
+        overflow: auto;
+      }
+
+      a {
+        display: inline-block;
+        margin: 0.25rem 0;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QE6502 WASM examples</h1>
+
+    <nav id="home">
+      <p>Choose example:</p>
+
+      <a href="?example=hello_world">Hello World</a><br />
+      <a href="?example=klaus2m5">Klaus2m5</a><br />
+      <a href="?example=print_meta">Opcodes metadata</a><br />
+      <a href="?example=serialize">Serialize CPU</a><br />
+      <a href="?example=single_step_core_test">Single Test Core Test</a><br />
+      <a href="?example=single_step">Single Step Test</a><br />
+    </nav>
+
+    <section id="runner" class="hidden">
+      <p>
+        <a href="./">← Back to examples</a>
+      </p>
+
+      <h2 id="example-title"></h2>
+      <pre id="output">Running...</pre>
+    </section>
+
+    <script type="module" src="./examples.js"></script>
+  </body>
+</html>

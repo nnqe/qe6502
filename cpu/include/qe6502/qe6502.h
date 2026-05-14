@@ -118,7 +118,8 @@ QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
  * Returns a packed snapshot of the visible CPU registers.
  *
  * Bit layout:
- *   bits [ 0..15] : PC
+ *   bits [ 0.. 7] : PC LSB
+ *   bits [ 8..15] : PC MSB
  *   bits [16..23] : A
  *   bits [24..31] : X
  *   bits [32..39] : Y
@@ -129,6 +130,8 @@ QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
 QE_FFI_API(uint64_t)    qe6502_read_regs_packed(const qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_packed);
+QE_FFI_API(void)        qe6502_reset_to_normal_state(qe6502_cpu_t* cpu);
 
 QE_FFI_API(uint16_t)    qe6502_error_code(const qe6502_cpu_t* cpu);
 QE_FFI_API(const char*) qe6502_error_string(const qe6502_cpu_t* cpu);

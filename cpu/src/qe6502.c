@@ -139,6 +139,14 @@ power_on_routine( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     }
     return cpu_error(cpu,  qe6502_err_boot_error );
 }
+
+INSTR_RETTYPE qe6502_cycle_t
+reset_to_normal_state( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    cpu->cmd.flags = 0;
+    return select_fetch_opcode_bridge(cpu);
+}
+
 QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
 {
@@ -500,7 +508,8 @@ QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(
  * Returns a packed snapshot of the visible CPU registers.
  *
  * Bit layout:
- *   bits [ 0..15] : PC
+ *   bits [ 0.. 7] : PC LSB
+ *   bits [ 8..15] : PC MSB
  *   bits [16..23] : A
  *   bits [24..31] : X
  *   bits [32..39] : Y
@@ -513,13 +522,33 @@ QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(
 QE_FFI_API_IMPL(uint64_t) qe6502_read_regs_packed(const qe6502_cpu_t* cpu)
 {
     const qe6502_t* cpuPtr = CPU_CONST(cpu);
-    return  (((uint64_t)cpuPtr->PC.u16) <<  0) |
-            (((uint64_t)cpuPtr->A)      << 16) |
-            (((uint64_t)cpuPtr->X)      << 24) |
-            (((uint64_t)cpuPtr->Y)      << 32) |
-            (((uint64_t)cpuPtr->S)      << 40) |
-            (((uint64_t)cpuPtr->P)      << 48) |
-            (((uint64_t)cpuPtr->opcode) << 56);
+    return  (((uint64_t)cpuPtr->PC.u8_lsb)  <<  0) |
+            (((uint64_t)cpuPtr->PC.u8_msb)  <<  8) |
+            (((uint64_t)cpuPtr->A)          << 16) |
+            (((uint64_t)cpuPtr->X)          << 24) |
+            (((uint64_t)cpuPtr->Y)          << 32) |
+            (((uint64_t)cpuPtr->S)          << 40) |
+            (((uint64_t)cpuPtr->P)          << 48) |
+            (((uint64_t)cpuPtr->opcode)     << 56);
+}
+
+QE_FFI_API_IMPL(void) qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_packed)
+{
+    qe6502_t* cpuPtr = CPU(cpu);
+    cpuPtr->PC.u8_lsb = (uint8_t)(regs_packed >>  0);
+    cpuPtr->PC.u8_msb = (uint8_t)(regs_packed >>  8);
+    cpuPtr->A         = (uint8_t)(regs_packed >> 16);
+    cpuPtr->X         = (uint8_t)(regs_packed >> 24);
+    cpuPtr->Y         = (uint8_t)(regs_packed >> 32);
+    cpuPtr->S         = (uint8_t)(regs_packed >> 40);
+    cpuPtr->P         = (uint8_t)(regs_packed >> 48);
+    cpuPtr->opcode    = (uint8_t)(regs_packed >> 56);
+}
+
+QE_FFI_API_IMPL(void) qe6502_reset_to_normal_state(qe6502_cpu_t* cpu)
+{
+    qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
+    wrap->cycle = reset_to_normal_state(&wrap->cpu);
 }
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)

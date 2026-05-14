@@ -4,7 +4,16 @@ export const QE6502_MODEL_WDC = 2;
 export const QE6502_MODEL_RW  = 3;
 export const QE6502_MODEL_ST  = 4;
 
+const DEBUG_QE6502 = true;
+
+function debugLog(...args) {
+  if (DEBUG_QE6502) {
+    console.debug("[QE6502]", ...args);
+  }
+}
+
 const REQUIRED_EXPORTS = [
+  "memory",
   "qe6502_cpu_alloc",
   "qe6502_cpu_free",
   "qe6502_cpu_power_on",
@@ -31,6 +40,9 @@ const REQUIRED_EXPORTS = [
   "qe6502_irq_lo",
 
   "qe6502_read_regs_packed",
+  "qe6502_overwrite_regs",
+  "qe6502_reset_to_normal_state",
+  "qe6502_opcode_meta",
 ];
 
 // qe6502_cpu_tick_ex() packed state layout:
@@ -51,6 +63,7 @@ const TICK_EX_NOT_OK       = 0x00080000;
 const TICK_EX_DATA_SHIFT   = 24;
 
 export async function loadQE6502(wasmUrlOrBuffer) {
+  debugLog("Start loading qe6502 wasm lib...");
   let wasmBuffer;
 
   if (wasmUrlOrBuffer instanceof ArrayBuffer) {
@@ -80,22 +93,37 @@ export async function loadQE6502(wasmUrlOrBuffer) {
   }
 
   const { instance } = await WebAssembly.instantiate(wasmBuffer, {});
+
+  debugLog("Checking exports...");
+
   const exports = instance.exports;
 
   for (const name of REQUIRED_EXPORTS) {
-    if (typeof exports[name] !== "function") {
+    if (name === "memory") {
+      if (!(exports.memory instanceof WebAssembly.Memory)) {
+        throw new Error("Missing required WASM export: memory");
+      }
+    } else if (typeof exports[name] !== "function") {
       throw new Error(`Missing required WASM export: ${name}`);
     }
   }
 
+  debugLog("QE6502 created [OK]");
   return new QE6502(exports);
 }
 
 class QE6502 {
   #exports;
+  #memory;
+  #textDecoder = new TextDecoder("utf-8");
 
   constructor(exports) {
     this.#exports = exports;
+    this.#memory = exports.memory;
+
+    if (!(this.#memory instanceof WebAssembly.Memory)) {
+      throw new Error("Missing required WASM export: memory");
+    }
   }
 
   createCPU() {
@@ -107,6 +135,75 @@ class QE6502 {
 
     return new QE6502CPU(this.#exports, ptr);
   }
+
+  #getMemoryU8() {
+   return new Uint8Array(this.#memory.buffer);
+  }
+
+  #readCString(ptr) {
+   ptr = ptr >>> 0;
+
+   if (ptr === 0) {
+     return "";
+   }
+
+   const memory = this.#getMemoryU8();
+
+   let end = ptr;
+
+   while (end < memory.length && memory[end] !== 0) {
+     end++;
+   }
+
+   if (end >= memory.length) {
+     throw new Error(`Unterminated C string at pointer ${ptr}`);
+   }
+
+   return this.#textDecoder.decode(memory.subarray(ptr, end));
+  }
+
+  getOpcodeMeta(opcode) {
+    opcode = opcode & 0xff;
+
+    const ptr = this.#exports.qe6502_opcode_meta(opcode);
+
+    if (!ptr) {
+      throw new Error(`qe6502_opcode_meta returned null for opcode 0x${opcode.toString(16).padStart(2, "0")}`);
+    }
+
+    const view = new DataView(this.#memory.buffer);
+
+    /*
+      qe6502_opcode_meta_t layout on wasm32:
+
+      offset 0   const char* name
+      offset 4   const char* description
+      offset 8   const char* addr_mode_str
+      offset 12  const void* reserved_ptr
+      offset 16  uint8_t opcode
+      offset 17  uint8_t bytes
+      offset 18  uint8_t addr_mode
+      offset 19  uint8_t is_cmos_extension
+      offset 20  uint8_t reserved_data[4]
+    */
+
+    const namePtr = view.getUint32(ptr + 0, true);
+    const descriptionPtr = view.getUint32(ptr + 4, true);
+    const addrModeStrPtr = view.getUint32(ptr + 8, true);
+    const name = this.#readCString(namePtr);
+    return {
+      name,
+      description: this.#readCString(descriptionPtr),
+      addrModeStr: this.#readCString(addrModeStrPtr),
+
+      opcode: view.getUint8(ptr + 16),
+      bytes: view.getUint8(ptr + 17),
+      addrMode: view.getUint8(ptr + 18),
+      isCmosExtension: view.getUint8(ptr + 19) !== 0,
+      isIllegal: name === "ILL",
+    };
+  }
+
 }
 
 class QE6502CPU {
@@ -128,6 +225,8 @@ class QE6502CPU {
 
     // The CPU has not been powered on yet. Keep the object alive but not OK.
     this.#ok = false;
+    this.#isStarted = false;
+    this.#isInstrDone = true;
   }
 
   powerOn(model = QE6502_MODEL_MOS) {
@@ -243,8 +342,11 @@ class QE6502CPU {
       this.#exports.qe6502_read_regs_packed(this.#ptr)
     );
 
+    const pcl = Number(packed & 0xffn);
+    const pch = Number((packed >> 8n) & 0xffn);
+    const pc = pcl | (pch << 8);
     return {
-      pc:     Number(packed & 0xffffn),
+      pc,
       a:      Number((packed >> 16n) & 0xffn),
       x:      Number((packed >> 24n) & 0xffn),
       y:      Number((packed >> 32n) & 0xffn),
@@ -252,6 +354,27 @@ class QE6502CPU {
       p:      Number((packed >> 48n) & 0xffn),
       opcode: Number((packed >> 56n) & 0xffn),
     };
+  }
+
+  overwriteRegs({ pc, a, x, y, s, p, opcode = 0 }) {
+    this.#assertAlive();
+
+    const pcl = pc & 0xff;
+    const pch = (pc >>> 8) & 0xff;
+
+    const packed =
+      BigInt(pcl) |
+      (BigInt(pch) << 8n) |
+      (BigInt(a & 0xff) << 16n) |
+      (BigInt(x & 0xff) << 24n) |
+      (BigInt(y & 0xff) << 32n) |
+      (BigInt(s & 0xff) << 40n) |
+      (BigInt(p & 0xff) << 48n) |
+      (BigInt(opcode & 0xff) << 56n);
+
+      this.#exports.qe6502_overwrite_regs(this.#ptr, packed);
+      this.#exports.qe6502_reset_to_normal_state(this.#ptr);
+      this.#refreshStateSlow();
   }
 
   dispose() {
