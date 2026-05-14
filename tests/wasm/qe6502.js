@@ -4,7 +4,7 @@ export const QE6502_MODEL_WDC = 2;
 export const QE6502_MODEL_RW  = 3;
 export const QE6502_MODEL_ST  = 4;
 
-const DEBUG_QE6502 = true;
+const DEBUG_QE6502 = false;
 
 function debugLog(...args) {
   if (DEBUG_QE6502) {
@@ -62,7 +62,29 @@ const TICK_EX_INSTR_DONE   = 0x00040000;
 const TICK_EX_NOT_OK       = 0x00800000;
 const TICK_EX_DATA_SHIFT   = 24;
 
-export async function loadQE6502(wasmUrlOrBuffer) {
+function readCStringFromMemory(memory, ptr) {
+  ptr = ptr >>> 0;
+
+  if (ptr === 0) {
+    return "";
+  }
+
+  const bytes = new Uint8Array(memory.buffer);
+
+  let end = ptr;
+
+  while (end < bytes.length && bytes[end] !== 0) {
+    end++;
+  }
+
+  if (end >= bytes.length) {
+    return "<unterminated c string>";
+  }
+
+  return new TextDecoder("utf-8").decode(bytes.subarray(ptr, end));
+}
+
+export async function loadQE6502(wasmUrlOrBuffer, options = {}) {
   debugLog("Start loading qe6502 wasm lib...");
   let wasmBuffer;
 
@@ -92,7 +114,24 @@ export async function loadQE6502(wasmUrlOrBuffer) {
     );
   }
 
-  const { instance } = await WebAssembly.instantiate(wasmBuffer, {});
+  let wasmExports = null;
+  const imports = {
+    env: {
+      qe6502ext_debug_log: (topicPtr, messagePtr) => {
+        if (!wasmExports || typeof options.debugLog !== "function") {
+          return;
+        }
+
+        const topic = readCStringFromMemory(wasmExports.memory, topicPtr);
+        const message = readCStringFromMemory(wasmExports.memory, messagePtr);
+
+        options.debugLog(topic, message);
+      },
+    },
+  };
+
+  const { instance } = await WebAssembly.instantiate(wasmBuffer, imports);
+  wasmExports = instance.exports;
 
   debugLog("Checking exports...");
 
@@ -141,10 +180,10 @@ class QE6502 {
   }
 
   #readCString(ptr) {
-   ptr = ptr >>> 0;
+     ptr = ptr >>> 0;
 
-   if (ptr === 0) {
-     return "";
+     if (ptr === 0) {
+       return "";
    }
 
    const memory = this.#getMemoryU8();

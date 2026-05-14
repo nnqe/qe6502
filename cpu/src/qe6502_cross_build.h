@@ -5,6 +5,13 @@
 #include <qe6502/qe6502.h>
 #include <stdint.h>
 
+#if defined(__clang__) && defined(__wasm__)
+    #define QE_IMPORT(module, name) \
+        __attribute__((import_module(module), import_name(name)))
+#else
+    #define QE_IMPORT(module, name)
+#endif
+
 #if defined(_MSC_VER)
     #define QE_LITTLE_ENDIAN 1
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)

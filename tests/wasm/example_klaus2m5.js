@@ -188,7 +188,12 @@ export async function run({ output }) {
 
     print("Loading QE6502 WASM...");
 
-    const qe = await loadQE6502(`./qe6502.wasm?v=${Date.now()}`);
+    const qe = await loadQE6502(`./qe6502.wasm?v=${Date.now()}`, {
+      debugLog: (topic, message) => {
+        console.debug(`[QE6502:${topic}] ${message}`);
+      },
+    });
+
     print("Loaded.");
     print("");
 
