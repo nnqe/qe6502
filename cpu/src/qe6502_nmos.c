@@ -59,12 +59,14 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 QE_INTERNAL_API(qe6502_cycle_t)
 mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
+    qe_log("qe6502", "MOS fetcher attached");
     return nmos_fetch_opcode(cpu);
 }
 
 QE_INTERNAL_API(qe6502_cycle_t)
 nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
+    qe_log("qe6502", "NES fetcher attached");
     return nmos_fetch_opcode(cpu);
 }
 
@@ -599,7 +601,7 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 5:
         return jump_to(cpu, cpu->instr);
     default:
-        qe_log("qe6502", "BRK Error, unexpected!");
+        qe_log("qe6502", "Error: BRK unexpected state");
         return cpu_error(cpu,  qe6502_err_logic_error );
     }
     return resume_to(nmos_instr_BRK_2);
@@ -3148,7 +3150,7 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
         return resume_to(nmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Interrupt Error, unexpected!");
+        qe_log("qe6502", "Error: IRQ interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(nmos_irq);
@@ -3181,7 +3183,7 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xfffb}, OFFSETOF(PC.u8_msb));
         return resume_to(nmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Interrupt Error, unexpected!");
+        qe_log("qe6502", "Error: NMI interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(nmos_nmi);

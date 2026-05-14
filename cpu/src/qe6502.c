@@ -30,14 +30,14 @@
     #include "qe6502_format.h"
     #include <stdarg.h>
 
-#if defined(QE6502_BUILD_WASM)
+#if defined(QE6502_ENABLE_EXTERN_LOG) && (QE6502_ENABLE_EXTERN_LOG == 1)
 
     QE_IMPORT("env", "qe6502ext_debug_log")
     extern void qe6502ext_debug_log(const char* topic, const char* message);
 
     QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)
     {
-        char message[1024];
+        char message[128];
 
         va_list ap;
         va_start(ap, fmt);
@@ -165,6 +165,7 @@ power_on_routine( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return resume_to(power_on_routine);
 
     case 8:
+        qe_log("qe6502", "Boot OK");
         return select_fetch_opcode_bridge(cpu);
 
     default:
@@ -582,12 +583,14 @@ QE_FFI_API_IMPL(void) qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_pac
     cpuPtr->S         = (uint8_t)(regs_packed >> 40);
     cpuPtr->P         = (uint8_t)(regs_packed >> 48);
     cpuPtr->opcode    = (uint8_t)(regs_packed >> 56);
+    qe_log("qe6502", "Registers overwritten");
 }
 
 QE_FFI_API_IMPL(void) qe6502_reset_to_normal_state(qe6502_cpu_t* cpu)
 {
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
     wrap->cycle = reset_to_normal_state(&wrap->cpu);
+    qe_log("qe6502", "CPU reset to normal state");
 }
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
@@ -696,6 +699,7 @@ qe6502_cpu_pool_reset(void)
     }
     free_chunk_idx = QE6502_MEM_ALLOC_CAPACITY;
     is_mem_inited = 1;
+    qe_log("qe6502", "Memory pool reset");
 }
 
 QE_FFI_API_IMPL(void*)
@@ -707,19 +711,28 @@ qe6502_cpu_alloc(void)
     }
     if (0 == free_chunk_idx)
     {
+        qe_log("qe6502", "Error: Memory pool empty");
         return QE_NULL;
     }
     free_chunk_idx--;
     ptrdiff_t pool_idx = free_chunks[free_chunk_idx] - memory_pool;
     is_free_lookup[(size_t)pool_idx] = qe_false;
+
+    qe_log("qe6502", "CPU allocated");
     return free_chunks[free_chunk_idx];
 }
 
 QE_FFI_API_IMPL(void)
 qe6502_cpu_free(void* ptr)
 {
-    if (!is_mem_inited || !ptr)
+    if (!is_mem_inited)
     {
+        qe_log("qe6502", "Error: Dealocating memory before memory init");
+        return;
+    }
+    if (!ptr)
+    {
+        qe_log("qe6502", "Warning: Dealocating null pointer");
         return;
     }
 
@@ -729,24 +742,29 @@ qe6502_cpu_free(void* ptr)
 
     if (ptrInt < poolFirst || ptrInt > poolLastValid)
     {
+        qe_log("qe6502", "Error: Dealocating out of bounds pointer");
         return;
     }
     if(((ptrInt - poolFirst) % sizeof(qe6502_cpu_t)) != 0)
     {
-        return;
-    }
-    if (free_chunk_idx >= QE6502_MEM_ALLOC_CAPACITY)
-    {
+        qe_log("qe6502", "Error: Dealocated pointer error");
         return;
     }
     ptrdiff_t pool_idx = (qe6502_cpu_t*)ptr - memory_pool;
     if (is_free_lookup[(size_t)pool_idx])
     {
+        qe_log("qe6502", "Warning: Multiple memory deallocation");
+        return;
+    }
+    if (free_chunk_idx >= QE6502_MEM_ALLOC_CAPACITY)
+    {
+        qe_log("qe6502", "Error: Memory pool full");
         return;
     }
     free_chunks[free_chunk_idx] = (qe6502_cpu_t*)ptr;
     is_free_lookup[(size_t)pool_idx] = qe_true;
     free_chunk_idx++;
+    qe_log("qe6502", "CPU Deallocated");
 }
 
 #endif

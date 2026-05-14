@@ -65,7 +65,8 @@
           "QE6502_ENABLE_MEM_ALLOC": "ON",
           "QE6502_BUILD_TESTS": "ON",
           "QE6502_BUILD_SHARED": "OFF",
-          "QE6502_ENABLE_DEBUG_LOG": "ON"
+          "QE6502_ENABLE_DEBUG_LOG": "ON",
+          "QE6502_ENABLE_EXTERN_LOG": "ON"
         }
     },
     {
