@@ -55,7 +55,8 @@ typedef enum
     QE6502_ADDR_MODE_ZP             = 12,
     QE6502_ADDR_MODE_ZP_RELATIVE    = 13,
     QE6502_ADDR_MODE_ZP_X           = 14,
-    QE6502_ADDR_MODE_ZP_Y           = 15
+    QE6502_ADDR_MODE_ZP_Y           = 15,
+    QE6502_ADDR_MODE_ABSOLUTE_X_INDIRECT = 16
 } qe6502_addr_mode_t;
 
 typedef struct

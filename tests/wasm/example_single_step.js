@@ -55,11 +55,16 @@ export async function run({ output }) {
   function shouldSkipOpcode(meta) {
     const modelKey = getSelectedModelKey();
 
-    if (meta.isIllegal) {
+    if ((modelKey === "mos" || modelKey === "nes") && meta.isIllegal) {
       return true;
     }
 
     if ((modelKey === "mos" || modelKey === "nes") && meta.isCmosExtension) {
+      return true;
+    }
+
+    // WAI and STP must be skipped, test files are empty
+    if (modelKey === "wdc" && (meta.opcode === 203 || meta.opcode === 219)) {
       return true;
     }
 

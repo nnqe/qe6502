@@ -917,7 +917,7 @@ static const qe6502_model_t cmos_model = {
     //
     {   cmos_instr_ILLEGAL_NOP, cmos_instr_ILLEGAL_NOP },
     /*----------------------------------------------------*/
-    //  STA, Store Zero
+    //  STZ, Store Zero
     //  class: Writer
     //  Opcode: 0x9C(156), Bytes: 3, Mode: Absolute
     //
@@ -929,7 +929,7 @@ static const qe6502_model_t cmos_model = {
     //
     {   cmos_pre_w_absolute_x, cmos_instr_STA },
     /*----------------------------------------------------*/
-    //  STA, Store Zero
+    //  STZ, Store Zero
     //  class: Writer
     //  Opcode: 0x9E(158), Bytes: 3, Mode: Absolute_X
     //
