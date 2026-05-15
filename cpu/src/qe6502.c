@@ -16,6 +16,7 @@
 #include "qe6502_inline.h"
 #include "qe6502_defs.h"
 #include "qe6502_cross_build.h"
+#include "qe6502_log.h"
 
 #if (!defined(QE6502_ENABLE_NMOS_6502)) || (QE6502_ENABLE_NMOS_6502 != 1)
 #if (!defined(QE6502_ENABLE_CMOS_65C02)) || (QE6502_ENABLE_CMOS_65C02 != 1)
@@ -23,77 +24,6 @@
 #error "Invalid qe6502 build: at least one of QE6502_ENABLE_NMOS_6502 or QE6502_ENABLE_CMOS_65C02 must be enabled."
 
 #endif
-#endif
-
-#if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
-
-    #include "qe6502_format.h"
-    #include <stdarg.h>
-
-#if defined(QE6502_ENABLE_EXTERN_LOG) && (QE6502_ENABLE_EXTERN_LOG == 1)
-
-    QE_IMPORT("env", "qe6502ext_debug_log")
-    extern void qe6502ext_debug_log(const char* topic, const char* message);
-
-    QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)
-    {
-        char message[128];
-
-        va_list ap;
-        va_start(ap, fmt);
-        int written = qe_vsnprintf(message, sizeof message, fmt, ap);
-        va_end(ap);
-
-        if (written < 0) {
-            qe6502ext_debug_log(topic ? topic : "", "<qe_log format error>");
-            return;
-        }
-
-        if ((unsigned)written >= sizeof message) {
-            message[sizeof message - 4] = '.';
-            message[sizeof message - 3] = '.';
-            message[sizeof message - 2] = '.';
-            message[sizeof message - 1] = '\0';
-        }
-
-        qe6502ext_debug_log(topic ? topic : "", message);
-    }
-
-#else
-    #include <time.h>
-
-    #if defined(__GNUC__) || defined(__clang__)
-        #define QE_PRINTF_LIKE(fmt_index, va_index) __attribute__((format(printf, fmt_index, va_index)))
-    #else
-        #define QE_PRINTF_LIKE(fmt_index, va_index)
-    #endif
-        QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...) QE_PRINTF_LIKE(2, 3);
-
-        QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)
-        {
-            /* HH:MM:SS timestamp */
-            char timeBuf[9];
-            time_t now = time(QE_NULL);
-            struct tm tm_now;
-
-        #ifdef _MSC_VER
-            localtime_s(&tm_now, &now);
-        #else
-            localtime_r(&now, &tm_now);
-        #endif
-            strftime(timeBuf, sizeof timeBuf, "%H:%M:%S", &tm_now);
-
-            printf("[%s | %s] ", timeBuf, topic);
-
-            va_list ap;
-            va_start(ap, fmt);
-            vprintf(fmt, ap);
-            va_end(ap);
-
-            putchar('\n');
-            fflush(stdout);
-        }
-    #endif
 #endif
 
 QE_INTERNAL_API(void)
@@ -114,16 +44,16 @@ qe6502_version_impl(uint16_t* version,
 
 static qe6502_cycle_t select_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
+#   if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
         if(qe6502_mos == qe6502_model_impl(cpu))   return mos_fetch_opcode_bridge(cpu);
         if(qe6502_nes == qe6502_model_impl(cpu))   return nes_fetch_opcode_bridge(cpu);
-    #endif
-    #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
+#   endif
+#   if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
         if(qe6502_wdc == qe6502_model_impl(cpu))   return wdc_fetch_opcode_bridge(cpu);
         if(qe6502_rw == qe6502_model_impl(cpu))    return rw_fetch_opcode_bridge(cpu);
         if(qe6502_st == qe6502_model_impl(cpu))    return st_fetch_opcode_bridge(cpu);
-    #endif
-    qe_log("qe6502", "Error: unknown model: %d", (unsigned)(qe6502_model_impl(cpu)));
+#   endif
+    qe_log_error("Unknown model: %d", (unsigned)(qe6502_model_impl(cpu)));
     return cpu_error(cpu,  qe6502_err_unknown_model );
 }
 
@@ -165,7 +95,7 @@ power_on_routine( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return resume_to(power_on_routine);
 
     case 8:
-        qe_log("qe6502", "Boot OK");
+        qe_log_info("Boot OK");
         return select_fetch_opcode_bridge(cpu);
 
     default:
@@ -184,9 +114,9 @@ reset_to_normal_state( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
 {
-    qe_log("qe6502", "Power ON");
-    qe_log("qe6502", "CPU size: %u", (unsigned)sizeof(qe6502_t));
-    qe_log("qe6502", "CPU Cycle size: %u", (unsigned)sizeof(qe6502_cycle_t));
+    qe_log_info("Power ON");
+    qe_log_info("CPU size: %u", (unsigned)sizeof(qe6502_t));
+    qe_log_info("CPU Cycle size: %u", (unsigned)sizeof(qe6502_cycle_t));
     QE_CLEAR_OBJ(*cpu);
 
     // test read
@@ -195,7 +125,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     if (cpu->cmd.address != 0xDEAD ||
         cpu->cmd.offset != 0xA2)
     {
-        qe_log("qe6502", "Error: request_read");
+        qe_log_error("request_read");
         return cpu_error(cpu, qe6502_err_compile_error );
     }
 
@@ -205,7 +135,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     if (cpu->cmd.address != 0x01DE ||
         cpu->cmd.offset != 0xAD)
     {
-        qe_log("qe6502", "Error: request_stack_read");
+        qe_log_error("request_stack_read");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -216,7 +146,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         cpu->cmd.offset != 0xA2 ||
         cpu->cmd.flags != qe6502_writing)
     {
-        qe_log("qe6502", "Error: request_write");
+        qe_log_error("request_write");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -227,7 +157,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         cpu->cmd.offset != 0xAD ||
         cpu->cmd.flags != qe6502_writing)
     {
-        qe_log("qe6502", "Error: request_stack_write");
+        qe_log_error("request_stack_write");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -261,7 +191,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         qe6502_flagpos_C != 0 ||
         qe6502_flag_C != 1)
     {
-        qe_log("qe6502", "Error: CPU internal offsets");
+        qe_log_error("CPU internal offsets");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -270,7 +200,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     cpu->address.u8_lsb = 0x09;
     if (cpu->address.u16 != 0x7909)
     {
-        qe_log("qe6502", "Error: little/big endian check");
+        qe_log_error("little/big endian check");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -279,7 +209,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         cpu->cmd.offset != 0x01 ||
         cpu->cmd.flags != 0xC0)
     {
-        qe_log("qe6502", "Error: little/big endian 32 check");
+        qe_log_error("little/big endian 32 check");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -289,7 +219,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     // check model
     if ( (qe6502_model_max + 1) & qe6502_model_max )
     {
-        qe_log("qe6502", "Error: qe6502_model_max shoud be mask");
+        qe_log_error("qe6502_model_max shoud be mask");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
@@ -297,27 +227,27 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         qe6502_model_max >= qe6502_nmi_pin_lo  ||
         qe6502_model_max >= qe6502_irq_pin_lo )
     {
-        qe_log("qe6502", "Error: istate pin values must be greater than qe6502_model_max");
+        qe_log_error("istate pin values must be greater than qe6502_model_max");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
     if (model > qe6502_model_max)
     {
-        qe_log("qe6502", "Error: Model id too big");
+        qe_log_error("Model id too big");
         return cpu_error(cpu,  qe6502_err_unknown_model );
     }
     cpu->model = model;
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-    if(qe6502_mos == qe6502_model_impl(cpu))   qe_log("qe6502", "Model set to 'MOS 6502'");       else
-    if(qe6502_nes == qe6502_model_impl(cpu))   qe_log("qe6502", "Model set to 'NES 6502'");       else
+    if(qe6502_mos == qe6502_model_impl(cpu))   qe_log_info("Model set to 'MOS 6502'");       else
+    if(qe6502_nes == qe6502_model_impl(cpu))   qe_log_info("Model set to 'NES 6502'");       else
 #endif
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-    if(qe6502_wdc == qe6502_model_impl(cpu))   qe_log("qe6502", "Model set to 'WDC 65C02'");      else
-    if(qe6502_rw == qe6502_model_impl(cpu))    qe_log("qe6502", "Model set to 'Rockwell 65C02'"); else
-    if(qe6502_st == qe6502_model_impl(cpu))    qe_log("qe6502", "Model set to 'Synertek 65C02'"); else
+    if(qe6502_wdc == qe6502_model_impl(cpu))   qe_log_info("Model set to 'WDC 65C02'");      else
+    if(qe6502_rw == qe6502_model_impl(cpu))    qe_log_info("Model set to 'Rockwell 65C02'"); else
+    if(qe6502_st == qe6502_model_impl(cpu))    qe_log_info("Model set to 'Synertek 65C02'"); else
 #endif
     {
-        qe_log("qe6502", "Error: unknown model: %d", (unsigned)model);
+        qe_log_error("unknown model: %d", (unsigned)model);
         return cpu_error(cpu,  qe6502_err_unknown_model );
     }
 
@@ -325,54 +255,54 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     cpu->cmd.flags = qe6502_halted;
     if (qe6502_ok_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_ok' wrong true");
+        qe_log_error("'qe6502_ok' wrong true");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.flags = 0;
     if (!qe6502_ok_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_ok' wrong false");
+        qe_log_error("'qe6502_ok' wrong false");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
     request_read(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
     if (!qe6502_needs_data_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_needs_data' wrong false");
+        qe_log_error("'qe6502_needs_data' wrong false");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     if (qe6502_has_data_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_has_data' wrong true");
+        qe_log_error("'qe6502_has_data' wrong true");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
     request_write(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
     if (qe6502_needs_data_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_needs_data' wrong true");
+        qe_log_error("'qe6502_needs_data' wrong true");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     if (!qe6502_has_data_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_has_data' wrong false");
+        qe_log_error("'qe6502_has_data' wrong false");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     if (qe6502_address_impl(cpu) != 0xDEAD)
     {
-        qe_log("qe6502", "Error: 'qe6502_address' fail");
+        qe_log_error("'qe6502_address' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.flags = qe6502_wait_opcode;
     if (!qe6502_instr_done_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_instr_done' wrong false");
+        qe_log_error("'qe6502_instr_done' wrong false");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.flags = 0;
     if (qe6502_instr_done_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_instr_done' wrong true");
+        qe_log_error("'qe6502_instr_done' wrong true");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
@@ -380,13 +310,13 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     qe6502_feed_data_impl(cpu, 0x42);
     if (cpu->data != 0x42)
     {
-        qe_log("qe6502", "Error: 'qe6502_feed_data' fail");
+        qe_log_error("'qe6502_feed_data' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     request_write(cpu, (qe_word_t){.u16=0xBEEF}, OFFSETOF(data));
     if (qe6502_data_impl(cpu) != 0x42)
     {
-        qe_log("qe6502", "Error: 'qe6502_data' fail");
+        qe_log_error("'qe6502_data' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     qe6502_cycle_t cycle = qe6502_reset_instruction_impl(cpu);
@@ -394,27 +324,27 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         !qe6502_ok_impl(cpu) ||
         !qe6502_instr_done_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'qe6502_reset_instruction' fail");
+        qe_log_error("'qe6502_reset_instruction' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     qe6502_feed_data_impl(cpu, 0xEA);
     if (cpu->opcode != 0xEA)
     {
-        qe_log("qe6502", "Error: 'qe6502_reset_instruction or qe6502_feed_data' fail");
+        qe_log_error("'qe6502_reset_instruction or qe6502_feed_data' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cycle = cycle.execute(cpu);
     if (QE_NULL == cycle.execute ||
         !qe6502_ok_impl(cpu))
     {
-        qe_log("qe6502", "Error: 'internal cycle exec' fail");
+        qe_log_error("'internal cycle exec' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
-    qe_log("qe6502", "Self-test OK");
+    qe_log_info("Self-test OK");
 
 #if(QE6502_ENABLE_CYCLE_MERGE == 1)
-    qe_log("qe6502", "Warning: Cycles merge enabled!");
+    qe_log_warn("Cycles merge enabled!");
 #endif
 
     // We hope everything's good
@@ -457,9 +387,9 @@ QE_STATIC_ASSERT(_Alignof(qe6502_cpuwrap_t) <= QE_CONTEXT_ALIGN,
 QE_FFI_API_IMPL(uint32_t)
 qe6502_version(void)
 {
-    qe_word32_t w;
-    qe6502_version_impl(&w.msw.u16, &w.lsw.u8_msb, &w.lsw.u8_lsb);
-    return w.u32;
+    uint16_t version;
+    qe6502_version_impl(&version, QE_NULL, QE_NULL);
+    return (uint32_t)version;
 }
 
 QE_FFI_API_IMPL(size_t)
@@ -583,14 +513,14 @@ QE_FFI_API_IMPL(void) qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_pac
     cpuPtr->S         = (uint8_t)(regs_packed >> 40);
     cpuPtr->P         = (uint8_t)(regs_packed >> 48);
     cpuPtr->opcode    = (uint8_t)(regs_packed >> 56);
-    qe_log("qe6502", "Registers overwritten");
+    qe_log_info("Registers overwritten");
 }
 
 QE_FFI_API_IMPL(void) qe6502_reset_to_normal_state(qe6502_cpu_t* cpu)
 {
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
     wrap->cycle = reset_to_normal_state(&wrap->cpu);
-    qe_log("qe6502", "CPU reset to normal state");
+    qe_log_info("CPU reset to normal state");
 }
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
@@ -699,7 +629,7 @@ qe6502_cpu_pool_reset(void)
     }
     free_chunk_idx = QE6502_MEM_ALLOC_CAPACITY;
     is_mem_inited = 1;
-    qe_log("qe6502", "Memory pool reset");
+    qe_log_info("Memory pool reset");
 }
 
 QE_FFI_API_IMPL(void*)
@@ -711,14 +641,14 @@ qe6502_cpu_alloc(void)
     }
     if (0 == free_chunk_idx)
     {
-        qe_log("qe6502", "Error: Memory pool empty");
+        qe_log_error("Memory pool empty");
         return QE_NULL;
     }
     free_chunk_idx--;
     ptrdiff_t pool_idx = free_chunks[free_chunk_idx] - memory_pool;
     is_free_lookup[(size_t)pool_idx] = qe_false;
 
-    qe_log("qe6502", "CPU allocated");
+    qe_log_info("CPU allocated");
     return free_chunks[free_chunk_idx];
 }
 
@@ -727,12 +657,12 @@ qe6502_cpu_free(void* ptr)
 {
     if (!is_mem_inited)
     {
-        qe_log("qe6502", "Error: Dealocating memory before memory init");
+        qe_log_error("Dealocating memory before memory init");
         return;
     }
     if (!ptr)
     {
-        qe_log("qe6502", "Warning: Dealocating null pointer");
+        qe_log_warn("Dealocating null pointer");
         return;
     }
 
@@ -742,29 +672,29 @@ qe6502_cpu_free(void* ptr)
 
     if (ptrInt < poolFirst || ptrInt > poolLastValid)
     {
-        qe_log("qe6502", "Error: Dealocating out of bounds pointer");
+        qe_log_error("Dealocating out of bounds pointer");
         return;
     }
     if(((ptrInt - poolFirst) % sizeof(qe6502_cpu_t)) != 0)
     {
-        qe_log("qe6502", "Error: Dealocated pointer error");
+        qe_log_error("Dealocated pointer error");
         return;
     }
     ptrdiff_t pool_idx = (qe6502_cpu_t*)ptr - memory_pool;
     if (is_free_lookup[(size_t)pool_idx])
     {
-        qe_log("qe6502", "Warning: Multiple memory deallocation");
+        qe_log_warn("Multiple memory deallocation");
         return;
     }
     if (free_chunk_idx >= QE6502_MEM_ALLOC_CAPACITY)
     {
-        qe_log("qe6502", "Error: Memory pool full");
+        qe_log_error("Memory pool full");
         return;
     }
     free_chunks[free_chunk_idx] = (qe6502_cpu_t*)ptr;
     is_free_lookup[(size_t)pool_idx] = qe_true;
     free_chunk_idx++;
-    qe_log("qe6502", "CPU Deallocated");
+    qe_log_info("CPU Deallocated");
 }
 
 #endif

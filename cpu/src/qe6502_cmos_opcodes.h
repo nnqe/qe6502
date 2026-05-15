@@ -5,6 +5,10 @@
 
 #include "qe6502_cmos_fw.h"
 
+#ifndef QE6502_CMOS_OPCODE_UNLOCKER
+#   error("Do not include this file from outside of qe6502_cmos.c");
+#endif
+
 static const qe6502_model_t cmos_model = {
 .opcodes =
 {

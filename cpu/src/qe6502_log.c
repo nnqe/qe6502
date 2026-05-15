@@ -1,5 +1,61 @@
-#include "qe6502_format.h"
-#include <stddef.h>
+#if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
+
+#include "qe6502_log.h"
+#include <stdarg.h>
+
+static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap);
+static int qe_snprintf(char* out, size_t cap, const char* fmt, ...);
+
+#if defined(QE6502_ENABLE_EXTERN_LOG) && (QE6502_ENABLE_EXTERN_LOG == 1)
+
+    QE_IMPORT("env", "qe6502ext_debug_log")
+    extern void qe6502ext_debug_log(const char* topic, const char* message);
+
+    static void qe6502_print_impl(const char* topic, const char* message)
+    {
+        const char* topic_notnull = topic? topic : "";
+        const char* message_notnull = message? message : "";
+        qe6502ext_debug_log(topic_notnull, message_notnull);
+    }
+#else
+#   include <stdio.h>
+    static void qe6502_print_impl(const char* topic, const char* message)
+    {
+        const char* topic_notnull = topic? topic : "";
+        const char* message_notnull = message? message : "";
+        printf("[qe6502::%s] %s\n", topic_notnull, message_notnull);
+        fflush(stdout);
+    }
+#endif
+
+static void qe_log_impl(const char* topic, const char *fmt, va_list ap)
+{
+    char message[256];
+
+    const char* topic_notnull = topic? topic : "";
+    int written = qe_vsnprintf(message, sizeof(message), fmt, ap);
+
+    if (written < 0) {
+        qe6502_print_impl(topic_notnull, "<qe_log format error>");
+        return;
+    }
+
+    if ((unsigned)written >= sizeof message) {
+        message[sizeof message - 4] = '.';
+        message[sizeof message - 3] = '.';
+        message[sizeof message - 2] = '.';
+        message[sizeof message - 1] = '\0';
+    }
+
+    qe6502_print_impl(topic_notnull, message);
+}
+
+#define QE_LOG_IMPL(topic) {va_list ap; va_start(ap, fmt); qe_log_impl(topic, fmt, ap); va_end(ap);}
+
+QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)   {QE_LOG_IMPL(topic);}
+QE_INTERNAL_API(void) qe_log_info(const char *fmt, ...)                 {QE_LOG_IMPL("INFO");}
+QE_INTERNAL_API(void) qe_log_warn(const char *fmt, ...)                 {QE_LOG_IMPL("WARNING");}
+QE_INTERNAL_API(void) qe_log_error(const char *fmt, ...)                {QE_LOG_IMPL("ERROR");}
 
 static void qe_fmt_putc(char* out, size_t cap, size_t* len, char ch)
 {
@@ -12,7 +68,7 @@ static void qe_fmt_putc(char* out, size_t cap, size_t* len, char ch)
 
 static void qe_fmt_puts(char* out, size_t cap, size_t* len, const char* str)
 {
-    if (str == NULL) {
+    if (str == QE_NULL) {
         str = "(null)";
     }
 
@@ -94,12 +150,11 @@ static void qe_fmt_int(
     qe_fmt_uint(out, cap, len, magnitude, 10u, qe_false, width, zero_pad);
 }
 
-QE_INTERNAL_API(int)
-qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap)
+static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap)
 {
     size_t len = 0u;
 
-    if (fmt == NULL) {
+    if (fmt == QE_NULL) {
         fmt = "";
     }
 
@@ -251,8 +306,8 @@ qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap)
     return (int)len;
 }
 
-QE_INTERNAL_API(int)
-qe_snprintf(char* out, size_t cap, const char* fmt, ...)
+QE_MAYBE_UNUSED(qe_snprintf)
+static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 {
     int result;
     va_list ap;
@@ -263,3 +318,10 @@ qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 
     return result;
 }
+
+#else
+
+#include "qe6502_cross_build.h"
+QE_INTERNAL_API(void) qe6502_log_tu_not_empty_workaround(void){}
+
+#endif

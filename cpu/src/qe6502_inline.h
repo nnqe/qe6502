@@ -3,6 +3,7 @@
 
 #include "qe6502_defs.h"
 #include <stddef.h>
+#include "qe6502_log.h"
 
 #define INSTR_FW_DECL(funcname) INSTR_RETTYPE qe6502_cycle_t funcname( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 #define OFFSETOF(member) offsetof( qe6502_t, member )
@@ -30,26 +31,26 @@ qe6502_cycle_t resume_to(qe6502_microcode_fn handler)
 QE_SIC
 qe6502_cycle_t resume_to_dummy_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_fn handler)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE == 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE == 1)
         cpu->merged++;
         return handler(cpu);
-    #else
+#   else
         (void)cpu;
         return (qe6502_cycle_t){ .execute = handler };
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(resume_to_dummy_read)
 
 QE_SIC
 qe6502_cycle_t resume_to_dummy_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_fn handler)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE == 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE == 1)
         cpu->merged++;
         return handler(cpu);
-    #else
+#   else
         (void)cpu;
         return (qe6502_cycle_t){ .execute = handler };
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(resume_to_dummy_write)
 
@@ -93,49 +94,49 @@ QE_MAYBE_UNUSED(request_stack_write)
 
 QE_SIC void request_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_address, uint8_t store_offs)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE != 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(read_address.u16) |
                             QE_U32(QE_U32(store_offs) << 16);
-    #else
+#   else
         (void)cpu; (void)read_address; (void)store_offs;
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(request_read_dummy)
 
 QE_SIC void request_stack_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t store_offs)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE != 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(1 << 8) |
                             QE_U32(stack_address) |
                             QE_U32(QE_U32(store_offs) << 16);
-    #else
+#   else
         (void)cpu; (void)stack_address; (void)store_offs;
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(request_stack_read_dummy)
 
 QE_SIC void request_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE != 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(write_address.u16) |
                             QE_U32(get_offset) << 16 |
                             QE_U32(writing_packed_cmd);
-    #else
+#   else
         (void)cpu; (void)write_address; (void)get_offset;
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(request_write_dummy)
 
 QE_SIC void request_stack_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t stack_address, uint8_t get_offset)
 {
-    #if(QE6502_ENABLE_CYCLE_MERGE != 1)
+#   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(1 << 8) |
                             QE_U32(stack_address) |
                             QE_U32(get_offset) << 16 |
                             QE_U32(writing_packed_cmd);
-    #else
+#   else
         (void)cpu; (void)stack_address; (void)get_offset;
-    #endif
+#   endif
 }
 QE_MAYBE_UNUSED(request_stack_write_dummy)
 
@@ -155,7 +156,7 @@ halt( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 QE_SIC
 qe6502_cycle_t cpu_error( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t error_code)
 {
-    qe_log("qe6502", "CPU Error: %u (%02X)", (unsigned)error_code, (unsigned)error_code);
+    qe_log_error("CPU Error: %u (%02X)", (unsigned)error_code, (unsigned)error_code);
     cpu->error_code = ( error_code );
     return jump_to(cpu, halt);
 }

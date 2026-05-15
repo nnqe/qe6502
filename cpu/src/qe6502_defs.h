@@ -16,10 +16,11 @@
 #define QE6502_DEFS_H__
 
 #include "qe6502_cross_build.h"
+#include <qe6502/qe6502.h>
 
 // Version
 #define QE6502_VERSION_MAJOR 1
-#define QE6502_VERSION_MINOR 3
+#define QE6502_VERSION_MINOR 0
 
 #define QE6502_VERSION  (uint16_t)(((uint16_t)QE6502_VERSION_MAJOR << 8) | ((uint16_t)QE6502_VERSION_MINOR   << 0))
 
@@ -52,7 +53,7 @@ qe6502_version_impl(uint16_t* version,
 // ------------------------------------------------------------------------
 
 #if !(defined(QE6502_ENABLE_CYCLE_MERGE))
-    #define QE6502_ENABLE_CYCLE_MERGE 0
+#   define QE6502_ENABLE_CYCLE_MERGE 0
 #endif
 
 typedef struct qe6502_cycle_t qe6502_cycle_t;
@@ -65,27 +66,27 @@ struct qe6502_cycle_t
 };
 
 #ifdef QE_LITTLE_ENDIAN
-typedef union
-{
-    struct
+    typedef union
     {
-        uint16_t address;
-        uint8_t offset;
-        uint8_t flags;
-    };
-    uint32_t packed;
-} qe6502_cmd_t;
+        struct
+        {
+            uint16_t address;
+            uint8_t offset;
+            uint8_t flags;
+        };
+        uint32_t packed;
+    } qe6502_cmd_t;
 #else
-typedef union
-{
-    struct
+    typedef union
     {
-        uint8_t flags;
-        uint8_t offset;
-        uint16_t address;
-    };
-    uint32_t packed;
-} qe6502_cmd_t;
+        struct
+        {
+            uint8_t flags;
+            uint8_t offset;
+            uint16_t address;
+        };
+        uint32_t packed;
+    } qe6502_cmd_t;
 #endif
 QE_STATIC_ASSERT(sizeof(qe6502_cmd_t) == 4, "qe6502_cmd_t must be 4 bytes");
 
@@ -214,5 +215,14 @@ QE_SIC void     qe6502_nmi_lo_impl(qe6502_t* cpu) { if (qe6502_nmi_pin_impl(cpu)
 QE_SIC uint8_t  qe6502_irq_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
 QE_SIC void     qe6502_irq_hi_impl(qe6502_t* cpu) { cpu->istate &= QE_U8(~qe6502_irq_pin_lo); }
 QE_SIC void     qe6502_irq_lo_impl(qe6502_t* cpu) { cpu->istate |= QE_U8(qe6502_irq_pin_lo); }
+
+
+#define QE6502_LOG_INFO     "INFO"
+#define QE6502_LOG_WARN     "WARNING"
+#define QE6502_LOG_ERROR    "ERROR"
+
+QE_HIDDEN extern const char* qe6502_log_inf;
+QE_HIDDEN extern const char* qe6502_log_wrn;
+QE_HIDDEN extern const char* qe6502_log_err;
 
 #endif // QE6502_DEFS_H__

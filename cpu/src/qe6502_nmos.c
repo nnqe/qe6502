@@ -14,7 +14,11 @@
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 
-#include "qe6502_nmos_opcodes.h"
+#define QE6502_NMOS_OPCODE_UNLOCKER
+#   include "qe6502_nmos_opcodes.h"
+#undef QE6502_NMOS_OPCODE_UNLOCKER
+
+#include "qe6502_log.h"
 
 /********************************************************
  *
@@ -59,21 +63,21 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 QE_INTERNAL_API(qe6502_cycle_t)
 mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "MOS fetcher attached");
+    qe_log_info("MOS fetcher attached");
     return nmos_fetch_opcode(cpu);
 }
 
 QE_INTERNAL_API(qe6502_cycle_t)
 nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "NES fetcher attached");
+    qe_log_info("NES fetcher attached");
     return nmos_fetch_opcode(cpu);
 }
 
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_ILLEGAL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "Illegal instruction opcode: %u, (%02X)", (unsigned)cpu->opcode, (unsigned)cpu->opcode);
+    qe_log_info("Illegal instruction opcode: %u, (%02X)", (unsigned)cpu->opcode, (unsigned)cpu->opcode);
     return cpu_error(cpu,  qe6502_err_illegal_instr );
 }
 
@@ -601,7 +605,7 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 5:
         return jump_to(cpu, cpu->instr);
     default:
-        qe_log("qe6502", "Error: BRK unexpected state");
+        qe_log_error("BRK unexpected state");
         return cpu_error(cpu,  qe6502_err_logic_error );
     }
     return resume_to(nmos_instr_BRK_2);
@@ -3150,7 +3154,7 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
         return resume_to(nmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Error: IRQ interrupt unexpected state");
+        qe_log_error("IRQ interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(nmos_irq);
@@ -3183,7 +3187,7 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xfffb}, OFFSETOF(PC.u8_msb));
         return resume_to(nmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Error: NMI interrupt unexpected state");
+        qe_log_error("NMI interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(nmos_nmi);

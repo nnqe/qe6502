@@ -12,10 +12,13 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
 
-#include "qe6502_cmos_opcodes.h"
+#define QE6502_CMOS_OPCODE_UNLOCKER
+#   include "qe6502_cmos_opcodes.h"
+#undef QE6502_CMOS_OPCODE_UNLOCKER
+
+#include "qe6502_log.h"
 
 /********************************************************
  *
@@ -60,21 +63,21 @@ cmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 QE_INTERNAL_API(qe6502_cycle_t)
 rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "Rockwell fetcher attached");
+    qe_log_info("Rockwell fetcher attached");
     return cmos_fetch_opcode(cpu);
 }
 
 QE_INTERNAL_API(qe6502_cycle_t)
 wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "WDC fetcher attached");
+    qe_log_info("WDC fetcher attached");
     return cmos_fetch_opcode(cpu);
 }
 
 QE_INTERNAL_API(qe6502_cycle_t)
 st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    qe_log("qe6502", "Synertek fetcher attached");
+    qe_log_info("Synertek fetcher attached");
     return cmos_fetch_opcode(cpu);
 }
 
@@ -628,7 +631,7 @@ cmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 5:
         return jump_to(cpu, cpu->instr);
     default:
-        qe_log("qe6502", "Error: BRK unexpected state");
+        qe_log_error("BRK unexpected state");
         return cpu_error(cpu,  qe6502_err_logic_error );
     }
     return resume_to(cmos_instr_BRK_2);
@@ -1471,7 +1474,7 @@ cmos_instr_ILLEGAL_NOP( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     uint8_t i2 = illegal_nop_lsb[ cpu->opcode & 0x0f ];
     if (i2 >= QE_ARRAY_LENGTH(illegal_nop_table[0]))
     {
-        qe_log("qe6502", "Error: illegal_nop_lsb out of bounds, opcode: %u, idx: %u, value: %u, size: %u",
+        qe_log_error("illegal_nop_lsb out of bounds, opcode: %u, idx: %u, value: %u, size: %u",
                 (unsigned)cpu->opcode, (unsigned)(cpu->opcode & 0x0f), (unsigned)i2, (unsigned)(QE_ARRAY_LENGTH(illegal_nop_table[0])));
         return cpu_error(cpu,  qe6502_err_illegal_instr );
     }
@@ -1482,7 +1485,7 @@ cmos_instr_ILLEGAL_NOP( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     if (cpu->pointer.u8_lsb == 0 ||
         cpu->pointer.u8_lsb != illegal_nop_table[i1][i2][1])
     {
-        qe_log("qe6502", "Error: Unexpected values, opcode: %u bytes: %u, cycles: %u",
+        qe_log_error("Unexpected values, opcode: %u bytes: %u, cycles: %u",
                (unsigned)cpu->opcode, (unsigned)cpu->pointer.u8_lsb, (unsigned)illegal_nop_table[i1][i2][1]);
         return cpu_error(cpu,  qe6502_err_illegal_instr );
     }
@@ -1519,7 +1522,7 @@ cmos_instr_ILLEGAL_NOP_st_xXf( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
             return jump_to( cpu, cmos_fetch_opcode );
         }
     }
-    qe_log("qe6502", "Error: Synertek only opcode: %u", (unsigned)(cpu->opcode));
+    qe_log_error("Synertek only opcode: %u", (unsigned)(cpu->opcode));
     return cpu_error(cpu, qe6502_err_logic_error);
 }
 
@@ -3547,7 +3550,7 @@ cmos_pre_rw_zeropage_RMB_SMB( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         }
         else
         {
-            qe_log("qe6502", "Error: Illegal Synertek BIT opcode: %u", (unsigned)cpu->opcode);
+            qe_log_error("Illegal Synertek BIT opcode: %u", (unsigned)cpu->opcode);
             return cpu_error(cpu, qe6502_err_logic_error);
         }
     }
@@ -4025,7 +4028,7 @@ cmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
         return resume_to(cmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Error: IRQ interrupt unexpected state");
+        qe_log_error("IRQ interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(cmos_irq);
@@ -4058,7 +4061,7 @@ cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word_t){.u16=0xfffb}, OFFSETOF(PC.u8_msb));
         return resume_to(cmos_fetch_opcode);
     default:
-        qe_log("qe6502", "Error: NMI interrupt Error, unexpected!");
+        qe_log_error("NMI interrupt Error, unexpected!");
         return cpu_error(cpu,  qe6502_err_interrupt_error);
     }
     return resume_to(cmos_nmi);

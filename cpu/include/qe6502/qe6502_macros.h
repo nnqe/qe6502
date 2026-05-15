@@ -16,37 +16,37 @@
 #define QE6502_MACROS_H__
 
 #ifdef __cplusplus
-    #define QE_EXTERN_C extern "C"
+#   define QE_EXTERN_C extern "C"
 #else
-    #define QE_EXTERN_C
+#   define QE_EXTERN_C
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#if defined(QE6502_BUILD_SHARED) && (QE6502_BUILD_SHARED == 1)
-#if QE6502_BUILDING_LIBRARY
-#define QE_EXPORT __declspec(dllexport)
-#else
-#define QE_EXPORT __declspec(dllimport)
-#endif
-#else
-#define QE_EXPORT
-#endif
+#   if defined(QE6502_BUILD_SHARED) && (QE6502_BUILD_SHARED == 1)
+#      if QE6502_BUILDING_LIBRARY
+#          define QE_EXPORT __declspec(dllexport)
+#      else
+#          define QE_EXPORT __declspec(dllimport)
+#      endif
+#   else
+#      define QE_EXPORT
+#   endif
 #elif defined(__GNUC__) || defined(__clang__)
-#define QE_EXPORT __attribute__((visibility("default")))
+#   define QE_EXPORT __attribute__((visibility("default")))
 #else
-#define QE_EXPORT
+#   define QE_EXPORT
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#define QE_CALL __cdecl
+#   define QE_CALL __cdecl
 #else
-#define QE_CALL
+#   define QE_CALL
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-#define QE_HIDDEN __attribute__((visibility("hidden")))
+#   define QE_HIDDEN __attribute__((visibility("hidden")))
 #else
-#define QE_HIDDEN
+#   define QE_HIDDEN
 #endif
 
 #define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL

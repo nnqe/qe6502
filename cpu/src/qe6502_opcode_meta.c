@@ -1,7 +1,8 @@
 #include <qe6502/qe6502.h>
 #include "qe6502_cross_build.h"
 
-static const qe6502_opcode_meta_t qe6502_opcode_table[256] = {
+static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
+{
     [0x00] = {
         .name = "BRK",
         .description = "Force Interrupt",
@@ -2823,5 +2824,6 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] = {
 QE_FFI_API_IMPL(const qe6502_opcode_meta_t*)
 qe6502_opcode_meta(uint8_t opcode)
 {
+    QE_STATIC_ASSERT(sizeof(qe6502_opcode_table) / sizeof(qe6502_opcode_table[0]) == 256, "Opcode meta data error");
     return &(qe6502_opcode_table[opcode]);
 }
