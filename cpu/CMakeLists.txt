@@ -95,7 +95,6 @@ else()
     target_compile_features(${target} PUBLIC c_std_11)
 
     target_compile_options(${target} PRIVATE
-        -O3
         -ffreestanding
         -fno-builtin
         -Wall -Wextra -Wpedantic -Werror

@@ -31,35 +31,33 @@ if(_QE6502_BREW_EXECUTABLE)
 endif()
 
 find_program(QE6502_CLANG
-    NAMES
-        clang
-        clang-22 clang-21 clang-20 clang-19 clang-18 clang-17 clang-16 clang-15 clang-14
-    HINTS
-        ${_QE6502_LLVM_HINTS}
+    NAMES clang
+    HINTS ${_QE6502_LLVM_HINTS}
     REQUIRED
 )
 
 find_program(QE6502_LLVM_AR
-    NAMES
-        llvm-ar
-        llvm-ar-22 llvm-ar-21 llvm-ar-20 llvm-ar-19 llvm-ar-18 llvm-ar-17 llvm-ar-16 llvm-ar-15 llvm-ar-14
-    HINTS
-        ${_QE6502_LLVM_HINTS}
+    NAMES llvm-ar
+    HINTS ${_QE6502_LLVM_HINTS}
     REQUIRED
 )
 
 find_program(QE6502_LLVM_RANLIB
-    NAMES
-        llvm-ranlib
-        llvm-ranlib-22 llvm-ranlib-21 llvm-ranlib-20 llvm-ranlib-19 llvm-ranlib-18 llvm-ranlib-17 llvm-ranlib-16 llvm-ranlib-15 llvm-ranlib-14
-    HINTS
-        ${_QE6502_LLVM_HINTS}
+    NAMES llvm-ranlib
+    HINTS ${_QE6502_LLVM_HINTS}
+    REQUIRED
+)
+
+find_program(QE6502_WASM_LD
+    NAMES wasm-ld
+    HINTS ${_QE6502_LLVM_HINTS}
     REQUIRED
 )
 
 message(STATUS "QE6502 LLVM clang: ${QE6502_CLANG}")
 message(STATUS "QE6502 LLVM ar: ${QE6502_LLVM_AR}")
 message(STATUS "QE6502 LLVM ranlib: ${QE6502_LLVM_RANLIB}")
+message(STATUS "QE6502 LLVM wasm-ld: ${QE6502_WASM_LD}")
 
 unset(_QE6502_LLVM_HINTS)
 unset(_QE6502_BREW_EXECUTABLE)
