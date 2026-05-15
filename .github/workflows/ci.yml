@@ -55,8 +55,8 @@ jobs:
           echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Configure
-        if: ${{ !(runner.os == 'macOS' && contains(matrix.preset, 'wasm')) }}
-          run: cmake --preset ${{ matrix.preset }}
+        if: runner.os != 'macOS' || contains(matrix.preset, 'wasm') == false
+        run: cmake --preset ${{ matrix.preset }}
 
       - name: Configure WASM on macOS
         if: runner.os == 'macOS' && contains(matrix.preset, 'wasm')
@@ -66,5 +66,5 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: Test
-        if: ${{ !contains(matrix.preset, 'wasm') }}
+        if: contains(matrix.preset, 'wasm') == false
         run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure
