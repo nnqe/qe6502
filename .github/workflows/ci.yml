@@ -54,6 +54,23 @@ jobs:
           choco install llvm ninja -y
           echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
+      - name: Verify macOS WASM tools
+        if: runner.os == 'macOS' && contains(matrix.preset, 'wasm')
+        run: |
+          echo "brew prefix llvm:"
+          brew --prefix llvm || true
+          echo "PATH:"
+          echo "$PATH"
+          echo "which tools:"
+          which cmake || true
+          which ninja || true
+          which clang || true
+          which llvm-ar || true
+          which llvm-ranlib || true
+          which wasm-ld || true
+          echo "llvm bin:"
+          ls -la "$(brew --prefix llvm)/bin" || true
+
       - name: Configure
         if: runner.os != 'macOS' || contains(matrix.preset, 'wasm') == false
         run: cmake --preset ${{ matrix.preset }}
