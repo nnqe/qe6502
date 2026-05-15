@@ -43,7 +43,9 @@
 #   define QE_CALL
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(_WIN32) || defined(__CYGWIN__)
+#   define QE_HIDDEN
+#elif defined(__GNUC__) || defined(__clang__)
 #   define QE_HIDDEN __attribute__((visibility("hidden")))
 #else
 #   define QE_HIDDEN
