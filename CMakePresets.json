@@ -8,8 +8,6 @@
       "binaryDir": "${sourceDir}/build/debug_static",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "QE6502_BUILD_TESTS": "ON",
-        "QE6502_BUILD_WASM": "OFF",
         "QE6502_BUILD_SHARED": "OFF",
         "QE6502_ENABLE_DEBUG_LOG": "ON"
       }
@@ -21,8 +19,6 @@
       "binaryDir": "${sourceDir}/build/release_static",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_TESTS": "ON",
-        "QE6502_BUILD_WASM": "OFF",
         "QE6502_BUILD_SHARED": "OFF",
         "QE6502_ENABLE_DEBUG_LOG": "OFF"
       }
@@ -34,8 +30,6 @@
       "binaryDir": "${sourceDir}/build/debug_shared",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "QE6502_BUILD_TESTS": "ON",
-        "QE6502_BUILD_WASM": "OFF",
         "QE6502_BUILD_SHARED": "ON",
         "QE6502_ENABLE_DEBUG_LOG": "ON"
       }
@@ -47,8 +41,6 @@
       "binaryDir": "${sourceDir}/build/release_shared",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_TESTS": "ON",
-        "QE6502_BUILD_WASM": "OFF",
         "QE6502_BUILD_SHARED": "ON",
         "QE6502_ENABLE_DEBUG_LOG": "OFF"
       }
@@ -60,13 +52,12 @@
         "binaryDir": "${sourceDir}/build/debug_wasm",
         "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
         "cacheVariables": {
-          "CMAKE_BUILD_TYPE": "Debug",
-          "QE6502_BUILD_WASM": "ON",
-          "QE6502_ENABLE_MEM_ALLOC": "ON",
-          "QE6502_BUILD_TESTS": "ON",
-          "QE6502_BUILD_SHARED": "OFF",
-          "QE6502_ENABLE_DEBUG_LOG": "ON",
-          "QE6502_ENABLE_EXTERN_LOG": "ON"
+            "CMAKE_BUILD_TYPE": "Debug",
+            "QE6502_BUILD_WASM": "ON",
+            "QE6502_ENABLE_MEM_ALLOC": "ON",
+            "QE6502_BUILD_SHARED": "OFF",
+            "QE6502_ENABLE_DEBUG_LOG": "ON",
+            "QE6502_ENABLE_EXTERN_LOG": "ON"
         }
     },
     {
@@ -76,12 +67,11 @@
       "binaryDir": "${sourceDir}/build/release_wasm",
       "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_WASM": "ON",
-        "QE6502_ENABLE_MEM_ALLOC": "ON",
-        "QE6502_BUILD_TESTS": "ON",
-        "QE6502_BUILD_SHARED": "OFF",
-        "QE6502_ENABLE_DEBUG_LOG": "OFF"
+            "CMAKE_BUILD_TYPE": "Release",
+            "QE6502_BUILD_WASM": "ON",
+            "QE6502_ENABLE_MEM_ALLOC": "ON",
+            "QE6502_BUILD_SHARED": "OFF",
+            "QE6502_ENABLE_DEBUG_LOG": "OFF"
       }
     }
   ],

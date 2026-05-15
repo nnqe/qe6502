@@ -21,6 +21,7 @@ file(GLOB_RECURSE QE6502_PRIVATE_SOURCE  ./src/*.c)
 
 
 if(NOT QE6502_BUILD_WASM)
+    message(STATUS "QE6502 Native Build")
 
     # Create target
     add_library(${target} ${QE6502_BUILD_TYPE}
@@ -64,6 +65,8 @@ if(NOT QE6502_BUILD_WASM)
     # Set C standard
     target_compile_features(${target} PUBLIC c_std_11)
 else()
+    message(STATUS "QE6502 WASM Build")
+
     add_executable(${target}
         ${QE6502_PUBLIC_HEADERS}
         ${QE6502_PRIVATE_SOURCE}

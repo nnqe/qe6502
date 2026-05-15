@@ -15,21 +15,10 @@ add_executable(${target}
     ${KLAUS2M5_PRIVATE_SOURCE}
 )
 
-# Include directories
-
 # Link dependency
 target_link_libraries(${target}
     PRIVATE qe6502
 )
-
-# Compile definitions (propagated to users)
-#target_compile_definitions(${target}
-#    PUBLIC
-#        $<$<BOOL:${QE6502_ENABLE_DEBUG_LOG}>:QE6502_ENABLE_DEBUG_LOG>
-#        $<$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>:QE6502_ENABLE_CYCLE_MERGE>
-#        $<$<BOOL:${QE6502_ENABLE_NMOS_6502}>:QE6502_ENABLE_NMOS_6502>
-#        $<$<BOOL:${QE6502_ENABLE_CMOS_65C02}>:QE6502_ENABLE_CMOS_65C02>
-#)
 
 if(MSVC)
     target_compile_options(${target} PRIVATE /W4 /WX /we4505)
@@ -44,3 +33,49 @@ endif()
 
 # Set C standard
 target_compile_features(${target} PUBLIC c_std_11)
+
+if(QE6502_ENABLE_NMOS_6502)
+    add_test(NAME qe6502.klaus2m5.mos.standard
+        COMMAND ${target} mos standard
+    )
+    set_tests_properties(
+        qe6502.klaus2m5.mos.standard
+        PROPERTIES
+            LABELS "cpu;klaus;functional"
+            TIMEOUT 10
+    )
+endif()
+
+if(QE6502_ENABLE_CMOS_65C02)
+    add_test(NAME qe6502.klaus2m5.wdc.standard
+        COMMAND ${target} wdc standard
+    )
+
+    add_test(NAME qe6502.klaus2m5.rw.standard
+        COMMAND ${target} rw standard
+    )
+
+    add_test(NAME qe6502.klaus2m5.st.standard
+        COMMAND ${target} st standard
+    )
+
+    add_test(NAME qe6502.klaus2m5.wdc.extended
+        COMMAND ${target} wdc extended
+    )
+
+    add_test(NAME qe6502.klaus2m5.rw.extended
+        COMMAND ${target} rw extended
+    )
+
+set_tests_properties(
+    qe6502.klaus2m5.wdc.standard
+    qe6502.klaus2m5.rw.standard
+    qe6502.klaus2m5.st.standard
+    qe6502.klaus2m5.wdc.extended
+    qe6502.klaus2m5.rw.extended
+    PROPERTIES
+        LABELS "cpu;klaus;functional"
+        TIMEOUT 10
+)
+
+endif()
