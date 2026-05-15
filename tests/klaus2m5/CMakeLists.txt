@@ -20,6 +20,15 @@ target_link_libraries(${target}
     PRIVATE qe6502
 )
 
+if(WIN32 AND QE6502_BUILD_SHARED)
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:qe6502>
+            $<TARGET_FILE_DIR:${target}>
+        COMMENT "Copying qe6502 runtime DLL for klaus2m5"
+    )
+endif()
+
 if(MSVC)
     target_compile_options(${target} PRIVATE /W4 /WX /we4505)
 else()
