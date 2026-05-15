@@ -60,7 +60,7 @@ jobs:
 
       - name: Configure WASM on macOS
         if: runner.os == 'macOS' && contains(matrix.preset, 'wasm')
-          run: cmake --preset ${{ matrix.preset }} -DQE6502_LLVM_ROOT="$(brew --prefix llvm)"
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_LLVM_ROOT="$(brew --prefix llvm)"
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
