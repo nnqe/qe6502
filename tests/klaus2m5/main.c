@@ -199,12 +199,13 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         &result2
     );
 
-    return !(result && result2);
 
     if (strcmp(msg, msg2) != 0)
     {
         printf("Different cpu messages");
     }
+
+    return !(result && result2);
 
     printf(
         "%s CPU %s test %s : normal %s, reset %s\n",

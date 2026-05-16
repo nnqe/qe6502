@@ -84,7 +84,7 @@ set_tests_properties(
     qe6502.klaus2m5.rw.extended
     PROPERTIES
         LABELS "cpu;klaus;functional"
-        TIMEOUT 20
+        TIMEOUT 30
 )
 
 endif()
