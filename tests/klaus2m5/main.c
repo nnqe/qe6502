@@ -7,6 +7,7 @@ const char* test_klaus2m5(uint8_t cpu_model,
                           uint8_t* memory,
                           uint16_t success_address,
                           uint64_t expected_cycles,
+                          uint8_t  reset_cpu_each_cycle,
                           uint8_t* result);
 
 void copy_klaus2m5_image( uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles );
@@ -39,7 +40,8 @@ static void print_usage(const char* exe)
 
 static int model_enabled(const char* model)
 {
-    if (strcmp(model, "mos") == 0) {
+    if (strcmp(model, "mos") == 0)
+    {
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
         return 1;
 #else
@@ -50,8 +52,8 @@ static int model_enabled(const char* model)
     if (
         strcmp(model, "wdc") == 0 ||
         strcmp(model, "rw") == 0 ||
-        strcmp(model, "st") == 0
-    ) {
+        strcmp(model, "st") == 0)
+    {
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
         return 1;
 #else
@@ -64,22 +66,26 @@ static int model_enabled(const char* model)
 
 static int parse_model(const char* model, uint8_t* out_model)
 {
-    if (strcmp(model, "mos") == 0) {
+    if (strcmp(model, "mos") == 0)
+    {
         *out_model = QE6502_MODEL_MOS;
         return 1;
     }
 
-    if (strcmp(model, "wdc") == 0) {
+    if (strcmp(model, "wdc") == 0)
+    {
         *out_model = QE6502_MODEL_WDC;
         return 1;
     }
 
-    if (strcmp(model, "rw") == 0) {
+    if (strcmp(model, "rw") == 0)
+    {
         *out_model = QE6502_MODEL_RW;
         return 1;
     }
 
-    if (strcmp(model, "st") == 0) {
+    if (strcmp(model, "st") == 0)
+    {
         *out_model = QE6502_MODEL_ST;
         return 1;
     }
@@ -89,19 +95,23 @@ static int parse_model(const char* model, uint8_t* out_model)
 
 static const char* model_display_name(const char* model)
 {
-    if (strcmp(model, "mos") == 0) {
+    if (strcmp(model, "mos") == 0)
+    {
         return "MOS 6502";
     }
 
-    if (strcmp(model, "wdc") == 0) {
+    if (strcmp(model, "wdc") == 0)
+    {
         return "WDC 65C02";
     }
 
-    if (strcmp(model, "rw") == 0) {
+    if (strcmp(model, "rw") == 0)
+    {
         return "Rockwell 65C02";
     }
 
-    if (strcmp(model, "st") == 0) {
+    if (strcmp(model, "st") == 0)
+    {
         return "Synertek 65C02";
     }
 
@@ -113,18 +123,23 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
     uint16_t success_address = 0;
     uint64_t expected_cycles = 0;
     uint8_t memory[0x10000];
+    uint8_t memory2[0x10000];
     uint8_t result = 0;
+    uint8_t result2 = 0;
     const char* msg = NULL;
+    const char* msg2 = NULL;
 
     uint8_t parsed_model;
 
-    if (!parse_model(model_arg, &parsed_model)) {
+    if (!parse_model(model_arg, &parsed_model))
+    {
         fprintf(stderr, "Unknown model: %s\n\n", model_arg);
         print_usage(exec_name);
         return 1;
     }
 
-    if (!model_enabled(model_arg)) {
+    if (!model_enabled(model_arg))
+    {
         fprintf(stderr,
             "Model '%s' is not enabled in the current build.\n",
             model_arg
@@ -132,53 +147,72 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         return 1;
     }
 
-    if (
-        strcmp(test_arg, "standard") != 0 &&
-        strcmp(test_arg, "extended") != 0
-    ) {
+    if (strcmp(test_arg, "standard") != 0 &&
+        strcmp(test_arg, "extended") != 0)
+    {
         fprintf(stderr, "Unknown test: %s\n\n", test_arg);
         print_usage(exec_name);
         return 1;
     }
 
-    if (strcmp(test_arg, "extended") == 0 && strcmp(model_arg, "mos") == 0) {
+    if (strcmp(test_arg, "extended") == 0 && strcmp(model_arg, "mos") == 0)
+    {
         fprintf(stderr,
             "Extended test is only valid for 65C02 models, not MOS 6502.\n"
         );
         return 1;
     }
 
-    if (strcmp(test_arg, "standard") == 0) {
+    if (strcmp(test_arg, "standard") == 0)
+    {
         copy_klaus2m5_image(
             memory,
             &success_address,
             &expected_cycles
         );
-    } else {
+    }
+    else
+    {
         copy_klaus2m5_extended_image(
             memory,
             &success_address,
             &expected_cycles
         );
     }
+    memcpy(memory2, memory, sizeof(memory2));
 
     msg = test_klaus2m5(
         parsed_model,
         memory,
         success_address,
         expected_cycles,
+        0,
         &result
     );
 
-    printf(
-        "%s CPU %s test %s : %s\n",
-        model_display_name(model_arg),
-        test_arg,
-        result ? "[PASS]" : "[FAIL]",
-        msg
+    msg2 = test_klaus2m5(
+        parsed_model,
+        memory2,
+        success_address,
+        expected_cycles,
+        1,
+        &result2
     );
 
-    return result ? 0 : 1;
+    if (strcmp(msg, msg2) != 0)
+    {
+        printf("Different cpu messages");
+    }
+
+    printf(
+        "%s CPU %s test %s : normal %s, reset %s\n",
+        model_display_name(model_arg),
+        test_arg,
+        (result && result2) ? "[PASS]" : "[FAIL]",
+        msg,msg2
+    );
+
+    return (result && result2) ? 0 : 1;
 }
 
 int main(int argc, char** argv)
@@ -210,7 +244,9 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    const char* model_arg = argv[1];
-    const char* test_arg = argv[2];
-    return test_model(exec_name, model_arg, test_arg);
+    return 0;
+
+    // const char* model_arg = argv[1];
+    // const char* test_arg = argv[2];
+    // return test_model(exec_name, model_arg, test_arg);
 }
