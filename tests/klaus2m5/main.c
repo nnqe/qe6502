@@ -190,8 +190,6 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         &result
     );
 
-    return !result;
-
     msg2 = test_klaus2m5(
         parsed_model,
         memory2,
@@ -200,6 +198,8 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         1,
         &result2
     );
+
+    return !(result && result2);
 
     if (strcmp(msg, msg2) != 0)
     {
