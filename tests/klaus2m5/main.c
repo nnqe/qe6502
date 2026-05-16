@@ -181,8 +181,6 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
     }
     memcpy(memory2, memory, sizeof(memory2));
 
-    return 0;
-
     msg = test_klaus2m5(
         parsed_model,
         memory,
@@ -191,6 +189,8 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         0,
         &result
     );
+
+    return !result;
 
     msg2 = test_klaus2m5(
         parsed_model,
