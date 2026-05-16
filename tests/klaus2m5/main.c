@@ -154,6 +154,7 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         print_usage(exec_name);
         return 1;
     }
+    return 0;
 
     if (strcmp(test_arg, "extended") == 0 && strcmp(model_arg, "mos") == 0)
     {
@@ -244,9 +245,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    return 0;
-
-    // const char* model_arg = argv[1];
-    // const char* test_arg = argv[2];
-    // return test_model(exec_name, model_arg, test_arg);
+    const char* model_arg = argv[1];
+    const char* test_arg = argv[2];
+    return test_model(exec_name, model_arg, test_arg);
 }
