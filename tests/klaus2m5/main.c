@@ -154,7 +154,6 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         print_usage(exec_name);
         return 1;
     }
-    return 0;
 
     if (strcmp(test_arg, "extended") == 0 && strcmp(model_arg, "mos") == 0)
     {
@@ -181,6 +180,8 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         );
     }
     memcpy(memory2, memory, sizeof(memory2));
+
+    return 0;
 
     msg = test_klaus2m5(
         parsed_model,
