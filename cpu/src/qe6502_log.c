@@ -1,10 +1,24 @@
+#include "qe6502_log.h"
+#include "qe6502_cross_build.h"
+#include <stdarg.h>
+
+static qe_bool log_paused = qe_false;
+QE_FFI_API_IMPL(void) qe6502_pause_logger(void)
+{
+    log_paused = qe_true;
+}
+
+QE_FFI_API_IMPL(void) qe6502_resume_logger(void)
+{
+    log_paused = qe_false;
+}
+
 #if defined(QE6502_ENABLE_DEBUG_LOG) && (QE6502_ENABLE_DEBUG_LOG == 1)
 
-#include "qe6502_log.h"
-#include <stdarg.h>
 
 static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap);
 static int qe_snprintf(char* out, size_t cap, const char* fmt, ...);
+
 
 #if defined(QE6502_ENABLE_EXTERN_LOG) && (QE6502_ENABLE_EXTERN_LOG == 1)
 
@@ -50,7 +64,7 @@ static void qe_log_impl(const char* topic, const char *fmt, va_list ap)
     qe6502_print_impl(topic_notnull, message);
 }
 
-#define QE_LOG_IMPL(topic) {va_list ap; va_start(ap, fmt); qe_log_impl(topic, fmt, ap); va_end(ap);}
+#define QE_LOG_IMPL(topic) {if (log_paused){return;} va_list ap; va_start(ap, fmt); qe_log_impl(topic, fmt, ap); va_end(ap);}
 
 QE_INTERNAL_API(void) qe_log(const char* topic, const char *fmt, ...)   {QE_LOG_IMPL(topic);}
 QE_INTERNAL_API(void) qe_log_info(const char *fmt, ...)                 {QE_LOG_IMPL("INFO");}

@@ -126,19 +126,26 @@ QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
  *   bits [32..39] : Y
  *   bits [40..47] : S
  *   bits [48..55] : P
- *   bits [56..63] : OPCODE
+ *   bits [56..58] : CPU Model
+ *   bits [59    ] : Reserved, used internally
+ *   bits [60    ] : 0 == NMI pin low | 1 == NMI pin high
+ *   bits [61    ] : 0 == IRQ pin low | 1 == IRQ pin high
+ *   bits [62    ] : 0 == Running | 1 == Waiting (WAI)
+ *   bits [63    ] : 0 == CPU is stabel/serializable | 1 == CPU not stable/not serializable/stopped
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
-QE_FFI_API(uint64_t)    qe6502_read_regs_packed(const qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_packed);
-QE_FFI_API(void)        qe6502_reset_to_normal_state(qe6502_cpu_t* cpu);
+QE_FFI_API(uint64_t)    qe6502_dump(const qe6502_cpu_t* cpu);
+QE_FFI_API(void)        qe6502_recover(qe6502_cpu_t* cpu, uint64_t stable_state);
 
 QE_FFI_API(uint16_t)    qe6502_error_code(const qe6502_cpu_t* cpu);
 QE_FFI_API(const char*) qe6502_error_string(const qe6502_cpu_t* cpu);
 QE_FFI_API(const char*) qe6502_decode_error(uint16_t error_code);
 
 QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
+
+QE_FFI_API(void)        qe6502_pause_logger(void);
+QE_FFI_API(void)        qe6502_resume_logger(void);
 
 #if defined(QE6502_ENABLE_MEM_ALLOC) && (QE6502_ENABLE_MEM_ALLOC == 1)
     QE_FFI_API(void)        qe6502_cpu_pool_reset(void);
@@ -147,6 +154,7 @@ QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
 #endif
 
 // Use only if you are very familiar with the internal implementation of the library.
+
 typedef struct
 {
     uint8_t word_lsb;
@@ -198,7 +206,8 @@ typedef struct
     uint8_t sizeof_P;
 } qe6502_offsets_t;
 
-QE_FFI_API(void)
-qe6502_offsets(qe6502_offsets_t* offsets);
+// Use only if you are very familiar with the internal implementation of the library.
+QE_FFI_API(void)    qe6502_offsets(qe6502_offsets_t* offsets);
+QE_FFI_API(void)    qe6502_unsafe_overwrite(qe6502_cpu_t* cpu, uint64_t state);
 
 #endif // QE6502_H__

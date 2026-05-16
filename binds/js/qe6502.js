@@ -39,9 +39,8 @@ const REQUIRED_EXPORTS = [
   "qe6502_irq_hi",
   "qe6502_irq_lo",
 
-  "qe6502_read_regs_packed",
-  "qe6502_overwrite_regs",
-  "qe6502_reset_to_normal_state",
+  "qe6502_dump",
+  "qe6502_recover",
   "qe6502_opcode_meta",
 ];
 
@@ -282,6 +281,11 @@ class QE6502CPU {
     this.#dataIn = 0;
   }
 
+  createFromRegisters({ pc, a, x, y, s, p }, model = QE6502_MODEL_MOS) {
+    this.powerOn(model);
+    this.recover({ pc, a, x, y, s, p, istate: model });
+  }
+
   tick() {
     this.#assertAlive();
 
@@ -374,12 +378,12 @@ class QE6502CPU {
     this.#exports.qe6502_irq_lo(this.#ptr);
   }
 
-  readRegs() {
+  dump() {
     this.#assertAlive();
 
     const packed = BigInt.asUintN(
       64,
-      this.#exports.qe6502_read_regs_packed(this.#ptr),
+      this.#exports.qe6502_dump(this.#ptr),
     );
 
     const pcl = Number(packed & 0xffn);
@@ -392,11 +396,16 @@ class QE6502CPU {
       y: Number((packed >> 32n) & 0xffn),
       s: Number((packed >> 40n) & 0xffn),
       p: Number((packed >> 48n) & 0xffn),
-      opcode: Number((packed >> 56n) & 0xffn),
+      model: Number((packed >> 56n) & 0x07n),
+      nmi: Number((packed >> 60n) & 0x01n),
+      irq: Number((packed >> 61n) & 0x01n),
+      waiting: Number((packed >> 62n) & 0x01n),
+      serializable: Number((packed >> 63n) & 0x01n),
+      istate: Number((packed >> 56n) & 0xffn),
     };
   }
 
-  overwriteRegs({ pc, a, x, y, s, p, opcode = 0 }) {
+  recover({ pc, a, x, y, s, p, istate }) {
     this.#assertAlive();
 
     const pcl = pc & 0xff;
@@ -410,10 +419,9 @@ class QE6502CPU {
       (BigInt(y & 0xff) << 32n) |
       (BigInt(s & 0xff) << 40n) |
       (BigInt(p & 0xff) << 48n) |
-      (BigInt(opcode & 0xff) << 56n);
+      (BigInt(istate & 0xff) << 56n);
 
-    this.#exports.qe6502_overwrite_regs(this.#ptr, packed);
-    this.#exports.qe6502_reset_to_normal_state(this.#ptr);
+    this.#exports.qe6502_recover(this.#ptr, packed);
     this.#refreshStateSlow();
   }
 
@@ -450,7 +458,7 @@ class QE6502CPU {
     const hasData = this.#exports.qe6502_has_data(this.#ptr) !== 0;
     const needsData = this.#exports.qe6502_needs_data(this.#ptr) !== 0;
 
-    // The new tick_ex encoding has only read/write direction.
+    // The tick_ex encoding has only read/write direction.
     // Prefer write if the CPU explicitly reports data available.
     // Otherwise treat the state as read, matching the existing bus protocol.
     this.#isWrite = hasData && !needsData;

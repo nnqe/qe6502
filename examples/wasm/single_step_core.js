@@ -72,17 +72,13 @@ export function runSingleStepCase(qe, model, testCase) {
   const cpu = qe.createCPU();
 
   try {
-    cpu.powerOn(model);
-
-    cpu.overwriteRegs({
+    cpu.createFromRegisters({
       pc: testCase.initial.pc,
       a: testCase.initial.a,
       x: testCase.initial.x,
       y: testCase.initial.y,
       s: testCase.initial.s,
-      p: normalizeP(testCase.initial.p),
-      opcode: 0,
-    });
+      p: normalizeP(testCase.initial.p)}, model);
 
     for (
       let cycleIndex = 0;
@@ -172,7 +168,7 @@ export function runSingleStepCase(qe, model, testCase) {
         testName,
         "instruction not completed after expected cycles",
         {
-          regs: cpu.readRegs(),
+          regs: cpu.dump(),
         },
       );
     }
@@ -180,11 +176,11 @@ export function runSingleStepCase(qe, model, testCase) {
     if (!cpu.ok()) {
       return makeFailure(testName, "cpu not ok", {
         errorCode: cpu.errorCode(),
-        regs: cpu.readRegs(),
+        regs: cpu.dump(),
       });
     }
 
-    const regs = cpu.readRegs();
+    const regs = cpu.dump();
 
     const expectedFinal = {
       pc: testCase.final.pc & 0xffff,

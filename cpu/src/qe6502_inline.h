@@ -149,6 +149,7 @@ QE_MAYBE_UNUSED(update_flags)
 INSTR_RETTYPE qe6502_cycle_t
 halt( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
+    cpu->istate |= qe6502_halted;
     cpu->cmd.flags |= qe6502_halted;
     return resume_to(halt);
 }

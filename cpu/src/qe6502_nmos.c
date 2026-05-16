@@ -3155,7 +3155,7 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return resume_to(nmos_fetch_opcode);
     default:
         qe_log_error("IRQ interrupt unexpected state");
-        return cpu_error(cpu,  qe6502_err_interrupt_error);
+        return cpu_error(cpu,  qe6502_err_corrupt_state);
     }
     return resume_to(nmos_irq);
 }
@@ -3188,7 +3188,7 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return resume_to(nmos_fetch_opcode);
     default:
         qe_log_error("NMI interrupt unexpected state");
-        return cpu_error(cpu,  qe6502_err_interrupt_error);
+        return cpu_error(cpu,  qe6502_err_corrupt_state);
     }
     return resume_to(nmos_nmi);
 }

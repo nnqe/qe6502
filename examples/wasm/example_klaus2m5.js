@@ -84,7 +84,6 @@ export async function run({ output }) {
     print(`Y      = ${hex8(regs.y)}`);
     print(`S      = ${hex8(regs.s)}`);
     print(`P      = ${hex8(regs.p)}`);
-    print(`OPCODE = ${hex8(regs.opcode)}`);
   }
 
   async function runKlausTest(qe, options) {
@@ -148,7 +147,7 @@ export async function run({ output }) {
           print("");
 
           print("Final registers:");
-          printRegs(cpu.readRegs());
+          printRegs(cpu.dump());
           print("");
 
           return {
@@ -156,7 +155,7 @@ export async function run({ output }) {
             instructions,
             ticks,
             elapsedMs,
-            regs: cpu.readRegs(),
+            regs: cpu.dump(),
           };
         }
 

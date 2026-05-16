@@ -135,7 +135,11 @@ typedef struct qe6502
     uint8_t Y;
     uint8_t P;
 } qe6502_t;
+
+
 QE_STATIC_ASSERT(sizeof(qe6502_t) <= 32, "qe6502_t must be at most 32 bytes");
+QE_STATIC_ASSERT(offsetof( qe6502_t, model) == offsetof( qe6502_t, istate),
+                 "if model and istate are not in a union, you must change state dump and recover implementations");
 
 // Set during the *final* cycle of an instruction,
 // i.e. the cycle that **requests** the opcode fetch
@@ -149,17 +153,16 @@ static const uint8_t qe6502_wait_opcode = (1 << 2);
 static const uint8_t qe6502_halted      = (1 << 7);
 
 // Errors
-static const uint8_t qe6502_err_compile_error   = (1 << 0);
-static const uint8_t qe6502_err_illegal_instr   = (1 << 1);
-static const uint8_t qe6502_err_poweron_error   = (1 << 2);
-static const uint8_t qe6502_err_logic_error     = (1 << 3);
-static const uint8_t qe6502_err_unknown_model   = (1 << 4);
-static const uint8_t qe6502_err_boot_error      = (1 << 5);
-static const uint8_t qe6502_err_interrupt_error = (1 << 6);
-static const uint8_t qe6502_err_resume_error    = (1 << 7);
+static const uint8_t qe6502_no_error            = 0;
+static const uint8_t qe6502_err_illegal_instr   = 1;
+static const uint8_t qe6502_err_compile_error   = 2;
+static const uint8_t qe6502_err_logic_error     = 3;
+static const uint8_t qe6502_err_unknown_model   = 4;
+static const uint8_t qe6502_err_boot_error      = 5;
+static const uint8_t qe6502_err_corrupt_state   = 6;
+static const uint8_t qe6502_err_resume_error    = 7;
 
-
-static const uint8_t qe6502_model_max   = 0x0F;
+static const uint8_t qe6502_model_max   = 0x07;
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
     static const uint8_t qe6502_mos     = QE6502_MODEL_MOS;
     static const uint8_t qe6502_nes     = QE6502_MODEL_NES;
@@ -170,9 +173,11 @@ static const uint8_t qe6502_model_max   = 0x0F;
     static const uint8_t qe6502_st      = QE6502_MODEL_ST;
 #endif
 
-static const uint8_t qe6502_nmi_pin_chg = (1 << 4);
-static const uint8_t qe6502_nmi_pin_lo  = (1 << 5);
-static const uint8_t qe6502_irq_pin_lo  = (1 << 6);
+static const uint8_t qe6502_nmi_pin_chg = (1 << 3);
+static const uint8_t qe6502_nmi_pin_lo  = (1 << 4);
+static const uint8_t qe6502_irq_pin_lo  = (1 << 5);
+static const uint8_t qe6502_waiting     = (1 << 6);
+// bit 7 of istate is reserved for halted/stopped cpu state and for unstable dumped states
 
 static const uint8_t qe6502_flagpos_C = 0;
 static const uint8_t qe6502_flagpos_Z = 1;
@@ -198,7 +203,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model);
 QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_reset_instruction_impl(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
 
-QE_SIC qe_bool  qe6502_ok_impl(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_halted); }
+QE_SIC qe_bool  qe6502_ok_impl(const qe6502_t* cpu) { return !(cpu->istate & qe6502_halted); }
 QE_SIC qe_bool  qe6502_needs_data_impl(const qe6502_t* cpu) { return !(cpu->cmd.flags & qe6502_writing); }
 QE_SIC qe_bool  qe6502_has_data_impl(const qe6502_t* cpu) { return (cpu->cmd.flags & qe6502_writing)?1:0; }
 QE_SIC void     qe6502_feed_data_impl(qe6502_t* cpu, uint8_t byte) { ((uint8_t*)(cpu))[cpu->cmd.offset] = byte; }

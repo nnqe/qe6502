@@ -112,7 +112,7 @@ export async function run({ output }) {
       for (let i = 0; i < maxTicks; i++) {
         tick();
 
-        const regs = cpu.readRegs();
+        const regs = cpu.dump();
 
         if (cpu.isInstrDone() && regs.pc === PROGRAM_END) {
           return {
@@ -135,7 +135,7 @@ export async function run({ output }) {
     print(`Program finished after ${result.ticks} ticks`);
     print("");
 
-    const regs = cpu.readRegs();
+    const regs = cpu.dump();
 
     print("Final registers:");
     print(`PC = ${hex16(regs.pc)}`);
@@ -144,7 +144,6 @@ export async function run({ output }) {
     print(`Y  = ${hex8(regs.y)}`);
     print(`S  = ${hex8(regs.s)}`);
     print(`P  = ${hex8(regs.p)}`);
-    print(`OP = ${hex8(regs.opcode)}`);
     print("");
 
     print("Checking results:");

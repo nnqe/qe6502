@@ -81,7 +81,7 @@ export async function run({ output }) {
     for (let i = 0; i < maxTicks; i++) {
       tick(cpu);
 
-      const regs = cpu.readRegs();
+      const regs = cpu.dump();
 
       if (cpu.isInstrDone() && regs.pc === expectedPc) {
         return regs;
@@ -118,7 +118,7 @@ export async function run({ output }) {
 
   print("");
   print("Serializing CPU registers...");
-  const serializedRegs = cpu.readRegs();
+  const serializedRegs = cpu.dump();
 
   print(`Serialized PC=${hex16(serializedRegs.pc)}`);
   print(`Serialized X =${hex8(serializedRegs.x)}`);
@@ -137,9 +137,9 @@ export async function run({ output }) {
   cpu.powerOn(QE6502_MODEL_MOS);
 
   print("Restoring CPU registers...");
-  cpu.overwriteRegs(serializedRegs);
+  cpu.recover(serializedRegs);
 
-  regs = cpu.readRegs();
+  regs = cpu.dump();
 
   print(`Restored PC=${hex16(regs.pc)}`);
   print(`Restored X =${hex8(regs.x)}`);

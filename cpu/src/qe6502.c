@@ -252,13 +252,13 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     }
 
     // test API
-    cpu->cmd.flags = qe6502_halted;
+    cpu->istate = qe6502_halted;
     if (qe6502_ok_impl(cpu))
     {
         qe_log_error("'qe6502_ok' wrong true");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
-    cpu->cmd.flags = 0;
+    cpu->istate = 0;
     if (!qe6502_ok_impl(cpu))
     {
         qe_log_error("'qe6502_ok' wrong false");
@@ -437,19 +437,28 @@ qe6502_cpu_tick(qe6502_cpu_t* cpu)
 QE_FFI_API_IMPL(uint32_t)
 qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in)
 {
-    qe6502_t* cpuPtr = CPU(cpu);
+    qe6502_t* cpu_ptr = CPU(cpu);
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
 
-    if( qe6502_needs_data_impl(cpuPtr) )
+    if( qe6502_needs_data_impl(cpu_ptr) )
     {
-        qe6502_feed_data_impl(cpuPtr, data_in);
+        qe6502_feed_data_impl(cpu_ptr, data_in);
     }
-    wrap->cycle = wrap->cycle.execute(&wrap->cpu);
-    uint32_t packed = qe6502_has_data_impl(cpuPtr) ? qe6502_data_impl(cpuPtr) : 0;
+    if (QE_LIKELY(wrap->cycle.execute != QE_NULL))
+    {
+        wrap->cycle = wrap->cycle.execute(&wrap->cpu);
+    }
+    else
+    {
+        qe_log_error("NULL cycle handler");
+        wrap->cycle = cpu_error(cpu_ptr,  qe6502_err_corrupt_state);
+    }
+
+    uint32_t packed = qe6502_has_data_impl(cpu_ptr) ? qe6502_data_impl(cpu_ptr) : 0;
     packed <<= 8;
-    packed |= cpuPtr->cmd.flags;
+    packed |= cpu_ptr->cmd.flags;
     packed <<= 16;
-    packed |= qe6502_address_impl(cpuPtr);
+    packed |= qe6502_address_impl(cpu_ptr);
 
     return packed;
 }
@@ -485,42 +494,75 @@ QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(
  *   bits [32..39] : Y
  *   bits [40..47] : S
  *   bits [48..55] : P
- *   bits [56..63] : OPCODE
+ *   bits [56..58] : CPU Model
+ *   bits [59    ] : Reserved, used internally
+ *   bits [60    ] : 0 == NMI pin low | 1 == NMI pin high
+ *   bits [61    ] : 0 == IRQ pin low | 1 == IRQ pin high
+ *   bits [62    ] : 0 == Running | 1 == Waiting (WAI)
+ *   bits [63    ] : 0 == CPU is stabel/serializable | 1 == CPU not stable/not serializable/stopped
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
-QE_FFI_API_IMPL(uint64_t) qe6502_read_regs_packed(const qe6502_cpu_t* cpu)
+QE_FFI_API_IMPL(uint64_t) qe6502_dump(const qe6502_cpu_t* cpu)
 {
-    const qe6502_t* cpuPtr = CPU_CONST(cpu);
-    return  (((uint64_t)cpuPtr->PC.u8_lsb)  <<  0) |
-            (((uint64_t)cpuPtr->PC.u8_msb)  <<  8) |
-            (((uint64_t)cpuPtr->A)          << 16) |
-            (((uint64_t)cpuPtr->X)          << 24) |
-            (((uint64_t)cpuPtr->Y)          << 32) |
-            (((uint64_t)cpuPtr->S)          << 40) |
-            (((uint64_t)cpuPtr->P)          << 48) |
-            (((uint64_t)cpuPtr->opcode)     << 56);
+    const qe6502_t* cpu_ptr = CPU_CONST(cpu);
+    uint64_t state =
+        (((uint64_t)cpu_ptr->PC.u8_lsb)  <<  0) |
+        (((uint64_t)cpu_ptr->PC.u8_msb)  <<  8) |
+        (((uint64_t)cpu_ptr->A)          << 16) |
+        (((uint64_t)cpu_ptr->X)          << 24) |
+        (((uint64_t)cpu_ptr->Y)          << 32) |
+        (((uint64_t)cpu_ptr->S)          << 40) |
+        (((uint64_t)cpu_ptr->P)          << 48) |
+        (((uint64_t)cpu_ptr->istate)     << 56);
+
+    if (!qe6502_instr_done_impl(cpu_ptr))
+    {
+        state |= (uint64_t)1 << 63;
+    }
+    return state;
 }
 
-QE_FFI_API_IMPL(void) qe6502_overwrite_regs(qe6502_cpu_t* cpu, uint64_t regs_packed)
+QE_FFI_API_IMPL(void) qe6502_recover(qe6502_cpu_t* cpu, uint64_t stable_state)
 {
-    qe6502_t* cpuPtr = CPU(cpu);
-    cpuPtr->PC.u8_lsb = (uint8_t)(regs_packed >>  0);
-    cpuPtr->PC.u8_msb = (uint8_t)(regs_packed >>  8);
-    cpuPtr->A         = (uint8_t)(regs_packed >> 16);
-    cpuPtr->X         = (uint8_t)(regs_packed >> 24);
-    cpuPtr->Y         = (uint8_t)(regs_packed >> 32);
-    cpuPtr->S         = (uint8_t)(regs_packed >> 40);
-    cpuPtr->P         = (uint8_t)(regs_packed >> 48);
-    cpuPtr->opcode    = (uint8_t)(regs_packed >> 56);
-    qe_log_info("Registers overwritten");
-}
+    qe6502_t* cpu_ptr = CPU(cpu);
+    cpu_ptr->PC.u8_lsb = (uint8_t)(stable_state >>  0);
+    cpu_ptr->PC.u8_msb = (uint8_t)(stable_state >>  8);
+    cpu_ptr->A         = (uint8_t)(stable_state >> 16);
+    cpu_ptr->X         = (uint8_t)(stable_state >> 24);
+    cpu_ptr->Y         = (uint8_t)(stable_state >> 32);
+    cpu_ptr->S         = (uint8_t)(stable_state >> 40);
+    cpu_ptr->P         = (uint8_t)(stable_state >> 48);
+    cpu_ptr->model     = (uint8_t)(stable_state >> 56);
 
-QE_FFI_API_IMPL(void) qe6502_reset_to_normal_state(qe6502_cpu_t* cpu)
-{
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
-    wrap->cycle = reset_to_normal_state(&wrap->cpu);
-    qe_log_info("CPU reset to normal state");
+
+    if (stable_state >> 63)
+    {
+        qe_log_error("CPU cannot be recovered from unstable or halted state");
+        wrap->cycle = cpu_error(cpu_ptr,  qe6502_err_resume_error);
+    }
+    else
+    {
+        wrap->cycle = reset_to_normal_state(&wrap->cpu);
+        qe_log_info("CPU Recovered");
+    }
+}
+
+QE_FFI_API_IMPL(void) qe6502_unsafe_overwrite(qe6502_cpu_t* cpu, uint64_t state)
+{
+    // clear unstable flag from dump function
+    state &= ~((uint64_t)1 << 63);
+
+    qe6502_t* cpu_ptr = CPU(cpu);
+    cpu_ptr->PC.u8_lsb = (uint8_t)(state >>  0);
+    cpu_ptr->PC.u8_msb = (uint8_t)(state >>  8);
+    cpu_ptr->A         = (uint8_t)(state >> 16);
+    cpu_ptr->X         = (uint8_t)(state >> 24);
+    cpu_ptr->Y         = (uint8_t)(state >> 32);
+    cpu_ptr->S         = (uint8_t)(state >> 40);
+    cpu_ptr->P         = (uint8_t)(state >> 48);
+    cpu_ptr->model     = (uint8_t)(state >> 56);
 }
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
@@ -541,15 +583,14 @@ QE_FFI_API_IMPL(const char*)  qe6502_decode_error(uint16_t error_code)
 {
     switch(error_code)
     {
-        case 0: return "";
-        case (1 << 0): return "qe6502 compile error";
-        case (1 << 1): return "qe6502 illegal instruction error";
-        case (1 << 2): return "qe6502 power on error";
-        case (1 << 3): return "qe6502 logic error";
-        case (1 << 4): return "qe6502 unknown model error";
-        case (1 << 5): return "qe6502 boot error";
-        case (1 << 6): return "qe6502 interrupt error";
-        case (1 << 7): return "qe6502 resume error";
+        case 0: return "No error";
+        case 1: return "qe6502 illegal instruction error";
+        case 2: return "qe6502 compile error";
+        case 3: return "qe6502 logic error";
+        case 4: return "qe6502 unknown model error";
+        case 5: return "qe6502 boot error";
+        case 6: return "qe6502 corrupt_state error";
+        case 7: return "qe6502 resume error";
         default:
           break;
     }
