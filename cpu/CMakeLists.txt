@@ -22,7 +22,6 @@ function(qe6502_configure_core_target target)
         PRIVATE
             QE_DEBUG_BUILD=$<BOOL:${QE_DEBUG_BUILD}>
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
-            QE6502_ENABLE_EXTERN_LOG=$<BOOL:${QE6502_ENABLE_EXTERN_LOG}>
     )
 
     target_link_libraries(${target} PUBLIC qe_static)
@@ -62,6 +61,7 @@ target_compile_definitions(qe6502_static
 
 set_target_properties(qe6502_static PROPERTIES
     POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
 )
 
 add_library(qe6502 ALIAS qe6502_static)
@@ -78,5 +78,9 @@ if(NOT QE_BUILD_WASM)
         PRIVATE
             QE_BUILD_SHARED=1
             QE_BUILDING_LIBRARY=1
+    )
+
+    set_target_properties(qe6502_shared PROPERTIES
+        C_VISIBILITY_PRESET hidden
     )
 endif()

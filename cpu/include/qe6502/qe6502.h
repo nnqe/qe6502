@@ -148,7 +148,7 @@ QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
 typedef void (*qe6502_log_fn)(void* context, const char* topic, const char* message);
 QE_FFI_API(void)            qe6502_set_logger(qe6502_log_fn logger, void* context);
 
-// Use only if you are very familiar with theinternal implementation of the library.
+// Use only if you are very familiar with the internal implementation of the library.
 
 typedef struct
 {

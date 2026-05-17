@@ -63,6 +63,7 @@ target_compile_features(${target} PUBLIC c_std_11)
 
 set_target_properties(${target} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
 )
 
 add_library(qe ALIAS qe_static)

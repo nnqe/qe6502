@@ -29,7 +29,7 @@ static void call_js_logger(void* context, const char* topic, const char* message
 QE_FFI_API_IMPL(void)
 qe6502_init_js(void)
 {
-    qe_set_logger(&call_js_logger, QE_NULL);
+    qe6502_set_logger(&call_js_logger, QE_NULL);
     qe6502_cpu_pool_reset();
 }
 

@@ -219,7 +219,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     // check model
     if ( (qe6502_model_max + 1) & qe6502_model_max )
     {
-        qe_log_error("qe6502_model_max shoud be mask");
+        qe_log_error("qe6502_model_max should be mask");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
 
