@@ -1,3 +1,5 @@
 if(QE6502_BUILD_WASM)
-    add_subdirectory(wasm)
+    add_subdirectory(js_examples)
+else()
+    add_subdirectory(c_examples)
 endif()

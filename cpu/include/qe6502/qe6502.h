@@ -127,7 +127,7 @@ QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
  *   bits [40..47] : S
  *   bits [48..55] : P
  *   bits [56..58] : CPU Model
- *   bits [59    ] : Reserved, used internally
+ *   bits [59    ] : 0 == Ok, Reserved - used internally
  *   bits [60    ] : 0 == NMI pin low | 1 == NMI pin high
  *   bits [61    ] : 0 == IRQ pin low | 1 == IRQ pin high
  *   bits [62    ] : 0 == Running | 1 == Waiting (WAI)

@@ -9,7 +9,6 @@ file(GLOB_RECURSE KLAUS2M5_PRIVATE_SOURCE
         klaus2m5.c
         test_roms.c)
 
-
 # Create target
 add_executable(${target}
     ${KLAUS2M5_PRIVATE_SOURCE}
@@ -17,17 +16,8 @@ add_executable(${target}
 
 # Link dependency
 target_link_libraries(${target}
-    PRIVATE qe6502
+    PRIVATE qe6502_static
 )
-
-if(WIN32 AND QE6502_BUILD_SHARED)
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:qe6502>
-            $<TARGET_FILE_DIR:${target}>
-        COMMENT "Copying qe6502 runtime DLL for klaus2m5"
-    )
-endif()
 
 if(MSVC)
     target_compile_options(${target} PRIVATE /W4 /WX /we4505)
@@ -43,19 +33,24 @@ endif()
 # Set C standard
 target_compile_features(${target} PUBLIC c_std_11)
 
+# Add tests
 if(QE6502_ENABLE_NMOS_6502)
+
     add_test(NAME qe6502.klaus2m5.mos.standard
         COMMAND ${target} mos standard
     )
+
     set_tests_properties(
         qe6502.klaus2m5.mos.standard
         PROPERTIES
             LABELS "cpu;klaus;functional"
             TIMEOUT 59
     )
+
 endif()
 
 if(QE6502_ENABLE_CMOS_65C02)
+
     add_test(NAME qe6502.klaus2m5.wdc.standard
         COMMAND ${target} wdc standard
     )
@@ -76,15 +71,15 @@ if(QE6502_ENABLE_CMOS_65C02)
         COMMAND ${target} rw extended
     )
 
-set_tests_properties(
-    qe6502.klaus2m5.wdc.standard
-    qe6502.klaus2m5.rw.standard
-    qe6502.klaus2m5.st.standard
-    qe6502.klaus2m5.wdc.extended
-    qe6502.klaus2m5.rw.extended
-    PROPERTIES
-        LABELS "cpu;klaus;functional"
-        TIMEOUT 59
-)
+    set_tests_properties(
+        qe6502.klaus2m5.wdc.standard
+        qe6502.klaus2m5.rw.standard
+        qe6502.klaus2m5.st.standard
+        qe6502.klaus2m5.wdc.extended
+        qe6502.klaus2m5.rw.extended
+        PROPERTIES
+            LABELS "cpu;klaus;functional"
+            TIMEOUT 59
+    )
 
 endif()

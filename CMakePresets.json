@@ -2,63 +2,35 @@
   "version": 6,
   "configurePresets": [
     {
-      "name": "debug_static",
-      "displayName": "Debug Static",
+      "name": "debug_native",
+      "displayName": "Debug Native",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug_static",
+      "binaryDir": "${sourceDir}/build/debug_native",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release_native",
+      "displayName": "Release Native",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release_native",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "debug_wasm",
+      "displayName": "Debug WebAssembly",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug_wasm",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "QE6502_BUILD_SHARED": "OFF",
-        "QE6502_ENABLE_DEBUG_LOG": "ON"
+        "QE6502_BUILD_WASM": "ON",
+        "QE6502_ENABLE_MEM_ALLOC": "ON",
+        "QE6502_ENABLE_EXTERN_LOG": "ON"
       }
-    },
-    {
-      "name": "release_static",
-      "displayName": "Release Static",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release_static",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_SHARED": "OFF",
-        "QE6502_ENABLE_DEBUG_LOG": "OFF"
-      }
-    },
-    {
-      "name": "debug_shared",
-      "displayName": "Debug Shared",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug_shared",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "QE6502_BUILD_SHARED": "ON",
-        "QE6502_ENABLE_DEBUG_LOG": "ON"
-      }
-    },
-    {
-      "name": "release_shared",
-      "displayName": "Release Shared",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release_shared",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_SHARED": "ON",
-        "QE6502_ENABLE_DEBUG_LOG": "OFF"
-      }
-    },
-    {
-        "name": "debug_wasm",
-        "displayName": "Debug WebAssembly",
-        "generator": "Ninja",
-        "binaryDir": "${sourceDir}/build/debug_wasm",
-        "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
-        "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Debug",
-            "QE6502_BUILD_WASM": "ON",
-            "QE6502_ENABLE_MEM_ALLOC": "ON",
-            "QE6502_BUILD_SHARED": "OFF",
-            "QE6502_ENABLE_DEBUG_LOG": "ON",
-            "QE6502_ENABLE_EXTERN_LOG": "ON"
-        }
     },
     {
       "name": "release_wasm",
@@ -67,30 +39,21 @@
       "binaryDir": "${sourceDir}/build/release_wasm",
       "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Release",
-            "QE6502_BUILD_WASM": "ON",
-            "QE6502_ENABLE_MEM_ALLOC": "ON",
-            "QE6502_BUILD_SHARED": "OFF",
-            "QE6502_ENABLE_DEBUG_LOG": "OFF"
+        "CMAKE_BUILD_TYPE": "Release",
+        "QE6502_BUILD_WASM": "ON",
+        "QE6502_ENABLE_MEM_ALLOC": "ON",
+        "QE6502_ENABLE_EXTERN_LOG": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "debug_static",
-      "configurePreset": "debug_static"
+      "name": "debug_native",
+      "configurePreset": "debug_native"
     },
     {
-      "name": "release_static",
+      "name": "release_native",
       "configurePreset": "release_static"
-    },
-    {
-      "name": "debug_shared",
-      "configurePreset": "debug_shared"
-    },
-    {
-      "name": "release_shared",
-      "configurePreset": "release_shared"
     },
     {
       "name": "debug_wasm",

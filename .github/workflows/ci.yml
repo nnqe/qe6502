@@ -21,6 +21,14 @@ on:
         options:
           - "false"
           - "true"
+      verbose_build:
+        description: "Verbose build"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   build:
@@ -36,10 +44,8 @@ jobs:
           - windows-latest
 
         preset:
-          - debug_static
-          - release_static
-          - debug_shared
-          - release_shared
+          - debug_native
+          - release_native
           - debug_wasm
           - release_wasm
 
@@ -92,10 +98,15 @@ jobs:
         run: cmake --preset ${{ matrix.preset }} -DQE6502_LLVM_ROOT="$(brew --prefix llvm)"
 
       - name: Build
+        if: inputs.verbose_build != 'true'
         run: cmake --build --preset ${{ matrix.preset }}
 
+      - name: Build verbose
+        if: inputs.verbose_build == 'true'
+        run: cmake --build --preset ${{ matrix.preset }} --verbose
+
       - name: Upload build folder
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_build_folder == 'true' }}
+        if: inputs.upload_build_folder == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-${{ matrix.os }}-${{ matrix.preset }}-build-tree
