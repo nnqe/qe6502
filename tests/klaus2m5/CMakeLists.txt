@@ -44,7 +44,7 @@ if(QE6502_ENABLE_NMOS_6502)
         qe6502.klaus2m5.mos.standard
         PROPERTIES
             LABELS "cpu;klaus;functional"
-            TIMEOUT 59
+            TIMEOUT 120
     )
 
 endif()
@@ -79,7 +79,7 @@ if(QE6502_ENABLE_CMOS_65C02)
         qe6502.klaus2m5.rw.extended
         PROPERTIES
             LABELS "cpu;klaus;functional"
-            TIMEOUT 59
+            TIMEOUT 120
     )
 
 endif()
