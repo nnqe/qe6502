@@ -13,7 +13,7 @@ export async function run({ output }) {
     return "0x" + (value & 0xffff).toString(16).padStart(4, "0").toUpperCase();
   }
 
-  const qe = await loadQE6502(`./qe6502.wasm?v=${Date.now()}`, {
+  const qe = await loadQE6502(`./qe6502_js.wasm?v=${Date.now()}`, {
     debugLog: (topic, message) => {
       console.debug(`[QE6502:${topic}] ${message}`);
     },

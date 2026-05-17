@@ -14,6 +14,7 @@ function debugLog(...args) {
 
 const REQUIRED_EXPORTS = [
   "memory",
+  "qe6502_init_js",
   "qe6502_cpu_alloc",
   "qe6502_cpu_free",
   "qe6502_cpu_power_on",
@@ -147,6 +148,11 @@ export async function loadQE6502(wasmUrlOrBuffer, options = {}) {
   }
 
   debugLog("QE6502 created [OK]");
+
+  exports.qe6502_init_js();
+
+  debugLog("QE6502 inited [OK]");
+
   return new QE6502(exports);
 }
 

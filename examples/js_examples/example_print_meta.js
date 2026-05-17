@@ -12,7 +12,7 @@ export async function run({ output }) {
   try {
     output.textContent = "";
 
-    const qe = await loadQE6502(`./qe6502.wasm?v=${Date.now()}`, {
+    const qe = await loadQE6502(`./qe6502_js.wasm?v=${Date.now()}`, {
       debugLog: (topic, message) => {
         console.debug(`[QE6502:${topic}] ${message}`);
       },

@@ -16,14 +16,14 @@ add_custom_target(${target} ALL
             "${CMAKE_CURRENT_BINARY_DIR}"
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:qe6502_wasm>"
-            "${CMAKE_CURRENT_BINARY_DIR}/qe6502.wasm"
+            "$<TARGET_FILE:qe6502_js>"
+            "${CMAKE_CURRENT_BINARY_DIR}/qe6502_js.wasm"
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${QE6502_JS_BIND_SOURCE_FILE}"
             "${CMAKE_CURRENT_BINARY_DIR}"
 
-    DEPENDS qe6502_wasm
+    DEPENDS qe6502_js
 
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 
