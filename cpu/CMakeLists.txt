@@ -62,14 +62,14 @@ if(NOT QE_BUILD_WASM)
 
     target_compile_definitions(qe6502_static
         PRIVATE
-            QE6502_BUILD_SHARED=0
-            QE6502_BUILDING_LIBRARY=0
+            QE_BUILD_SHARED=0
+            QE_BUILDING_LIBRARY=1
     )
 
     target_compile_definitions(qe6502_shared
         PRIVATE
-            QE6502_BUILD_SHARED=1
-            QE6502_BUILDING_LIBRARY=1
+            QE_BUILD_SHARED=1
+            QE_BUILDING_LIBRARY=1
     )
 
     set_target_properties(qe6502_static PROPERTIES
@@ -89,8 +89,8 @@ else()
 
     target_compile_definitions(qe6502_static
         PRIVATE
-            QE6502_BUILD_SHARED=0
-            QE6502_BUILDING_LIBRARY=1
+            QE_BUILD_SHARED=0
+            QE_BUILDING_LIBRARY=1
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
     )
 
@@ -114,8 +114,8 @@ else()
         PRIVATE
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
             QE_DEBUG_BUILD=$<BOOL:${QE_DEBUG_BUILD}>
-            QE6502_BUILD_SHARED=0
-            QE6502_BUILDING_LIBRARY=1
+            QE_BUILD_SHARED=0
+            QE_BUILDING_LIBRARY=1
             QE6502_ENABLE_EXTERN_LOG=$<BOOL:${QE6502_ENABLE_EXTERN_LOG}>
             QE6502_ENABLE_MEM_ALLOC=$<BOOL:${QE6502_ENABLE_MEM_ALLOC}>
             QE6502_MEM_ALLOC_CAPACITY=${QE6502_MEM_ALLOC_CAPACITY}

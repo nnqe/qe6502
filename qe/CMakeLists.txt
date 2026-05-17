@@ -33,6 +33,8 @@ target_compile_definitions(${target}
     PRIVATE
         QE_DEBUG_BUILD=$<BOOL:${QE_DEBUG_BUILD}>
         QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
+        QE_BUILD_SHARED=0
+        QE_BUILDING_LIBRARY=1
 )
 
 if(MSVC)

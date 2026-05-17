@@ -15,55 +15,10 @@
 #ifndef QE_API_PUBLIC_H__
 #define QE_API_PUBLIC_H__
 
-#ifdef __cplusplus
-#   define QE_EXTERN_C extern "C"
-#else
-#   define QE_EXTERN_C
-#endif
+#include "api_public_impl.h"
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-#   if defined(QE_BUILD_SHARED) && (QE_BUILD_SHARED == 1)
-#      if defined(QE_BUILDING_LIBRARY) && (QE_BUILDING_LIBRARY == 1)
-#          define QE_EXPORT __declspec(dllexport)
-#      else
-#          define QE_EXPORT __declspec(dllimport)
-#      endif
-#   else
-#      define QE_EXPORT
-#   endif
-#elif defined(__GNUC__) || defined(__clang__)
-#   define QE_EXPORT __attribute__((visibility("default")))
-#else
-#   define QE_EXPORT
-#endif
-
-#if defined(_WIN32) || defined(__CYGWIN__)
-#   define QE_CALL __cdecl
-#else
-#   define QE_CALL
-#endif
-
-#if defined(_WIN32) || defined(__CYGWIN__)
-#   define QE_HIDDEN
-#elif defined(__GNUC__) || defined(__clang__)
-#   define QE_HIDDEN __attribute__((visibility("hidden")))
-#else
-#   define QE_HIDDEN
-#endif
-
-#define QE_API(rettype) QE_EXTERN_C rettype QE_CALL
-#define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
-
-#if defined(__cplusplus)
-#  define QE_ALIGNAS(n) alignas(n)
-#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#  define QE_ALIGNAS(n) _Alignas(n)
-#elif defined(_MSC_VER)
-#  define QE_ALIGNAS(n) __declspec(align(n))
-#elif defined(__GNUC__) || defined(__clang__)
-#  define QE_ALIGNAS(n) __attribute__((aligned(n)))
-#else
-#  error "QE requires alignment support"
-#endif
+#define QE_API(rettype)         QE_EXTERN_C_ rettype QE_CALL_
+#define QE_FFI_API(rettype)     QE_EXTERN_C_ QE_EXPORT_ rettype QE_CALL_
+#define QE_ALIGNAS(n)           QE_ALIGNAS_(n)
 
 #endif // QE_API_PUBLIC_H__

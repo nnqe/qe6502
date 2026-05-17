@@ -5,87 +5,35 @@
 #include <qe/api_public.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "api_private_impl.h"
 
-#if defined(__clang__) && defined(__wasm__)
-#   define QE_IMPORT(module, name) __attribute__((import_module(module), import_name(name)))
-#else
-#   define QE_IMPORT(module, name)
-#endif
+#define QE_IMPORT(module, name)             QE_IMPORT_(module, name)
+#define QE_HIDDEN                           QE_HIDDEN_
 
-#if defined(_MSC_VER)
-#   define QE_LITTLE_ENDIAN 1
-#elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-#   define QE_LITTLE_ENDIAN 1
-#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#   define QE_BIG_ENDIAN 1
-#else
-#   error "Cannot determine endianness"
-#endif
+#define QE_LIKELY(x)                        QE_LIKELY_(x)
+#define QE_UNLIKELY(x)                      QE_UNLIKELY_(x)
 
-#ifdef QE_LITTLE_ENDIAN
-#   define QE_LSB 0
-#   define QE_MSB 1
-#else
-#   define QE_LSB 1
-#   define QE_MSB 0
-#endif // QE_LITTLE_ENDIAN
+#define QE_CONCATENATE(a, b)                QE_CONCAT_STR_(a, b)
 
-#if defined(_MSC_VER)
-#   define QE_LIKELY(x)   (x)
-#   define QE_UNLIKELY(x) (x)
-#elif defined(__GNUC__) || defined(__clang__)
-#   define QE_LIKELY(x)   __builtin_expect(!!(x), 1)
-#   define QE_UNLIKELY(x) __builtin_expect(!!(x), 0)
-#else
-#   define QE_LIKELY(x)   (x)
-#   define QE_UNLIKELY(x) (x)
-#endif
+#define QE_INTERNAL_API(rettype)            QE_HIDDEN_ rettype QE_CALL_
+#define QE_INTERNAL_API_IMPL(rettype)       QE_INTERNAL_API(rettype)
 
-#define QE_CONCAT_IMPL(a, b) a##b
-#define QE_CONCAT(a, b) QE_CONCAT_IMPL(a, b)
+#define QE_API_IMPL(rettype)                QE_API(rettype)
+#define QE_FFI_API_IMPL(rettype)            QE_FFI_API(rettype)
 
-#ifdef __cplusplus
-#   define QE_RESTRICT
-#   define QE_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
-#else
-#   define QE_RESTRICT restrict
+#define QE_MAYBE_UNUSED(sym)                QE_MAYBE_UNUSED_(sym)
 
-#   if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-#       define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
-#   else
-#       define QE_STATIC_ASSERT(cond, msg) \
-typedef char QE_CONCAT(qe_static_assertion_, __LINE__)[(cond) ? 1 : -1]
-#   endif
-#endif
+#define QE_ALWAYS_INLINE                    QE_ALWAYS_INLINE_
+#define QE_UNREACHABLE()                    QE_UNREACHABLE_()
 
-#define QE_INTERNAL_API(rettype) QE_HIDDEN rettype QE_CALL
+#define QE_RESTRICT                         QE_RESTRICT_
 
-#define QE_API_IMPL(rettype) QE_API(rettype)
-#define QE_FFI_API_IMPL(rettype) QE_FFI_API(rettype)
-#define QE_INTERNAL_API_IMPL(rettype) QE_INTERNAL_API(rettype)
+#define QE_SIC                              static inline QE_ALWAYS_INLINE_ // static inline constexpr
 
-#if defined(_MSC_VER)
-#   define QE_ALWAYS_INLINE __forceinline
-#   define QE_UNREACHABLE() __assume(0)
-#elif defined(__GNUC__) || defined(__clang__)
-#   define QE_ALWAYS_INLINE __attribute__((always_inline))
-#   define QE_UNREACHABLE() __builtin_unreachable()
-#else
-#   define QE_ALWAYS_INLINE
-#   define QE_UNREACHABLE() ((void)0)
-#endif
+#define QE_NULL                             ((void*)0)
 
-#define QE_SIC static inline QE_ALWAYS_INLINE // static inline constexpr
-#define QE_NULL ((void*)0)
+#define QE_STATIC_ASSERT(cond, msg)         QE_STATIC_ASSERT_(cond, msg)
 
-#define QE_MAYBE_UNUSED(sym)                                \
-QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
-    QE_SIC void qeqe_##sym##___unused_implement_qe(void) {  \
-        qeqe_##sym##___unused_unused_qe(); (void)&sym;      \
-}                                                       \
-    QE_SIC void qeqe_##sym##___unused_unused_qe(void) {     \
-        qeqe_##sym##___unused_implement_qe();               \
-}
 
 typedef uint8_t qe_bool;
 
@@ -154,14 +102,72 @@ typedef union
             qe_word_t lsw;
             qe_word_t msw;
         };
+        struct
+        {
+            uint8_t u8_0;
+            uint8_t u8_1;
+            uint8_t u8_2;
+            uint8_t u8_3;
+        };
 #   else
         struct
         {
             qe_word_t msw;
             qe_word_t lsw;
         };
+        struct
+        {
+            uint8_t u8_3;
+            uint8_t u8_2;
+            uint8_t u8_1;
+            uint8_t u8_0;
+        };
 #   endif
 } qe_word32_t;
+
+typedef union
+{
+    uint64_t u64;
+    int64_t i64;
+    uint8_t uraw8[8];
+    int8_t iraw8[8];
+
+#   ifdef QE_LITTLE_ENDIAN
+        struct
+        {
+            qe_word32_t lsw32;
+            qe_word32_t msw32;
+        };
+        struct
+        {
+            uint8_t u8_0;
+            uint8_t u8_1;
+            uint8_t u8_2;
+            uint8_t u8_3;
+            uint8_t u8_4;
+            uint8_t u8_5;
+            uint8_t u8_6;
+            uint8_t u8_7;
+        };
+#   else
+        struct
+        {
+            qe_word32_t msw32;
+            qe_word32_t lsw32;
+        };
+        struct
+        {
+            uint8_t u8_7;
+            uint8_t u8_6;
+            uint8_t u8_5;
+            uint8_t u8_4;
+            uint8_t u8_3;
+            uint8_t u8_2;
+            uint8_t u8_1;
+            uint8_t u8_0;
+        };
+#   endif
+} qe_word64_t;
 
 #define QE_ARRAY_LENGTH(arr) ( sizeof(arr) / sizeof((arr)[0]) )
 #define QE_COPY_ARRAY(dst, arr) qe_memcpy((dst), &((arr)[0]), sizeof(arr))

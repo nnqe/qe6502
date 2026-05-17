@@ -1,6 +1,7 @@
 #include <qe/api_private.h>
 #include <qe/log.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 static qe_log_fn qe_external_logger = QE_NULL;
 static void* qe_external_logger_context = QE_NULL;
@@ -9,7 +10,7 @@ static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap);
 static int qe_snprintf(char* out, size_t cap, const char* fmt, ...);
 
 
-static void qe6502_print_impl(const char* topic, const char* message)
+static void qe_call_logger(const char* topic, const char* message)
 {
     if (qe_external_logger)
     {
@@ -25,7 +26,7 @@ static void qe_log_impl(const char* topic, const char *fmt, va_list ap)
     int written = qe_vsnprintf(message, sizeof(message), fmt, ap);
 
     if (written < 0) {
-        qe6502_print_impl(topic_notnull, "<qe_log format error>");
+        qe_call_logger(topic_notnull, "<qe_log format error>");
         return;
     }
 
@@ -36,7 +37,7 @@ static void qe_log_impl(const char* topic, const char *fmt, va_list ap)
         message[sizeof message - 1] = '\0';
     }
 
-    qe6502_print_impl(topic_notnull, message);
+    qe_call_logger(topic_notnull, message);
 }
 
 #define QE_LOG_IMPL(topic) { va_list ap; va_start(ap, fmt); qe_log_impl(topic, fmt, ap); va_end(ap); }
@@ -299,7 +300,6 @@ static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap)
     return (int)len;
 }
 
-QE_MAYBE_UNUSED(qe_snprintf)
 static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 {
     int result;
@@ -311,3 +311,4 @@ static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 
     return result;
 }
+QE_MAYBE_UNUSED(qe_snprintf)
