@@ -499,7 +499,7 @@ QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(
  *   bits [60    ] : 0 == NMI pin low | 1 == NMI pin high
  *   bits [61    ] : 0 == IRQ pin low | 1 == IRQ pin high
  *   bits [62    ] : 0 == Running | 1 == Waiting (WAI)
- *   bits [63    ] : 0 == CPU is stabel/serializable | 1 == CPU not stable/not serializable/stopped
+ *   bits [63    ] : 0 == CPU is stable/serializable | 1 == CPU not stable/not serializable/stopped
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
