@@ -15,7 +15,7 @@
 #ifndef QE6502_DEFS_H__
 #define QE6502_DEFS_H__
 
-#include "qe6502_cross_build.h"
+#include <qe/api_private.h>
 #include <qe6502/qe6502.h>
 
 // Version

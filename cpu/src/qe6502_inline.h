@@ -1,9 +1,10 @@
 #ifndef QE6502_INLINE_H__
 #define QE6502_INLINE_H__
 
+#include <qe/log.h>
+#include <qe/api_private.h>
 #include "qe6502_defs.h"
 #include <stddef.h>
-#include "qe6502_log.h"
 
 #define INSTR_FW_DECL(funcname) INSTR_RETTYPE qe6502_cycle_t funcname( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 #define OFFSETOF(member) offsetof( qe6502_t, member )

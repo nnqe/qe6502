@@ -12,11 +12,11 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
+#include <qe/log.h>
+#include <qe/api_private.h>
 #include <qe6502/qe6502.h>
 #include "qe6502_inline.h"
 #include "qe6502_defs.h"
-#include "qe6502_cross_build.h"
-#include "qe6502_log.h"
 
 #if (!defined(QE6502_ENABLE_NMOS_6502)) || (QE6502_ENABLE_NMOS_6502 != 1)
 #if (!defined(QE6502_ENABLE_CMOS_65C02)) || (QE6502_ENABLE_CMOS_65C02 != 1)
@@ -595,6 +595,11 @@ QE_FFI_API_IMPL(const char*)  qe6502_decode_error(uint16_t error_code)
           break;
     }
     return "Unknown error!";
+}
+
+QE_FFI_API_IMPL(void) qe6502_set_logger(qe6502_log_fn logger, void* context)
+{
+    qe_set_logger((qe_log_fn)logger, context);
 }
 
 QE_FFI_API_IMPL(void)

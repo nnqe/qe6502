@@ -7,7 +7,8 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug_native",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "QE_DEBUG_BUILD": "ON"
       }
     },
     {
@@ -27,7 +28,8 @@
       "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "QE6502_BUILD_WASM": "ON",
+        "QE_BUILD_WASM": "ON",
+        "QE_DEBUG_BUILD": "ON",
         "QE6502_ENABLE_MEM_ALLOC": "ON",
         "QE6502_ENABLE_EXTERN_LOG": "ON"
       }
@@ -40,7 +42,7 @@
       "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "QE6502_BUILD_WASM": "ON",
+        "QE_BUILD_WASM": "ON",
         "QE6502_ENABLE_MEM_ALLOC": "ON",
         "QE6502_ENABLE_EXTERN_LOG": "ON"
       }

@@ -13,12 +13,35 @@ const char* test_klaus2m5(uint8_t cpu_model,
 void copy_klaus2m5_image( uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles );
 void copy_klaus2m5_extended_image( uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles );
 
-
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <qe6502/qe6502.h>
+
+static int logger_enabled = 1;
+void pause_logger(void)
+{
+    logger_enabled = 0;
+}
+
+void resume_logger(void)
+{
+    logger_enabled = 1;
+}
+
+static void logger(void* context, const char* topic, const char* message)
+{
+    if (!logger_enabled)
+    {
+        return;
+    }
+    (void)context;
+    const char* topic_notnull = topic? topic : "";
+    const char* message_notnull = message? message : "";
+    printf("[qe6502::%s] %s\n", topic_notnull, message_notnull);
+    fflush(stdout);
+}
 
 static void print_usage(const char* exe)
 {
@@ -218,6 +241,7 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
 
 int main(int argc, char** argv)
 {
+    qe6502_set_logger(&logger, 0);
     const char* exec_name = argv[0];
 
     if (argc == 1)

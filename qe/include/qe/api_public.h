@@ -12,8 +12,8 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE6502_MACROS_H__
-#define QE6502_MACROS_H__
+#ifndef QE_API_PUBLIC_H__
+#define QE_API_PUBLIC_H__
 
 #ifdef __cplusplus
 #   define QE_EXTERN_C extern "C"
@@ -22,8 +22,8 @@
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#   if defined(QE6502_BUILD_SHARED) && (QE6502_BUILD_SHARED == 1)
-#      if QE6502_BUILDING_LIBRARY
+#   if defined(QE_BUILD_SHARED) && (QE_BUILD_SHARED == 1)
+#      if defined(QE_BUILDING_LIBRARY) && (QE_BUILDING_LIBRARY == 1)
 #          define QE_EXPORT __declspec(dllexport)
 #      else
 #          define QE_EXPORT __declspec(dllimport)
@@ -51,6 +51,7 @@
 #   define QE_HIDDEN
 #endif
 
+#define QE_API(rettype) QE_EXTERN_C rettype QE_CALL
 #define QE_FFI_API(rettype) QE_EXTERN_C QE_EXPORT rettype QE_CALL
 
 #if defined(__cplusplus)
@@ -62,7 +63,7 @@
 #elif defined(__GNUC__) || defined(__clang__)
 #  define QE_ALIGNAS(n) __attribute__((aligned(n)))
 #else
-#  error "qe6502 requires alignment support"
+#  error "QE requires alignment support"
 #endif
 
-#endif // QE6502_MACROS_H__
+#endif // QE_API_PUBLIC_H__

@@ -1,8 +1,8 @@
-#ifndef QE6502_CROSS_BUILD_H__
-#define QE6502_CROSS_BUILD_H__
+#ifndef QE_API_PRIVATE_H__
+#define QE_API_PRIVATE_H__
 
 
-#include <qe6502/qe6502_macros.h>
+#include <qe/api_public.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -54,24 +54,15 @@
 #       define QE_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #   else
 #       define QE_STATIC_ASSERT(cond, msg) \
-            typedef char QE_CONCAT(qe_static_assertion_, __LINE__)[(cond) ? 1 : -1]
+typedef char QE_CONCAT(qe_static_assertion_, __LINE__)[(cond) ? 1 : -1]
 #   endif
 #endif
 
-#define QE_FFI_API_IMPL(rettype) QE_FFI_API(rettype)
-
 #define QE_INTERNAL_API(rettype) QE_HIDDEN rettype QE_CALL
 
-#define QE_MAYBE_UNUSED(sym)                                \
-    QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
-    QE_SIC void qeqe_##sym##___unused_implement_qe(void) {  \
-        qeqe_##sym##___unused_unused_qe(); (void)&sym;      \
-    }                                                       \
-    QE_SIC void qeqe_##sym##___unused_unused_qe(void) {     \
-        qeqe_##sym##___unused_implement_qe();               \
-    }
-
-#define QE_API QE_EXTERN_C
+#define QE_API_IMPL(rettype) QE_API(rettype)
+#define QE_FFI_API_IMPL(rettype) QE_FFI_API(rettype)
+#define QE_INTERNAL_API_IMPL(rettype) QE_INTERNAL_API(rettype)
 
 #if defined(_MSC_VER)
 #   define QE_ALWAYS_INLINE __forceinline
@@ -86,6 +77,15 @@
 
 #define QE_SIC static inline QE_ALWAYS_INLINE // static inline constexpr
 #define QE_NULL ((void*)0)
+
+#define QE_MAYBE_UNUSED(sym)                                \
+QE_SIC void qeqe_##sym##___unused_unused_qe(void);      \
+    QE_SIC void qeqe_##sym##___unused_implement_qe(void) {  \
+        qeqe_##sym##___unused_unused_qe(); (void)&sym;      \
+}                                                       \
+    QE_SIC void qeqe_##sym##___unused_unused_qe(void) {     \
+        qeqe_##sym##___unused_implement_qe();               \
+}
 
 typedef uint8_t qe_bool;
 
@@ -193,5 +193,4 @@ QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_RESTRICT src, size_t
 }
 QE_MAYBE_UNUSED(qe_memcpy)
 
-
-#endif // QE6502_CROSS_BUILD_H__
+#endif // QE_API_PRIVATE_H__

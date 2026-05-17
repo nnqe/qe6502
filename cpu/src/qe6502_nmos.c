@@ -18,7 +18,7 @@
 #   include "qe6502_nmos_opcodes.h"
 #undef QE6502_NMOS_OPCODE_UNLOCKER
 
-#include "qe6502_log.h"
+#include <qe/log.h>
 
 /********************************************************
  *

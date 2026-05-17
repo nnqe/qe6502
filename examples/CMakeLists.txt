@@ -1,4 +1,4 @@
-if(QE6502_BUILD_WASM)
+if(QE_BUILD_WASM)
     add_subdirectory(js_examples)
 else()
     add_subdirectory(c_examples)

@@ -2,6 +2,8 @@
 #include <stdalign.h>
 #include <string.h>
 
+void pause_logger(void);
+void resume_logger(void);
 
 const char* test_klaus2m5(uint8_t cpu_model,
                           uint8_t* memory,
@@ -51,10 +53,6 @@ const char* test_klaus2m5(uint8_t cpu_model,
     uint64_t stable_state = qe6502_dump(cpu_ptr);
     const char* result_msg = "CPU Error";
 
-    if (reset_cpu_each_cycle)
-    {
-        qe6502_pause_logger();
-    }
     while(qe6502_ok(cpu_ptr))
     {
         if (reset_cpu_each_cycle)
@@ -64,12 +62,12 @@ const char* test_klaus2m5(uint8_t cpu_model,
                 reset_counter++;
 
                 // reset cpu
-                qe6502_pause_logger();
+                pause_logger();
                 memset(cpu_ptr, 0, sizeof(cpu));
                 qe6502_cpu_power_on(cpu_ptr, cpu_model);
 
                 qe6502_recover(cpu_ptr, stable_state);
-                qe6502_resume_logger();
+                resume_logger();
 
                 instr_cycle_counter = 0;
             }

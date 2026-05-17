@@ -1,3 +1,3 @@
-if(NOT QE6502_BUILD_WASM)
+if(NOT QE_BUILD_WASM)
     add_subdirectory(klaus2m5)
 endif()

@@ -15,7 +15,8 @@
 #ifndef QE6502_H__
 #define QE6502_H__
 
-#include "qe6502_macros.h"
+#include <qe/api_public.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -144,8 +145,8 @@ QE_FFI_API(const char*) qe6502_decode_error(uint16_t error_code);
 
 QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
 
-QE_FFI_API(void)        qe6502_pause_logger(void);
-QE_FFI_API(void)        qe6502_resume_logger(void);
+typedef void (*qe6502_log_fn)(void* context, const char* topic, const char* message);
+QE_FFI_API(void)            qe6502_set_logger(qe6502_log_fn logger, void* context);
 
 #if defined(QE6502_ENABLE_MEM_ALLOC) && (QE6502_ENABLE_MEM_ALLOC == 1)
     QE_FFI_API(void)        qe6502_cpu_pool_reset(void);
@@ -153,7 +154,7 @@ QE_FFI_API(void)        qe6502_resume_logger(void);
     QE_FFI_API(void)        qe6502_cpu_free(void* ptr);
 #endif
 
-// Use only if you are very familiar with the internal implementation of the library.
+// Use only if you are very familiar with theinternal implementation of the library.
 
 typedef struct
 {

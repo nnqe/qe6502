@@ -5,7 +5,6 @@ project(qe6502 LANGUAGES C)
 include(CTest)
 
 # Public build-time options for qe6502
-option(QE6502_ENABLE_DEBUG_LOG "Enable logging (adds -DQE6502_ENABLE_DEBUG_LOG)" ON)
 option(QE6502_ENABLE_EXTERN_LOG "Enable extern logging function (adds -DQE6502_ENABLE_EXTERN_LOG)" OFF)
 option(QE6502_ENABLE_CYCLE_MERGE "Enable cpu cycles merge (adds -DQE6502_ENABLE_CYCLE_MERGE)" OFF)
 option(QE6502_ENABLE_NMOS_6502 "Enable NMOS 6502 (adds -DQE6502_ENABLE_NMOS_6502)" ON)
@@ -26,8 +25,6 @@ message(STATUS "qe6502 config:")
 message(STATUS "  QE6502_ENABLE_NMOS_6502   = ${QE6502_ENABLE_NMOS_6502}")
 message(STATUS "  QE6502_ENABLE_CMOS_65C02  = ${QE6502_ENABLE_CMOS_65C02}")
 message(STATUS "  QE6502_ENABLE_CYCLE_MERGE = ${QE6502_ENABLE_CYCLE_MERGE}")
-message(STATUS "  QE6502_BUILD_SHARED       = ${QE6502_BUILD_SHARED}")
-message(STATUS "  QE6502_ENABLE_DEBUG_LOG   = ${QE6502_ENABLE_DEBUG_LOG}")
 message(STATUS "  QE6502_ENABLE_EXTERN_LOG  = ${QE6502_ENABLE_EXTERN_LOG}")
 message(STATUS "  QE6502_ENABLE_MEM_ALLOC   = ${QE6502_ENABLE_MEM_ALLOC}")
 message(STATUS "  QE6502_MEM_ALLOC_CAPACITY = ${QE6502_MEM_ALLOC_CAPACITY}")
@@ -35,6 +32,7 @@ message(STATUS "  QE6502_BUILD_EXAMPLES     = ${QE6502_BUILD_EXAMPLES}")
 
 
 # Add subdirectories
+add_subdirectory(qe)
 add_subdirectory(cpu)
 add_subdirectory(binds)
 

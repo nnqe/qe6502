@@ -1,5 +1,5 @@
 #include <qe6502/qe6502.h>
-#include "qe6502_cross_build.h"
+#include <qe/api_private.h>
 
 static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
 {
