@@ -53,7 +53,7 @@
     },
     {
       "name": "release_native",
-      "configurePreset": "release_static"
+      "configurePreset": "release_native"
     },
     {
       "name": "debug_wasm",
