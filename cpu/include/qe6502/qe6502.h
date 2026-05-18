@@ -96,7 +96,8 @@ QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
 QE_FFI_API(uint32_t)    qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in);
-
+// Returns a packed CPU state and BUS operation
+QE_FFI_API(uint32_t)    qe6502_packed_state(qe6502_cpu_t* cpu);
 //
 QE_FFI_API(uint8_t)     qe6502_ok(const qe6502_cpu_t* cpu);
 QE_FFI_API(uint8_t)     qe6502_needs_data(const qe6502_cpu_t* cpu);

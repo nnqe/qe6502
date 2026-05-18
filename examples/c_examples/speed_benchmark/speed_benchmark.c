@@ -118,18 +118,6 @@ static void print_hex16(uint16_t value) {
     printf("0x%04X", (unsigned)value);
 }
 
-static void refresh_state_slow(const qe6502_cpu_t* cpu, bus_state_t* state) {
-    uint8_t has_data = qe6502_has_data(cpu) != 0;
-    uint8_t needs_data = qe6502_needs_data(cpu) != 0;
-
-    state->address = qe6502_address(cpu);
-    state->is_write = has_data && !needs_data;
-    state->is_started = qe6502_is_started(cpu) != 0;
-    state->is_instr_done = qe6502_is_instr_done(cpu) != 0;
-    state->ok = qe6502_ok(cpu) != 0;
-    state->data_out = state->is_write ? qe6502_read_data(cpu) : 0;
-}
-
 static void decode_tick_state(uint32_t packed, bus_state_t* state) {
     state->address = (uint16_t)(packed & TICK_ADDRESS_MASK);
     state->is_write = (packed & TICK_BUS_WRITE) != 0;
@@ -232,7 +220,8 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
     prepare_memory(memory, test->rom);
 
     qe6502_cpu_power_on(&cpu, test->model);
-    refresh_state_slow(&cpu, &state);
+    uint32_t packed_state = qe6502_packed_state(&cpu);
+    decode_tick_state(packed_state, &state);
 
     while (!state.is_started) {
         tick_fast(&cpu, memory, &state);

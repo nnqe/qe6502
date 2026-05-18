@@ -367,6 +367,16 @@ qe6502_reset_instruction_impl(qe6502_t *cpu)
     return select_fetch_opcode_bridge(cpu);
 }
 
+QE_SIC uint32_t qe6502_packed_state_impl(const qe6502_t* cpu)
+{
+    uint32_t packed = qe6502_has_data_impl(cpu) ? qe6502_data_impl(cpu) : 0;
+    packed <<= 8;
+    packed |= cpu->cmd.flags;
+    packed <<= 16;
+    packed |= qe6502_address_impl(cpu);
+    return packed;
+}
+
 // Foreign Function Interface (FFI)
 
 typedef struct qe6502_cpuwrap
@@ -434,6 +444,7 @@ qe6502_cpu_tick(qe6502_cpu_t* cpu)
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
+
 QE_FFI_API_IMPL(uint32_t)
 qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in)
 {
@@ -454,13 +465,13 @@ qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in)
         wrap->cycle = cpu_error(cpu_ptr,  qe6502_err_corrupt_state);
     }
 
-    uint32_t packed = qe6502_has_data_impl(cpu_ptr) ? qe6502_data_impl(cpu_ptr) : 0;
-    packed <<= 8;
-    packed |= cpu_ptr->cmd.flags;
-    packed <<= 16;
-    packed |= qe6502_address_impl(cpu_ptr);
+    return qe6502_packed_state_impl( cpu_ptr );
+}
 
-    return packed;
+QE_FFI_API_IMPL(uint32_t)
+qe6502_packed_state(qe6502_cpu_t* cpu)
+{
+    return qe6502_packed_state_impl( CPU(cpu) );
 }
 
 //
