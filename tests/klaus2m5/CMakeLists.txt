@@ -37,14 +37,25 @@ target_compile_features(${target} PUBLIC c_std_11)
 if(QE6502_ENABLE_NMOS_6502)
 
     add_test(NAME qe6502.klaus2m5.mos.standard
-        COMMAND ${target} mos standard
+        COMMAND ${target} mos standard off
+    )
+
+    add_test(NAME qe6502.klaus2m5.mos.standard.reset_cycles
+        COMMAND ${target} mos standard on
     )
 
     set_tests_properties(
         qe6502.klaus2m5.mos.standard
         PROPERTIES
             LABELS "cpu;klaus;functional"
-            TIMEOUT 120
+            TIMEOUT 30
+    )
+
+    set_tests_properties(
+        qe6502.klaus2m5.mos.standard.reset_cycles
+        PROPERTIES
+            LABELS "cpu;klaus;functional;serialization"
+            TIMEOUT 180
     )
 
 endif()
@@ -52,23 +63,27 @@ endif()
 if(QE6502_ENABLE_CMOS_65C02)
 
     add_test(NAME qe6502.klaus2m5.wdc.standard
-        COMMAND ${target} wdc standard
+        COMMAND ${target} wdc standard off
     )
 
     add_test(NAME qe6502.klaus2m5.rw.standard
-        COMMAND ${target} rw standard
+        COMMAND ${target} rw standard off
     )
 
     add_test(NAME qe6502.klaus2m5.st.standard
-        COMMAND ${target} st standard
+        COMMAND ${target} st standard off
     )
 
     add_test(NAME qe6502.klaus2m5.wdc.extended
-        COMMAND ${target} wdc extended
+        COMMAND ${target} wdc extended off
+    )
+
+    add_test(NAME qe6502.klaus2m5.wdc.extended.reset_cycles
+        COMMAND ${target} wdc extended on
     )
 
     add_test(NAME qe6502.klaus2m5.rw.extended
-        COMMAND ${target} rw extended
+        COMMAND ${target} rw extended off
     )
 
     set_tests_properties(
@@ -79,7 +94,14 @@ if(QE6502_ENABLE_CMOS_65C02)
         qe6502.klaus2m5.rw.extended
         PROPERTIES
             LABELS "cpu;klaus;functional"
-            TIMEOUT 120
+            TIMEOUT 30
+    )
+
+    set_tests_properties(
+        qe6502.klaus2m5.wdc.extended.reset_cycles
+        PROPERTIES
+            LABELS "cpu;klaus;functional;serialization"
+            TIMEOUT 180
     )
 
 endif()

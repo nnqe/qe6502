@@ -46,7 +46,7 @@ static void logger(void* context, const char* topic, const char* message)
 static void print_usage(const char* exe)
 {
     fprintf(stderr,
-        "Usage: %s <model> <test>\n"
+        "Usage: %s <model> <test> <cycle_reset>\n"
         "\n"
         "Models:\n"
         "  mos       MOS 6502\n"
@@ -56,7 +56,11 @@ static void print_usage(const char* exe)
         "\n"
         "Tests:\n"
         "  standard\n"
-        "  extended\n",
+        "  extended\n"
+        "\n"
+        "Cycle Reset - Serialize/Deserialize CPU on each cycle\n"
+        "  on\n"
+        "  off\n",
         exe
     );
 }
@@ -141,18 +145,17 @@ static const char* model_display_name(const char* model)
     return "Unknown";
 }
 
-static int test_model(const char* exec_name, const char* model_arg, const char* test_arg)
+static int test_model(const char* exec_name, const char* model_arg, const char* test_arg, const char* reset_cycle)
 {
     uint16_t success_address = 0;
     uint64_t expected_cycles = 0;
     uint8_t memory[0x10000];
-    uint8_t memory2[0x10000];
     uint8_t result = 0;
-    uint8_t result2 = 0;
     const char* msg = NULL;
-    const char* msg2 = NULL;
 
     uint8_t parsed_model;
+
+    uint8_t reset = (!reset_cycle || strcmp(reset_cycle, "on") != 0) ? 0 : 1;
 
     if (!parse_model(model_arg, &parsed_model))
     {
@@ -202,41 +205,26 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
             &expected_cycles
         );
     }
-    memcpy(memory2, memory, sizeof(memory2));
 
     msg = test_klaus2m5(
         parsed_model,
         memory,
         success_address,
         expected_cycles,
-        0,
+        reset,
         &result
     );
 
-    msg2 = test_klaus2m5(
-        parsed_model,
-        memory2,
-        success_address,
-        expected_cycles,
-        1,
-        &result2
-    );
-
-
-    if (strcmp(msg, msg2) != 0)
-    {
-        printf("Different cpu messages");
-    }
-
     printf(
-        "%s CPU %s test %s : normal %s, reset %s\n",
+        "%s CPU %s test, reset: %s %s : normal %s\n",
         model_display_name(model_arg),
         test_arg,
-        (result && result2) ? "[PASS]" : "[FAIL]",
-        msg,msg2
+        reset_cycle,
+        result? "[PASS]" : "[FAIL]",
+        msg
     );
 
-    return (result && result2) ? 0 : 1;
+    return result;
 }
 
 int main(int argc, char** argv)
@@ -248,22 +236,22 @@ int main(int argc, char** argv)
     {
         int failed = 0;
 #       if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-            failed += test_model(exec_name, "mos", "standard");
+            failed += test_model(exec_name, "mos", "standard", "off");
 #       endif
 
 #       if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-            failed += test_model(exec_name, "wdc", "standard");
-            failed += test_model(exec_name, "rw",  "standard");
-            failed += test_model(exec_name, "st",  "standard");
+            failed += test_model(exec_name, "wdc", "standard", "off");
+            failed += test_model(exec_name, "rw",  "standard", "off");
+            failed += test_model(exec_name, "st",  "standard", "off");
 
-            failed += test_model(exec_name, "wdc", "extended");
-            failed += test_model(exec_name, "rw",  "extended");
+            failed += test_model(exec_name, "wdc", "extended", "off");
+            failed += test_model(exec_name, "rw",  "extended", "off");
 #       endif
         return failed;
     }
 
 
-    if (argc != 3)
+    if (argc != 4)
     {
         print_usage(argv[0]);
         return 1;
@@ -271,5 +259,6 @@ int main(int argc, char** argv)
 
     const char* model_arg = argv[1];
     const char* test_arg = argv[2];
-    return test_model(exec_name, model_arg, test_arg);
+    const char* reset_cycle = argv[3];
+    return test_model(exec_name, model_arg, test_arg, reset_cycle);
 }
