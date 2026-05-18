@@ -61,27 +61,28 @@ typedef union
 #   ifdef QE_LITTLE_ENDIAN
         struct
         {
-            uint8_t u8_lsb;
-            uint8_t u8_msb;
+            int8_t i8_0;
+            int8_t i8_1;
         };
         struct
         {
-            int8_t i8_lsb;
-            int8_t i8_msb;
+            uint8_t u8_0;
+            uint8_t u8_1;
         };
 #   else
         struct
         {
-            uint8_t u8_msb;
-            uint8_t u8_lsb;
+            int8_t i8_0;
+            int8_t i8_1;
         };
         struct
         {
-            int8_t i8_msb;
-            int8_t i8_lsb;
+            uint8_t u8_1;
+            uint8_t u8_0;
         };
 #   endif
-} qe_word_t;
+} qe_word16_t;
+#define qe_as_word16(i16) (*((qe_word16_t*)(&(i16))))
 
 typedef union
 {
@@ -99,8 +100,8 @@ typedef union
 #   ifdef QE_LITTLE_ENDIAN
         struct
         {
-            qe_word_t lsw;
-            qe_word_t msw;
+            qe_word16_t word16_0;
+            qe_word16_t word16_1;
         };
         struct
         {
@@ -112,8 +113,8 @@ typedef union
 #   else
         struct
         {
-            qe_word_t msw;
-            qe_word_t lsw;
+            qe_word16_t word_1;
+            qe_word16_t word_0;
         };
         struct
         {
@@ -124,6 +125,8 @@ typedef union
         };
 #   endif
 } qe_word32_t;
+#define qe_as_word32(i32) (*((qe_word32_t*)(&(i32))))
+
 
 typedef union
 {
@@ -135,8 +138,8 @@ typedef union
 #   ifdef QE_LITTLE_ENDIAN
         struct
         {
-            qe_word32_t lsw32;
-            qe_word32_t msw32;
+            qe_word32_t word32_0;
+            qe_word32_t word32_1;
         };
         struct
         {
@@ -152,8 +155,8 @@ typedef union
 #   else
         struct
         {
-            qe_word32_t msw32;
-            qe_word32_t lsw32;
+            qe_word32_t word32_1;
+            qe_word32_t word32_0;
         };
         struct
         {
@@ -168,6 +171,8 @@ typedef union
         };
 #   endif
 } qe_word64_t;
+#define qe_as_word64(i64) (*((qe_word64_t*)(&(i64))))
+
 
 #define QE_ARRAY_LENGTH(arr) ( sizeof(arr) / sizeof((arr)[0]) )
 #define QE_COPY_ARRAY(dst, arr) qe_memcpy((dst), &((arr)[0]), sizeof(arr))

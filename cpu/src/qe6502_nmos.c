@@ -43,14 +43,14 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     {
         if (cpu->istate & qe6502_nmi_pin_chg)
         {
-            cpu->address.u8_lsb = 0;
+            cpu->address.u8_0 = 0;
             return resume_to_dummy_read( cpu, nmos_nmi );
         }
 
         if (  (cpu->istate & qe6502_irq_pin_lo) &&
               (!(cpu->P & qe6502_flag_I)) )
         {
-            cpu->address.u8_lsb = 0;
+            cpu->address.u8_0 = 0;
             return resume_to_dummy_read( cpu, nmos_irq );
         }
     }
@@ -89,10 +89,10 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_do_relative_branch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->PC, OFFSETOF(data));
-    qe_word_t pc;
-    pc.u16 = QE_U16(cpu->PC.u16 + cpu->address.i8_lsb);
-    cpu->PC.u8_lsb = pc.u8_lsb;
-    if (pc.u8_msb == cpu->PC.u8_msb)
+    qe_word16_t pc;
+    pc.u16 = QE_U16(cpu->PC.u16 + cpu->address.i8_0);
+    cpu->PC.u8_0 = pc.u8_0;
+    if (pc.u8_1 == cpu->PC.u8_1)
     {
         // no page crossing
         return resume_to(nmos_fetch_opcode);
@@ -150,7 +150,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_ADC_impl_bin( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     uint8_t u = cpu->data;
-    qe_word_t r16 = (qe_word_t){.u16 = cpu->A};
+    qe_word16_t r16 = (qe_word16_t){.u16 = cpu->A};
 
     uint8_t carry = QE_U8((cpu->P & qe6502_flag_C ) >> qe6502_flagpos_C);
     r16.u16 += QE_U16(u + carry);
@@ -158,12 +158,12 @@ nmos_instr_ADC_impl_bin( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     uint8_t flags = QE_U8(
                     (c) |  // carry
-                    ((r16.u8_lsb == 0) << qe6502_flagpos_Z) | // zero
-                    (r16.u8_lsb & qe6502_flag_N) |  // negative
-                    (((((~(cpu->A ^ u)) & (cpu->A ^ r16.u8_lsb)) & qe6502_flag_N) != 0) << qe6502_flagpos_V)); // overflow
+                    ((r16.u8_0 == 0) << qe6502_flagpos_Z) | // zero
+                    (r16.u8_0 & qe6502_flag_N) |  // negative
+                    (((((~(cpu->A ^ u)) & (cpu->A ^ r16.u8_0)) & qe6502_flag_N) != 0) << qe6502_flagpos_V)); // overflow
 
     update_flags(cpu, qe6502_flag_C | qe6502_flag_Z | qe6502_flag_N | qe6502_flag_V, flags);
-    cpu->A = r16.u8_lsb;
+    cpu->A = r16.u8_0;
 
     return jump_to(cpu, nmos_fetch_opcode);
 }
@@ -385,7 +385,7 @@ nmos_instr_ASL_accumulator( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BCC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (cpu->P & qe6502_flag_C)
     {
@@ -411,7 +411,7 @@ nmos_instr_BCC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BCS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (!(cpu->P & qe6502_flag_C))
     {
@@ -437,7 +437,7 @@ nmos_instr_BCS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BEQ( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (!(cpu->P & qe6502_flag_Z))
     {
@@ -491,7 +491,7 @@ nmos_instr_BIT( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BMI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (!(cpu->P & qe6502_flag_N))
     {
@@ -517,7 +517,7 @@ nmos_instr_BMI( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BNE( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (cpu->P & qe6502_flag_Z)
     {
@@ -543,7 +543,7 @@ nmos_instr_BNE( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BPL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (cpu->P & qe6502_flag_N)
     {
@@ -576,22 +576,22 @@ nmos_instr_BRK( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     cpu->PC.u16++;
     // we are not clearing our tmp memory, so prepare memory and go to switch-case
     // we will use address lo
-    cpu->address.u8_lsb = 0;
+    cpu->address.u8_0 = 0;
     return resume_to_dummy_read(cpu, nmos_instr_BRK_2);
 }
 
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->address.u8_lsb++;
-    switch(cpu->address.u8_lsb)
+    cpu->address.u8_0++;
+    switch(cpu->address.u8_0)
     {
     case 1:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
         break;
     case 2:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
         cpu->S--;
         break;
     case 3:
@@ -600,7 +600,7 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         cpu->S--;
         break;
     case 4:
-        request_read(cpu, (qe_word_t){.u16=0xfffe}, OFFSETOF(PC.u8_lsb));
+        request_read(cpu, (qe_word16_t){.u16=0xfffe}, OFFSETOF(PC.u8_0));
         break;
     case 5:
         return jump_to(cpu, cpu->instr);
@@ -614,7 +614,7 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BRK_finalize( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
+    request_read(cpu, (qe_word16_t){.u16=0xffff}, OFFSETOF(PC.u8_1));
     cpu->P |= qe6502_flag_I;
     return resume_to(nmos_fetch_opcode);
 }
@@ -635,7 +635,7 @@ nmos_instr_BRK_finalize( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BVC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (cpu->P & qe6502_flag_V)
     {
@@ -661,7 +661,7 @@ nmos_instr_BVC( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BVS( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     if (!(cpu->P & qe6502_flag_V))
     {
@@ -1128,7 +1128,7 @@ INSTR_FW_DECL(nmos_instr_JSR_6);
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_JSR( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
     return resume_to(nmos_instr_JSR_2);
 }
@@ -1143,7 +1143,7 @@ nmos_instr_JSR_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_JSR_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+    request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
     cpu->S--;
     return resume_to(nmos_instr_JSR_4);
 }
@@ -1151,7 +1151,7 @@ nmos_instr_JSR_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_JSR_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+    request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
     cpu->S--;
     return resume_to(nmos_instr_JSR_5);
 }
@@ -1159,7 +1159,7 @@ nmos_instr_JSR_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_JSR_5( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     return resume_to(nmos_instr_JSR_6);
 }
 
@@ -1724,7 +1724,7 @@ nmos_instr_RTI_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     cpu->P |= qe6502_flag_UN;
     cpu->P &= QE_U8(~qe6502_flag_B);
     cpu->S++;
-    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_0));
     return resume_to(nmos_instr_RTI_5);
 }
 
@@ -1732,7 +1732,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_RTI_5( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->S++;
-    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_1));
     return resume_to(nmos_fetch_opcode);
 }
 
@@ -1773,7 +1773,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_RTS_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->S++;
-    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_0));
     return resume_to(nmos_instr_RTS_4);
 }
 
@@ -1781,7 +1781,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_RTS_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->S++;
-    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+    request_stack_read(cpu, cpu->S, OFFSETOF(PC.u8_1));
     return resume_to(nmos_instr_RTS_5);
 }
 
@@ -2166,7 +2166,7 @@ INSTR_FW_DECL( nmos_pre_jmp_absolute_2 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_jmp_absolute_2);
@@ -2175,7 +2175,7 @@ nmos_pre_jmp_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_absolute_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
     return resume_to( cpu->instr );
@@ -2195,7 +2195,7 @@ INSTR_FW_DECL( nmos_pre_r_absolute_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_r_absolute_2);
@@ -2204,7 +2204,7 @@ nmos_pre_r_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
     return resume_to( nmos_pre_r_absolute_3 );
@@ -2232,7 +2232,7 @@ INSTR_FW_DECL( nmos_pre_rw_absolute_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_rw_absolute_2);
@@ -2241,7 +2241,7 @@ nmos_pre_rw_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_absolute_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
     return resume_to( nmos_pre_rw_absolute_3 );
@@ -2274,7 +2274,7 @@ INSTR_FW_DECL( nmos_pre_w_absolute_2 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_w_absolute_2);
@@ -2283,7 +2283,7 @@ nmos_pre_w_absolute( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
     return resume_to( cpu->instr );
@@ -2304,7 +2304,7 @@ INSTR_FW_DECL( nmos_pre_r_absolute_x_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_r_absolute_x_2);
@@ -2313,12 +2313,12 @@ nmos_pre_r_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_r_absolute_x_3);
 }
@@ -2330,7 +2330,7 @@ nmos_pre_r_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     if (cpu->pagecross_overflow)
     {
-        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+        cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
         return resume_to_dummy_read(cpu, nmos_pre_r_absolute_x_4 );
     }
@@ -2363,7 +2363,7 @@ INSTR_FW_DECL( nmos_pre_rw_absolute_x_5 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
 
@@ -2373,12 +2373,12 @@ nmos_pre_rw_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_rw_absolute_x_3);
 }
@@ -2388,7 +2388,7 @@ nmos_pre_rw_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+    cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
     return resume_to_dummy_read(cpu, nmos_pre_rw_absolute_x_4 );
 }
@@ -2421,7 +2421,7 @@ INSTR_FW_DECL( nmos_pre_w_absolute_x_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_w_absolute_x_2);
@@ -2430,12 +2430,12 @@ nmos_pre_w_absolute_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->X;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_w_absolute_x_3);
 }
@@ -2445,7 +2445,7 @@ nmos_pre_w_absolute_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+    cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
     return resume_to_dummy_read(cpu, cpu->instr );
 }
@@ -2465,7 +2465,7 @@ INSTR_FW_DECL( nmos_pre_r_absolute_y_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
 
@@ -2475,12 +2475,12 @@ nmos_pre_r_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_r_absolute_y_3);
 }
@@ -2492,7 +2492,7 @@ nmos_pre_r_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     if (cpu->pagecross_overflow)
     {
-        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+        cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
         return resume_to_dummy_read(cpu, nmos_pre_r_absolute_y_4 );
     }
@@ -2523,7 +2523,7 @@ INSTR_FW_DECL( nmos_pre_w_absolute_y_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_w_absolute_y_2);
@@ -2532,12 +2532,12 @@ nmos_pre_w_absolute_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_absolute_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_1));
     cpu->PC.u16++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_w_absolute_y_3);
 }
@@ -2547,7 +2547,7 @@ nmos_pre_w_absolute_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+    cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
     return resume_to_dummy_read(cpu, cpu->instr );
 }
@@ -2585,9 +2585,9 @@ INSTR_FW_DECL( nmos_pre_r_indexed_x_5 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_0));
     cpu->PC.u16++;
-    cpu->pointer.u8_msb = 0;
+    cpu->pointer.u8_1 = 0;
 
     return resume_to(nmos_pre_r_indexed_x_2);
 }
@@ -2595,9 +2595,9 @@ nmos_pre_r_indexed_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read_dummy(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
+    request_read_dummy(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
 
-    cpu->pointer.u8_lsb += cpu->X;
+    cpu->pointer.u8_0 += cpu->X;
 
     return resume_to_dummy_read(cpu, nmos_pre_r_indexed_x_3);
 }
@@ -2605,9 +2605,9 @@ nmos_pre_r_indexed_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
 
-    cpu->pointer.u8_lsb++;
+    cpu->pointer.u8_0++;
 
     return resume_to(nmos_pre_r_indexed_x_4);
 }
@@ -2615,7 +2615,7 @@ nmos_pre_r_indexed_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_x_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_1));
 
     return resume_to( nmos_pre_r_indexed_x_5 );
 }
@@ -2642,7 +2642,7 @@ INSTR_FW_DECL( nmos_pre_w_indexed_x_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_w_indexed_x_2);
@@ -2651,10 +2651,10 @@ nmos_pre_w_indexed_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->pointer.u8_msb = 0;
-    request_read_dummy(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
+    cpu->pointer.u8_1 = 0;
+    request_read_dummy(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
 
-    cpu->pointer.u8_lsb += cpu->X;
+    cpu->pointer.u8_0 += cpu->X;
 
     return resume_to_dummy_read(cpu, nmos_pre_w_indexed_x_3);
 }
@@ -2662,9 +2662,9 @@ nmos_pre_w_indexed_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
 
-    cpu->pointer.u8_lsb++;
+    cpu->pointer.u8_0++;
 
     return resume_to( nmos_pre_w_indexed_x_4 );
 }
@@ -2672,7 +2672,7 @@ nmos_pre_w_indexed_x_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_x_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_1));
 
     return resume_to( cpu->instr );
 }
@@ -2693,7 +2693,7 @@ INSTR_FW_DECL( nmos_pre_r_indexed_y_5 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_r_indexed_y_2);
@@ -2702,8 +2702,8 @@ nmos_pre_r_indexed_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->pointer.u8_msb = 0;
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
+    cpu->pointer.u8_1 = 0;
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
 
     return resume_to(nmos_pre_r_indexed_y_3);
 }
@@ -2711,13 +2711,13 @@ nmos_pre_r_indexed_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_indexed_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->pointer.u8_lsb++;
+    cpu->pointer.u8_0++;
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_1));
 
     return resume_to(nmos_pre_r_indexed_y_4);
 }
@@ -2729,7 +2729,7 @@ nmos_pre_r_indexed_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     if (cpu->pagecross_overflow)
     {
-        cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+        cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
         return resume_to_dummy_read(cpu, nmos_pre_r_indexed_y_5 );
     }
@@ -2761,7 +2761,7 @@ INSTR_FW_DECL( nmos_pre_w_indexed_y_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_w_indexed_y_2);
@@ -2770,20 +2770,20 @@ nmos_pre_w_indexed_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->pointer.u8_msb = 0;
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_lsb));
-    cpu->pointer.u8_lsb++;
+    cpu->pointer.u8_1 = 0;
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_0));
+    cpu->pointer.u8_0++;
     return resume_to(nmos_pre_w_indexed_y_3);
 }
 
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_indexed_y_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->pointer,  OFFSETOF(address.u8_1));
 
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     cpu->address.u16 += cpu->Y;
-    cpu->pagecross_overflow = QE_S8(cpu->address.u8_msb);
+    cpu->pagecross_overflow = QE_S8(cpu->address.u8_1);
 
     return resume_to(nmos_pre_w_indexed_y_4);
 }
@@ -2793,7 +2793,7 @@ nmos_pre_w_indexed_y_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_msb = QE_U8(cpu->address.u8_msb + cpu->pagecross_overflow);
+    cpu->address.u8_1 = QE_U8(cpu->address.u8_1 + cpu->pagecross_overflow);
 
     return resume_to_dummy_read(cpu, cpu->instr );
 }
@@ -2813,7 +2813,7 @@ INSTR_FW_DECL( nmos_pre_jmp_indirect_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_indirect( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_0));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_jmp_indirect_2);
@@ -2822,7 +2822,7 @@ nmos_pre_jmp_indirect( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_indirect_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_msb));
+    request_read(cpu, cpu->PC, OFFSETOF(pointer.u8_1));
     cpu->PC.u16++;
 
     return resume_to(nmos_pre_jmp_indirect_3);
@@ -2831,7 +2831,7 @@ nmos_pre_jmp_indirect_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_indirect_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->pointer, OFFSETOF(address.u8_0));
 
     // An original 6502 has does not correctly fetch the target
     // address if the indirect vector falls on a page boundary
@@ -2839,7 +2839,7 @@ nmos_pre_jmp_indirect_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     // In this case fetches the LSB from $xxFF as expected
     // but takes the MSB from $xx00.
     // This is fixed in some later chips like the 65SC02
-    cpu->pointer.u8_lsb++;
+    cpu->pointer.u8_0++;
 
     return resume_to(nmos_pre_jmp_indirect_4);
 }
@@ -2847,7 +2847,7 @@ nmos_pre_jmp_indirect_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_jmp_indirect_4( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->pointer, OFFSETOF(address.u8_msb));
+    request_read(cpu, cpu->pointer, OFFSETOF(address.u8_1));
 
     return resume_to(nmos_instr_JMP);
 }
@@ -2865,9 +2865,9 @@ INSTR_FW_DECL( nmos_pre_r_zeropage_2 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_zeropage( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     return resume_to(nmos_pre_r_zeropage_2);
 }
 
@@ -2892,10 +2892,10 @@ INSTR_FW_DECL( nmos_pre_rw_zeropage_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_zeropage( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to(nmos_pre_rw_zeropage_2);
 }
@@ -2927,9 +2927,9 @@ nmos_pre_rw_zeropage_3( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_zeropage( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to( cpu->instr );
 }
@@ -2948,9 +2948,9 @@ INSTR_FW_DECL( nmos_pre_r_zeropage_x_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_zeropage_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to(nmos_pre_r_zeropage_x_2);
 }
@@ -2960,7 +2960,7 @@ nmos_pre_r_zeropage_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_lsb += cpu->X;
+    cpu->address.u8_0 += cpu->X;
 
     return resume_to_dummy_read(cpu, nmos_pre_r_zeropage_x_3);
 }
@@ -2987,10 +2987,10 @@ INSTR_FW_DECL( nmos_pre_rw_zeropage_x_4 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_rw_zeropage_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to(nmos_pre_rw_zeropage_x_2);
 }
@@ -3000,7 +3000,7 @@ nmos_pre_rw_zeropage_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_lsb += cpu->X;
+    cpu->address.u8_0 += cpu->X;
 
     return resume_to_dummy_read(cpu, nmos_pre_rw_zeropage_x_3);
 }
@@ -3034,9 +3034,9 @@ INSTR_FW_DECL( nmos_pre_w_zeropage_x_2 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_zeropage_x( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to(nmos_pre_w_zeropage_x_2);
 }
@@ -3045,7 +3045,7 @@ INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_zeropage_x_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->address, OFFSETOF(data));
-    cpu->address.u8_lsb += cpu->X;
+    cpu->address.u8_0 += cpu->X;
 
     return resume_to(cpu->instr);
 }
@@ -3064,7 +3064,7 @@ INSTR_FW_DECL( nmos_pre_r_zeropage_y_3 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
 
@@ -3074,10 +3074,10 @@ nmos_pre_r_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_r_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_lsb += cpu->Y;
+    cpu->address.u8_0 += cpu->Y;
 
     return resume_to_dummy_read(cpu, nmos_pre_r_zeropage_y_3);
 }
@@ -3102,10 +3102,10 @@ INSTR_FW_DECL( nmos_pre_w_zeropage_y_2 );
 INSTR_RETTYPE qe6502_cycle_t
 nmos_pre_w_zeropage_y( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(address.u8_lsb));
+    request_read(cpu, cpu->PC, OFFSETOF(address.u8_0));
 
     cpu->PC.u16++;
-    cpu->address.u8_msb = 0;
+    cpu->address.u8_1 = 0;
 
     return resume_to(nmos_pre_w_zeropage_y_2);
 }
@@ -3115,7 +3115,7 @@ nmos_pre_w_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read_dummy(cpu, cpu->address, OFFSETOF(data));
 
-    cpu->address.u8_lsb += cpu->Y;
+    cpu->address.u8_0 += cpu->Y;
 
     return resume_to_dummy_read(cpu, cpu->instr);
 }
@@ -3131,15 +3131,15 @@ nmos_pre_w_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t  //
 nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->address.u8_lsb++;
-    switch(cpu->address.u8_lsb)
+    cpu->address.u8_0++;
+    switch(cpu->address.u8_0)
     {
     case 1:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
         break;
     case 2:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
         cpu->S--;
         break;
     case 3:
@@ -3148,10 +3148,10 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         break;
     case 4:
         cpu->P |= qe6502_flag_I;
-        request_read(cpu, (qe_word_t){.u16=0xfffe}, OFFSETOF(PC.u8_lsb));
+        request_read(cpu, (qe_word16_t){.u16=0xfffe}, OFFSETOF(PC.u8_0));
         break;
     case 5:
-        request_read(cpu, (qe_word_t){.u16=0xffff}, OFFSETOF(PC.u8_msb));
+        request_read(cpu, (qe_word16_t){.u16=0xffff}, OFFSETOF(PC.u8_1));
         return resume_to(nmos_fetch_opcode);
     default:
         qe_log_error("IRQ interrupt unexpected state");
@@ -3163,16 +3163,16 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t  //
 nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    cpu->address.u8_lsb++;
-    switch(cpu->address.u8_lsb)
+    cpu->address.u8_0++;
+    switch(cpu->address.u8_0)
     {
     case 1:
         cpu->istate &= QE_U8(~qe6502_nmi_pin_chg);
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_msb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
         break;
     case 2:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_lsb));
+        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
         cpu->S--;
         break;
     case 3:
@@ -3181,10 +3181,10 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         break;
     case 4:
         cpu->P |= qe6502_flag_I;
-        request_read(cpu, (qe_word_t){.u16=0xfffa}, OFFSETOF(PC.u8_lsb));
+        request_read(cpu, (qe_word16_t){.u16=0xfffa}, OFFSETOF(PC.u8_0));
         break;
     case 5:
-        request_read(cpu, (qe_word_t){.u16=0xfffb}, OFFSETOF(PC.u8_msb));
+        request_read(cpu, (qe_word16_t){.u16=0xfffb}, OFFSETOF(PC.u8_1));
         return resume_to(nmos_fetch_opcode);
     default:
         qe_log_error("NMI interrupt unexpected state");

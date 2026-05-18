@@ -1,6 +1,7 @@
 // bench_qe6502_native_embedded.c
 
 #include <qe6502/qe6502.h>
+#include <qe/api_private.h>
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -9,12 +10,12 @@
 #include <string.h>
 #include <time.h>
 
-#define TICK_ADDRESS_MASK 0x0000FFFFu
-#define TICK_BUS_WRITE    0x00010000u
-#define TICK_STARTING     0x00020000u
-#define TICK_INSTR_DONE   0x00040000u
-#define TICK_NOT_OK       0x00800000u
-#define TICK_DATA_SHIFT   24u
+#define TICK_EX_ADDRESS_MASK    0xffff
+#define TICK_DATA_SHIFT         16u
+#define TICK_BUS_WRITE          0x01000000u
+#define TICK_STARTING           0x02000000u
+#define TICK_INSTR_DONE         0x04000000u
+#define TICK_NOT_OK             0x80000000u
 
 static const uint8_t ROM_6502_FUNCTIONAL_TEST[0x10000] =
 #include "6502_functional_test.hex"
@@ -119,12 +120,12 @@ static void print_hex16(uint16_t value) {
 }
 
 static void decode_tick_state(uint32_t packed, bus_state_t* state) {
-    state->address = (uint16_t)(packed & TICK_ADDRESS_MASK);
+    state->address = QE_U16(packed & TICK_EX_ADDRESS_MASK);
+    state->data_out = (uint8_t)((packed >> TICK_DATA_SHIFT) & 0xFFu);
     state->is_write = (packed & TICK_BUS_WRITE) != 0;
     state->is_started = (packed & TICK_STARTING) == 0;
     state->is_instr_done = (packed & TICK_INSTR_DONE) != 0;
     state->ok = (packed & TICK_NOT_OK) == 0;
-    state->data_out = (uint8_t)((packed >> TICK_DATA_SHIFT) & 0xFFu);
 }
 
 static void tick_fast(qe6502_cpu_t* cpu, uint8_t memory[0x10000], bus_state_t* state) {

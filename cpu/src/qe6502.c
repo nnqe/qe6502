@@ -84,13 +84,13 @@ power_on_routine( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
     case 6:
         cpu->address.u16 = 0xFFFC;
-        request_read(cpu, cpu->address, OFFSETOF(PC.u8_lsb));
+        request_read(cpu, cpu->address, OFFSETOF(PC.u8_0));
         cpu->cmd.flags = qe6502_starting;
         return resume_to(power_on_routine);
 
     case 7:
         cpu->address.u16++;
-        request_read(cpu, cpu->address, OFFSETOF(PC.u8_msb));
+        request_read(cpu, cpu->address, OFFSETOF(PC.u8_1));
         cpu->cmd.flags = qe6502_starting;
         return resume_to(power_on_routine);
 
@@ -121,7 +121,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
 
     // test read
     cpu->cmd.packed = 0;
-    request_read(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
+    request_read(cpu, (qe_word16_t){.u16=0xDEAD}, 0xA2);
     if (cpu->cmd.address != 0xDEAD ||
         cpu->cmd.offset != 0xA2)
     {
@@ -141,7 +141,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
 
     // test write
     cpu->cmd.packed = 0;
-    request_write(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
+    request_write(cpu, (qe_word16_t){.u16=0xDEAD}, 0xA2);
     if (cpu->cmd.address != 0xDEAD ||
         cpu->cmd.offset != 0xA2 ||
         cpu->cmd.flags != qe6502_writing)
@@ -162,12 +162,12 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     }
 
     // test offsets
-    ((uint8_t*)(cpu))[ OFFSETOF(address.u8_lsb) ] = 0xAD;
-    ((uint8_t*)(cpu))[ OFFSETOF(address.u8_msb) ] = 0xDE;
-    ((uint8_t*)(cpu))[ OFFSETOF(pointer.u8_lsb) ] = 0xEF;
-    ((uint8_t*)(cpu))[ OFFSETOF(pointer.u8_msb) ] = 0xBE;
-    ((uint8_t*)(cpu))[ OFFSETOF(PC.u8_lsb) ] = 0xFE;
-    ((uint8_t*)(cpu))[ OFFSETOF(PC.u8_msb) ] = 0xCA;
+    ((uint8_t*)(cpu))[ OFFSETOF(address.u8_0) ] = 0xAD;
+    ((uint8_t*)(cpu))[ OFFSETOF(address.u8_1) ] = 0xDE;
+    ((uint8_t*)(cpu))[ OFFSETOF(pointer.u8_0) ] = 0xEF;
+    ((uint8_t*)(cpu))[ OFFSETOF(pointer.u8_1) ] = 0xBE;
+    ((uint8_t*)(cpu))[ OFFSETOF(PC.u8_0) ] = 0xFE;
+    ((uint8_t*)(cpu))[ OFFSETOF(PC.u8_1) ] = 0xCA;
     ((uint8_t*)(cpu))[ OFFSETOF(opcode) ] = 0xAB;
     ((uint8_t*)(cpu))[ OFFSETOF(data) ] = 0xBA;
     ((uint8_t*)(cpu))[ OFFSETOF(S) ] = 0xD8;
@@ -196,8 +196,8 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
     }
 
     // endian check
-    cpu->address.u8_msb = 0x79;
-    cpu->address.u8_lsb = 0x09;
+    cpu->address.u8_1 = 0x79;
+    cpu->address.u8_0 = 0x09;
     if (cpu->address.u16 != 0x7909)
     {
         qe_log_error("little/big endian check");
@@ -265,7 +265,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
-    request_read(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
+    request_read(cpu, (qe_word16_t){.u16=0xDEAD}, 0xA2);
     if (!qe6502_needs_data_impl(cpu))
     {
         qe_log_error("'qe6502_needs_data' wrong false");
@@ -277,7 +277,7 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
-    request_write(cpu, (qe_word_t){.u16=0xDEAD}, 0xA2);
+    request_write(cpu, (qe_word16_t){.u16=0xDEAD}, 0xA2);
     if (qe6502_needs_data_impl(cpu))
     {
         qe_log_error("'qe6502_needs_data' wrong true");
@@ -306,14 +306,14 @@ qe6502_power_on_impl(qe6502_t* cpu, uint8_t model)
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
     cpu->cmd.packed = 0;
-    request_read(cpu, (qe_word_t){.u16=0xBEEF}, OFFSETOF(data));
+    request_read(cpu, (qe_word16_t){.u16=0xBEEF}, OFFSETOF(data));
     qe6502_feed_data_impl(cpu, 0x42);
     if (cpu->data != 0x42)
     {
         qe_log_error("'qe6502_feed_data' fail");
         return cpu_error(cpu,  qe6502_err_compile_error );
     }
-    request_write(cpu, (qe_word_t){.u16=0xBEEF}, OFFSETOF(data));
+    request_write(cpu, (qe_word16_t){.u16=0xBEEF}, OFFSETOF(data));
     if (qe6502_data_impl(cpu) != 0x42)
     {
         qe_log_error("'qe6502_data' fail");
@@ -367,14 +367,41 @@ qe6502_reset_instruction_impl(qe6502_t *cpu)
     return select_fetch_opcode_bridge(cpu);
 }
 
+/*
+ * Returns a packed CPU state and BUS operation *
+ * Bit layout:
+ *
+ *   bits [ 0.. 7] : Memory address LSB
+ *   bits [ 8..15] : Memory address MSB
+ *   bits [16..23] : Data out, valid only when bit [16] == 1
+ *   bits [24    ] : Bus direction, 0 == Read request, 1 == Write request
+ *   bits [25    ] : 0 == Started | 1 == Starting
+ *   bits [26    ] : 0 == During instruction | 1 == Instruction done
+ *   bits [27..30] : Reserved
+ *   bits [31    ] : 0 == OK | 1 == Halted / not OK
+ *
+ * This is a numeric bit encoding. Decode with shifts and masks.
+ */
 QE_SIC uint32_t qe6502_packed_state_impl(const qe6502_t* cpu)
 {
-    uint32_t packed = qe6502_has_data_impl(cpu) ? qe6502_data_impl(cpu) : 0;
-    packed <<= 8;
-    packed |= cpu->cmd.flags;
-    packed <<= 16;
-    packed |= qe6502_address_impl(cpu);
-    return packed;
+    qe_word32_t packed;
+    packed.u8_0 = qe_as_word16(cpu->cmd.address).u8_0;
+    packed.u8_1 = qe_as_word16(cpu->cmd.address).u8_1;
+    packed.u8_2 = qe6502_has_data_impl(cpu) ? qe6502_data_impl(cpu) : 0;
+    packed.u8_3 = cpu->cmd.flags;
+    return packed.u32;
+}
+
+QE_SIC void qe6502_overwrite_impl(qe6502_t* cpu, uint64_t state)
+{
+    cpu->PC.u8_0 = qe_as_word64(state).u8_0;
+    cpu->PC.u8_1 = qe_as_word64(state).u8_1;
+    cpu->A         = qe_as_word64(state).u8_2;
+    cpu->X         = qe_as_word64(state).u8_3;
+    cpu->Y         = qe_as_word64(state).u8_4;
+    cpu->S         = qe_as_word64(state).u8_5;
+    cpu->P         = qe_as_word64(state).u8_6;
+    cpu->model     = qe_as_word64(state).u8_7; // model and istate shared the same byte
 }
 
 // Foreign Function Interface (FFI)
@@ -429,21 +456,6 @@ qe6502_cpu_tick(qe6502_cpu_t* cpu)
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
     wrap->cycle = wrap->cycle.execute(&wrap->cpu);
 }
-
-/*
- * Returns a packed CPU state and BUS operation *
- * Bit layout:
- *
- *   bits [ 0..15]  : Memory address
- *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
- *   bits [17]      : 0 == Started | 1 == Starting
- *   bits [18]      : 0 == During instruction | 1 == Instruction done
- *   bits [19..22]  : Reserved
- *   bits [23]      : 0 == OK | 1 == Halted / not OK
- *   bits [24..31]  : Data out, valid only when bit [16] == 1
- *
- * This is a numeric bit encoding. Decode with shifts and masks.
- */
 
 QE_FFI_API_IMPL(uint32_t)
 qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in)
@@ -517,34 +529,28 @@ QE_FFI_API_IMPL(void)     qe6502_irq_lo(qe6502_cpu_t* cpu) { qe6502_irq_lo_impl(
 QE_FFI_API_IMPL(uint64_t) qe6502_dump(const qe6502_cpu_t* cpu)
 {
     const qe6502_t* cpu_ptr = CPU_CONST(cpu);
-    uint64_t state =
-        (((uint64_t)cpu_ptr->PC.u8_lsb)  <<  0) |
-        (((uint64_t)cpu_ptr->PC.u8_msb)  <<  8) |
-        (((uint64_t)cpu_ptr->A)          << 16) |
-        (((uint64_t)cpu_ptr->X)          << 24) |
-        (((uint64_t)cpu_ptr->Y)          << 32) |
-        (((uint64_t)cpu_ptr->S)          << 40) |
-        (((uint64_t)cpu_ptr->P)          << 48) |
-        (((uint64_t)cpu_ptr->istate)     << 56);
+    qe_word64_t state64;
+    state64.u8_0 = cpu_ptr->PC.u8_0;
+    state64.u8_1 = cpu_ptr->PC.u8_1;
+    state64.u8_2 = cpu_ptr->A;
+    state64.u8_3 = cpu_ptr->X;
+    state64.u8_4 = cpu_ptr->Y;
+    state64.u8_5 = cpu_ptr->S;
+    state64.u8_6 = cpu_ptr->P;
+    state64.u8_7 = cpu_ptr->istate; // model and istate shared the same byte
 
     if (!qe6502_instr_done_impl(cpu_ptr))
     {
-        state |= (uint64_t)1 << 63;
+        state64.u8_7 |= 1 << 7;
     }
-    return state;
+    return state64.u64;
 }
 
 QE_FFI_API_IMPL(void) qe6502_recover(qe6502_cpu_t* cpu, uint64_t stable_state)
 {
     qe6502_t* cpu_ptr = CPU(cpu);
-    cpu_ptr->PC.u8_lsb = (uint8_t)(stable_state >>  0);
-    cpu_ptr->PC.u8_msb = (uint8_t)(stable_state >>  8);
-    cpu_ptr->A         = (uint8_t)(stable_state >> 16);
-    cpu_ptr->X         = (uint8_t)(stable_state >> 24);
-    cpu_ptr->Y         = (uint8_t)(stable_state >> 32);
-    cpu_ptr->S         = (uint8_t)(stable_state >> 40);
-    cpu_ptr->P         = (uint8_t)(stable_state >> 48);
-    cpu_ptr->model     = (uint8_t)(stable_state >> 56);
+
+    qe6502_overwrite_impl(cpu_ptr, stable_state);
 
     qe6502_cpuwrap_t* wrap = (qe6502_cpuwrap_t*)cpu;
 
@@ -564,16 +570,8 @@ QE_FFI_API_IMPL(void) qe6502_unsafe_overwrite(qe6502_cpu_t* cpu, uint64_t state)
 {
     // clear unstable flag from dump function
     state &= ~((uint64_t)1 << 63);
-
     qe6502_t* cpu_ptr = CPU(cpu);
-    cpu_ptr->PC.u8_lsb = (uint8_t)(state >>  0);
-    cpu_ptr->PC.u8_msb = (uint8_t)(state >>  8);
-    cpu_ptr->A         = (uint8_t)(state >> 16);
-    cpu_ptr->X         = (uint8_t)(state >> 24);
-    cpu_ptr->Y         = (uint8_t)(state >> 32);
-    cpu_ptr->S         = (uint8_t)(state >> 40);
-    cpu_ptr->P         = (uint8_t)(state >> 48);
-    cpu_ptr->model     = (uint8_t)(state >> 56);
+    qe6502_overwrite_impl(cpu_ptr, state);
 }
 
 QE_FFI_API_IMPL(uint16_t)  qe6502_error_code(const qe6502_cpu_t* cpu)
@@ -616,10 +614,10 @@ QE_FFI_API_IMPL(void) qe6502_set_logger(qe6502_log_fn logger, void* context)
 QE_FFI_API_IMPL(void)
 qe6502_offsets(qe6502_offsets_t* offsets)
 {
-    offsets->word_lsb           = offsetof(qe_word_t, u8_lsb);
-    offsets->word_msb           = offsetof(qe_word_t, u8_msb);
-    offsets->word32_lsw         = offsetof(qe_word32_t, lsw);
-    offsets->word32_msw         = offsetof(qe_word32_t, msw);
+    offsets->word_lsb           = offsetof(qe_word16_t, u8_0);
+    offsets->word_msb           = offsetof(qe_word16_t, u8_1);
+    offsets->word32_lsw         = offsetof(qe_word32_t, word16_0);
+    offsets->word32_msw         = offsetof(qe_word32_t, word16_1);
     offsets->cmd_address        = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, address);
     offsets->cmd_offset         = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, offset);
     offsets->cmd_flags          = OFFSETOF(cmd) + offsetof(qe6502_cmd_t, flags);
@@ -642,7 +640,7 @@ qe6502_offsets(qe6502_offsets_t* offsets)
     offsets->P                  = OFFSETOF(P);
 
     qe6502_t obj;
-    offsets->sizeof_word                = sizeof(qe_word_t);
+    offsets->sizeof_word                = sizeof(qe_word16_t);
     offsets->sizeof_word32              = sizeof(qe_word32_t);
     offsets->sizeof_cmd_address         = sizeof(obj.cmd.address);
     offsets->sizeof_cmd_offset          = sizeof(obj.cmd.offset);

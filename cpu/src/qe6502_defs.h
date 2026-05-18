@@ -107,10 +107,10 @@ typedef struct qe6502
     qe6502_cmd_t cmd;                   // 4
 
     /******** microcode state ********/
-    qe_word_t address;                  // 2
+    qe_word16_t address;                  // 2
     union
     {
-        qe_word_t pointer;              // 2
+        qe_word16_t pointer;              // 2
         uint16_t error_code;
     };
     qe6502_microcode_fn instr;          // 8|4|2
@@ -128,7 +128,7 @@ typedef struct qe6502
     uint8_t opcode;                     // 1
 
     /******** cpu data ********/
-    qe_word_t PC;                       // 2
+    qe_word16_t PC;                       // 2
     uint8_t S;                          // 5 x 1
     uint8_t A;
     uint8_t X;

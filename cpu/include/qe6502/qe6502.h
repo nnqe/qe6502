@@ -21,13 +21,13 @@
 #include <stddef.h>
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-#define QE6502_MODEL_MOS 0
-#define QE6502_MODEL_NES 1
+#   define QE6502_MODEL_MOS 0
+#   define QE6502_MODEL_NES 1
 #endif
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-#define QE6502_MODEL_WDC 2
-#define QE6502_MODEL_RW  3
-#define QE6502_MODEL_ST  4
+#   define QE6502_MODEL_WDC 2
+#   define QE6502_MODEL_RW  3
+#   define QE6502_MODEL_ST  4
 #endif
 
 #define QE_CONTEXT_SIZE   40u
@@ -73,6 +73,7 @@ typedef struct
     uint8_t reserved_data[4];
 } qe6502_opcode_meta_t;
 
+
 QE_FFI_API(uint32_t)    qe6502_version(void);
 //
 QE_FFI_API(size_t)      qe6502_cpu_size(void);
@@ -85,13 +86,14 @@ QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
  * Returns a packed CPU state and BUS operation *
  * Bit layout:
  *
- *   bits [ 0..15]  : Memory address
- *   bits [16]      : Bus direction, 0 == Read request, 1 == Write request
- *   bits [17]      : 0 == Started | 1 == Starting
- *   bits [18]      : 0 == During instruction | 1 == Instruction done
- *   bits [19..22]  : Reserved
- *   bits [23]      : 0 == OK | 1 == Halted / not OK
- *   bits [24..31]  : Data out, valid only when bit [16] == 1
+ *   bits [ 0.. 7] : Memory address LSB
+ *   bits [ 8..15] : Memory address MSB
+ *   bits [16..23] : Data out, valid only when bit [16] == 1
+ *   bits [24    ] : Bus direction, 0 == Read request, 1 == Write request
+ *   bits [25    ] : 0 == Started | 1 == Starting
+ *   bits [26    ] : 0 == During instruction | 1 == Instruction done
+ *   bits [27..30] : Reserved
+ *   bits [31    ] : 0 == OK | 1 == Halted / not OK
  *
  * This is a numeric bit encoding. Decode with shifts and masks.
  */
@@ -205,5 +207,19 @@ typedef struct
 // Use only if you are very familiar with the internal implementation of the library.
 QE_FFI_API(void)    qe6502_offsets(qe6502_offsets_t* offsets);
 QE_FFI_API(void)    qe6502_unsafe_overwrite(qe6502_cpu_t* cpu, uint64_t state);
+
+
+
+//////////////////////////////////////
+
+typedef uint32_t qe6502_bus_state_t;
+
+#define QE6502_UNPACK_IS_WRITING    (UINT32_C(1) << 16)
+#define QE6502_UNPACK_STARTING      (UINT32_C(1) << 16)
+#define QE6502_UNPACK_STARTING      (UINT32_C(1) << 16)
+
+
+
+
 
 #endif // QE6502_H__

@@ -45,22 +45,21 @@ const REQUIRED_EXPORTS = [
   "qe6502_opcode_meta",
 ];
 
-// qe6502_cpu_tick_ex() packed state layout:
-//
-// bits [ 0..15]  : Memory address
-// bits [16]      : Bus direction, 0 == Read request, 1 == Write request
-// bits [17]      : 0 == Started | 1 == Starting
-// bits [18]      : 0 == During instruction | 1 == Instruction done
-// bits [19..22]  : Reserved
-// bits [23]      : 0 == OK | 1 == Halted / not OK
-// bits [24..31]  : Data out, valid only when bit [16] == 1
+//  bits [ 0.. 7] : Memory address LSB
+//  bits [ 8..15] : Memory address MSB
+//  bits [16..23] : Data out, valid only when bit [16] == 1
+//  bits [24    ] : Bus direction, 0 == Read request, 1 == Write request
+//  bits [25    ] : 0 == Started | 1 == Starting
+//  bits [26    ] : 0 == During instruction | 1 == Instruction done
+//  bits [27..30] : Reserved
+//  bits [31    ] : 0 == OK | 1 == Halted / not OK
 
-const TICK_EX_ADDRESS_MASK = 0x0000ffff;
-const TICK_EX_BUS_WRITE = 0x00010000;
-const TICK_EX_STARTING = 0x00020000;
-const TICK_EX_INSTR_DONE = 0x00040000;
-const TICK_EX_NOT_OK = 0x00800000;
-const TICK_EX_DATA_SHIFT = 24;
+const TICK_EX_ADDRESS_MASK = 0xFFFF;
+const TICK_EX_DATA_SHIFT = 16;
+const TICK_EX_BUS_WRITE = 0x01000000;
+const TICK_EX_STARTING = 0x02000000;
+const TICK_EX_INSTR_DONE = 0x04000000;
+const TICK_EX_NOT_OK = 0x80000000;
 
 function readCStringFromMemory(memory, ptr) {
   ptr = ptr >>> 0;
@@ -451,11 +450,11 @@ class QE6502CPU {
 
   #cacheTickExState(packed) {
     this.#address = packed & TICK_EX_ADDRESS_MASK;
+    this.#dataOut = (packed >>> TICK_EX_DATA_SHIFT) & 0xff;
     this.#isWrite = (packed & TICK_EX_BUS_WRITE) !== 0;
     this.#isStarted = (packed & TICK_EX_STARTING) === 0;
     this.#isInstrDone = (packed & TICK_EX_INSTR_DONE) !== 0;
     this.#ok = (packed & TICK_EX_NOT_OK) === 0;
-    this.#dataOut = (packed >>> TICK_EX_DATA_SHIFT) & 0xff;
   }
 
   #refreshStateSlow() {

@@ -61,7 +61,7 @@ qe6502_cycle_t jump_to( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe6502_microcode_f
     return handler(cpu);
 }
 
-QE_SIC void request_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_address, uint8_t store_offs)
+QE_SIC void request_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word16_t read_address, uint8_t store_offs)
 {
     cpu->cmd.packed =   QE_U32(read_address.u16) |
                         QE_U32(QE_U32(store_offs) << 16);
@@ -76,7 +76,7 @@ QE_SIC void request_stack_read( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t st
 }
 QE_MAYBE_UNUSED(request_stack_read)
 
-QE_SIC void request_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
+QE_SIC void request_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word16_t write_address, uint8_t get_offset)
 {
     cpu->cmd.packed =   QE_U32(write_address.u16) |
                         QE_U32(QE_U32(get_offset) << 16) |
@@ -93,7 +93,7 @@ QE_SIC void request_stack_write( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint8_t s
 }
 QE_MAYBE_UNUSED(request_stack_write)
 
-QE_SIC void request_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t read_address, uint8_t store_offs)
+QE_SIC void request_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word16_t read_address, uint8_t store_offs)
 {
 #   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(read_address.u16) |
@@ -116,7 +116,7 @@ QE_SIC void request_stack_read_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, uint
 }
 QE_MAYBE_UNUSED(request_stack_read_dummy)
 
-QE_SIC void request_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word_t write_address, uint8_t get_offset)
+QE_SIC void request_write_dummy( INSTR_ARGS qe6502_t* QE_RESTRICT cpu, qe_word16_t write_address, uint8_t get_offset)
 {
 #   if(QE6502_ENABLE_CYCLE_MERGE != 1)
         cpu->cmd.packed =   QE_U32(write_address.u16) |
