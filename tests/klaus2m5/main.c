@@ -224,7 +224,7 @@ static int test_model(const char* exec_name, const char* model_arg, const char* 
         msg
     );
 
-    return result;
+    return result? 0:1;
 }
 
 int main(int argc, char** argv)
