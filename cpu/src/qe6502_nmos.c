@@ -649,7 +649,7 @@ nmos_instr_BRK_finalize( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, (qe_word16_t){.u16=0xffff}, OFFSETOF(PC.u8_1));
     cpu->P |= qe6502_flag_I;
-    return resume_to(nmos_fetch_opcode);
+    return resume_to(nmos_fetch_opcode_no_interrupts);
 }
 
 /********************************************************
@@ -3161,32 +3161,6 @@ nmos_pre_w_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
  *
  ********************************************************/
 
-QE_MAYBE_UNUSED
-INSTR_RETTYPE qe6502_cycle_t  //
-nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    cpu->address.u8_0++;
-    switch(cpu->address.u8_0)
-    {
-    case 1:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
-        cpu->S--;
-        break;
-    case 2:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
-        cpu->S--;
-        break;
-    case 3:
-        request_stack_write(cpu, cpu->S, OFFSETOF(P));
-        cpu->S--;
-        return resume_to(nmos_irq_vector_fetch);
-    default:
-        qe_log_error("IRQ interrupt unexpected state");
-        return cpu_error(cpu,  qe6502_err_corrupt_state);
-    }
-    return resume_to(nmos_irq);
-}
-
 INSTR_RETTYPE qe6502_cycle_t  //
 nmos_irq_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
@@ -3218,32 +3192,6 @@ nmos_irq_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         return cpu_error(cpu,  qe6502_err_corrupt_state);
     }
     return resume_to(nmos_irq_vector_fetch);
-}
-
-QE_MAYBE_UNUSED
-INSTR_RETTYPE qe6502_cycle_t  //
-nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
-{
-    cpu->address.u8_0++;
-    switch(cpu->address.u8_0)
-    {
-    case 1:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
-        cpu->S--;
-        break;
-    case 2:
-        request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
-        cpu->S--;
-        break;
-    case 3:
-        request_stack_write(cpu, cpu->S, OFFSETOF(P));
-        cpu->S--;
-        return resume_to(nmos_nmi_vector_fetch);
-    default:
-        qe_log_error("NMI interrupt unexpected state");
-        return cpu_error(cpu,  qe6502_err_corrupt_state);
-    }
-    return resume_to(nmos_nmi);
 }
 
 INSTR_RETTYPE qe6502_cycle_t  //

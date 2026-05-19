@@ -1,3 +1,12 @@
+/*
+ * QE6502 has been validated against the full SingleStepTests ProcessorTests
+ * corpus for every supported 6502-family model. The validation covers not only
+ * final CPU state, but also every recorded bus operation during all intermediate
+ * instruction cycles.
+ *
+ * https://github.com/SingleStepTests/ProcessorTests/tree/main
+ */
+
 import {
   loadQE6502,
   QE6502_MODEL_MOS,
