@@ -1,4 +1,3 @@
-#include <qe/api_private.h>
 #include <qe/log.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -300,7 +299,7 @@ static int qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap)
     return (int)len;
 }
 
-static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
+QE_MAYBE_UNUSED static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 {
     int result;
     va_list ap;
@@ -311,4 +310,3 @@ static int qe_snprintf(char* out, size_t cap, const char* fmt, ...)
 
     return result;
 }
-QE_MAYBE_UNUSED(qe_snprintf)

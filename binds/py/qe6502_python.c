@@ -98,7 +98,7 @@ CPU_init(QE6502CPUObject* self, PyObject* args, PyObject* kwargs)
             return -1;
         }
 
-        qe6502_cpu_power_on(&self->cpu, (uint8_t)model);
+        qe6502_reset(&self->cpu, (uint8_t)model);
         self->packed = pack_state_slow(&self->cpu);
         self->powered_on = 1;
     }
@@ -123,7 +123,7 @@ CPU_power_on(QE6502CPUObject* self, PyObject* arg)
         return NULL;
     }
 
-    qe6502_cpu_power_on(&self->cpu, (uint8_t)model);
+    qe6502_reset(&self->cpu, (uint8_t)model);
     self->packed = pack_state_slow(&self->cpu);
     self->powered_on = 1;
 
@@ -147,7 +147,7 @@ CPU_tick_u8(QE6502CPUObject* self, PyObject* arg)
         return NULL;
     }
 
-    self->packed = qe6502_cpu_tick_ex(&self->cpu, (uint8_t)data_in);
+    self->packed = qe6502_tick(&self->cpu, (uint8_t)data_in);
 
     return PyLong_FromUnsignedLong((unsigned long)self->packed);
 }
@@ -156,7 +156,7 @@ CPU_tick_u8(QE6502CPUObject* self, PyObject* arg)
 static PyObject*
 CPU_tick0(QE6502CPUObject* self, PyObject* Py_UNUSED(ignored))
 {
-    self->packed = qe6502_cpu_tick_ex(&self->cpu, 0);
+    self->packed = qe6502_tick(&self->cpu, 0);
 
     return PyLong_FromUnsignedLong((unsigned long)self->packed);
 }

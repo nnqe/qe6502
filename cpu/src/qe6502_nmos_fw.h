@@ -2,8 +2,8 @@
 // Manual modifications are discouraged and may lead to unintended errors.
 // Contains opcode handler declarations and metadata used by the emulator.
 
-#ifndef QE6502_NMOS_FW_H__
-#define QE6502_NMOS_FW_H__
+#ifndef QE6502_NMOS_FW_H
+#define QE6502_NMOS_FW_H
 
 #include "qe6502_inline.h"
 
@@ -272,5 +272,5 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
 INSTR_RETTYPE qe6502_cycle_t  // nmi handle
 nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu ) ;
 
-#endif // QE6502_NMOS_FW_H__
+#endif // QE6502_NMOS_FW_H
 

@@ -431,7 +431,7 @@ class CPU:
         self._assert_alive()
         model = _assert_model(model)
 
-        self._lib.dll.qe6502_cpu_power_on(self._ptr, model)
+        self._lib.dll.qe6502_reset(self._ptr, model)
         self._data_in = 0
         self._refresh_state()
 
@@ -441,7 +441,7 @@ class CPU:
         if data_in is not None:
             self._data_in = _assert_u8("data_in", data_in)
 
-        packed = int(self._lib.dll.qe6502_cpu_tick_ex(self._ptr, self._data_in))
+        packed = int(self._lib.dll.qe6502_tick(self._ptr, self._data_in))
         self._data_in = 0
         self._cache_tick_state(packed)
 
@@ -449,7 +449,7 @@ class CPU:
         self._assert_alive()
         data_in = _assert_u8("data_in", data_in)
 
-        packed = int(self._lib.dll.qe6502_cpu_tick_ex(self._ptr, data_in))
+        packed = int(self._lib.dll.qe6502_tick(self._ptr, data_in))
         self._cache_tick_state(packed)
         return packed
 

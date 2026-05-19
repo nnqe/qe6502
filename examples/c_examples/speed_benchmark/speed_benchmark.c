@@ -1,7 +1,7 @@
 // bench_qe6502_native_embedded.c
 
 #include <qe6502/qe6502.h>
-#include <qe/api_private.h>
+#include <qe/impl_utils.h>
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
     uint16_t address;
     uint8_t is_write;
-    uint8_t is_started;
+    uint8_t is_starting;
     uint8_t is_instr_done;
     uint8_t ok;
     uint8_t data_out;
@@ -119,13 +119,13 @@ static void print_hex16(uint16_t value) {
     printf("0x%04X", (unsigned)value);
 }
 
-static void decode_tick_state(uint32_t packed, bus_state_t* state) {
-    state->address = QE_U16(packed & TICK_EX_ADDRESS_MASK);
-    state->data_out = (uint8_t)((packed >> TICK_DATA_SHIFT) & 0xFFu);
-    state->is_write = (packed & TICK_BUS_WRITE) != 0;
-    state->is_started = (packed & TICK_STARTING) == 0;
-    state->is_instr_done = (packed & TICK_INSTR_DONE) != 0;
-    state->ok = (packed & TICK_NOT_OK) == 0;
+static void decode_tick_state(qe6502_tick_t tick, bus_state_t* state) {
+    state->address = QE6502_ADDRESS(tick);
+    state->data_out =  QE6502_DATA(tick);
+    state->is_write = QE6502_IS_WRITING(tick);
+    state->is_starting = QE6502_IS_STARTING(tick);
+    state->is_instr_done = QE6502_IS_INSTR_DONE(tick);
+    state->ok = QE6502_IS_OK(tick);
 }
 
 static void tick_fast(qe6502_cpu_t* cpu, uint8_t memory[0x10000], bus_state_t* state) {
@@ -138,23 +138,20 @@ static void tick_fast(qe6502_cpu_t* cpu, uint8_t memory[0x10000], bus_state_t* s
         data_in = memory[state->address];
     }
 
-    packed = qe6502_cpu_tick_ex(cpu, data_in);
+    packed = qe6502_tick(cpu, data_in);
     decode_tick_state(packed, state);
 }
 
 static void print_regs(const qe6502_cpu_t* cpu) {
-    uint64_t packed = qe6502_dump(cpu);
+    qe6502_state_t state = qe6502_dump_state(cpu);
 
-    uint16_t pc = (uint16_t)(
-        (packed & 0xFFu) |
-        (((packed >> 8u) & 0xFFu) << 8u)
-        );
+    uint16_t pc = QE6502_PC(state);
 
-    uint8_t a = (uint8_t)((packed >> 16u) & 0xFFu);
-    uint8_t x = (uint8_t)((packed >> 24u) & 0xFFu);
-    uint8_t y = (uint8_t)((packed >> 32u) & 0xFFu);
-    uint8_t s = (uint8_t)((packed >> 40u) & 0xFFu);
-    uint8_t p = (uint8_t)((packed >> 48u) & 0xFFu);
+    uint8_t a = QE6502_A(state);
+    uint8_t x = QE6502_X(state);
+    uint8_t y = QE6502_Y(state);
+    uint8_t s = QE6502_S(state);
+    uint8_t p = QE6502_P(state);
 
     printf("PC     = ");
     print_hex16(pc);
@@ -220,11 +217,10 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
 
     prepare_memory(memory, test->rom);
 
-    qe6502_cpu_power_on(&cpu, test->model);
-    uint32_t packed_state = qe6502_packed_state(&cpu);
-    decode_tick_state(packed_state, &state);
+    qe6502_tick_t tick = qe6502_reset(&cpu, test->model);
+    decode_tick_state(tick, &state);
 
-    while (!state.is_started) {
+    while (state.is_starting) {
         tick_fast(&cpu, memory, &state);
         ticks++;
     }

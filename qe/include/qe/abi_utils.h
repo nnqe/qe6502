@@ -12,13 +12,14 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE_API_PUBLIC_H__
-#define QE_API_PUBLIC_H__
+#ifndef QE_API_UTILS_H
+#define QE_API_UTILS_H
 
-#include "api_public_impl.h"
+#include <qe/internals/abi_defs.h>
 
-#define QE_API(rettype)         QE_EXTERN_C_ rettype QE_CALL_
+
 #define QE_FFI_API(rettype)     QE_EXTERN_C_ QE_EXPORT_ rettype QE_CALL_
-#define QE_ALIGNAS(n)           QE_ALIGNAS_(n)
+#define QE_IMPORT(module, name) QE_IMPORT_(module, name)
 
-#endif // QE_API_PUBLIC_H__
+
+#endif // QE_API_UTILS_H

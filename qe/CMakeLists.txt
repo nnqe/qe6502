@@ -5,8 +5,8 @@ set(target qe_static)
 
 # Public header files
 set(QE_PUBLIC_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/api_public.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/api_private.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/abi_utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/impl_utils.h
 )
 
 # Private source files

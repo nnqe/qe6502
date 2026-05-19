@@ -1,7 +1,7 @@
-#ifndef QE_LOG_H__
-#define QE_LOG_H__
+#ifndef QE_LOG_H
+#define QE_LOG_H
 
-#include <qe/api_private.h>
+#include <qe/impl_utils.h>
 
 typedef void (*qe_log_fn)(void* context, const char* topic, const char* message);
 
@@ -17,4 +17,4 @@ QE_API(void) qe_log_error(const char *fmt, ...);
 #   define qe_log_info(...) ((void)0)
 #endif
 
-#endif // QE_LOG_H__
+#endif // QE_LOG_H

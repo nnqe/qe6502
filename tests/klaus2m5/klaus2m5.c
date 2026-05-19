@@ -18,30 +18,26 @@ const char* test_klaus2m5(uint8_t cpu_model,
 
     memory[0xFFFC] = 0x00;
     memory[0xFFFD] = 0x04;
-    qe6502_cpu_power_on(cpu_ptr, cpu_model);
+    qe6502_tick_t tick = qe6502_reset(cpu_ptr, cpu_model);
 
-    if (!qe6502_ok(cpu_ptr))
+    if (QE6502_IS_NOT_OK(tick))
     {
         return "CPU power on error!";
     }
 
     // booting
-    while(!qe6502_is_started(cpu_ptr))
+    while(QE6502_IS_STARTING(tick) && QE6502_IS_OK(tick))
     {
-        uint16_t address = qe6502_address(cpu_ptr);
-        uint8_t is_read = qe6502_needs_data(cpu_ptr);
-        uint8_t data = is_read ? memory[address] : qe6502_read_data(cpu_ptr);
-        if (is_read)
-        {
-            qe6502_feed_data(cpu_ptr, data);
-        }
-        else
+        uint16_t address = QE6502_ADDRESS(tick);
+        uint8_t is_write = QE6502_IS_WRITING(tick);
+        uint8_t data = is_write ? QE6502_DATA(tick) : memory[address];
+        if (!is_write)
         {
             memory[address] = data;
         }
-        qe6502_cpu_tick(cpu_ptr);
+        tick = qe6502_tick(cpu_ptr, data);
     }
-    if (!qe6502_ok(cpu_ptr))
+    if (QE6502_IS_NOT_OK(tick))
     {
         return "CPU boot error";
     }
@@ -50,10 +46,10 @@ const char* test_klaus2m5(uint8_t cpu_model,
     int reset_counter = 0;
     int instr_cycle_counter = 0;
 
-    uint64_t stable_state = qe6502_dump(cpu_ptr);
+    qe6502_state_t stable_state = qe6502_dump_state(cpu_ptr);
     const char* result_msg = "CPU Error";
 
-    while(qe6502_ok(cpu_ptr))
+    while(QE6502_IS_OK(tick))
     {
         if (reset_cpu_each_cycle)
         {
@@ -64,15 +60,18 @@ const char* test_klaus2m5(uint8_t cpu_model,
                 // reset cpu
                 pause_logger();
                 memset(cpu_ptr, 0, sizeof(cpu));
-                qe6502_cpu_power_on(cpu_ptr, cpu_model);
+                qe6502_reset(cpu_ptr, cpu_model);
 
-                qe6502_recover(cpu_ptr, stable_state);
+                tick = qe6502_recover(cpu_ptr, stable_state);
                 resume_logger();
 
                 instr_cycle_counter = 0;
             }
         }
-        uint16_t address = qe6502_address(cpu_ptr);
+        uint16_t address = QE6502_ADDRESS(tick);
+        uint8_t is_write = QE6502_IS_WRITING(tick);
+        uint8_t data = is_write ? QE6502_DATA(tick) : memory[address];
+
         if (address == success_address)
         {
             if (expected_cycles != cycles)
@@ -87,20 +86,21 @@ const char* test_klaus2m5(uint8_t cpu_model,
                 break;
             }
         }
-        if ( qe6502_needs_data(cpu_ptr) )
+        if ( is_write )
         {
-            qe6502_feed_data(cpu_ptr, memory[address]);
+            memory[address] = data;
         }
         else
         {
-            memory[address] = qe6502_read_data(cpu_ptr);
+
+            data = memory[address];
         }
 
-        qe6502_cpu_tick(cpu_ptr);
+        tick = qe6502_tick(cpu_ptr, data);
 
-        if (qe6502_is_instr_done(cpu_ptr))
+        if (QE6502_IS_INSTR_DONE(tick))
         {
-            stable_state = qe6502_dump(cpu_ptr);
+            stable_state = qe6502_dump_state(cpu_ptr);
             instr_cycle_counter = 0;
             reset_counter = 0;
             cycles++;

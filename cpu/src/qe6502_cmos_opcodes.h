@@ -1,7 +1,7 @@
 // Contains cmos opcode handler declarations and metadata used by the emulator.
 
-#ifndef QE6502_CMOS_OPCODES_H__
-#define QE6502_CMOS_OPCODES_H__
+#ifndef QE6502_CMOS_OPCODES_H
+#define QE6502_CMOS_OPCODES_H
 
 #include "qe6502_cmos_fw.h"
 
@@ -1505,4 +1505,4 @@ static const qe6502_model_t cmos_model = {
     /*----------------------------------------------------*/
 }
 };
-#endif // QE6502_CMOS_OPCODES_H__
+#endif // QE6502_CMOS_OPCODES_H

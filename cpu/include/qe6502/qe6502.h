@@ -12,13 +12,16 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE6502_H__
-#define QE6502_H__
+#ifndef QE6502_H
+#define QE6502_H
 
-#include <qe/api_public.h>
+#include <qe/abi_utils.h>
 
 #include <stdint.h>
 #include <stddef.h>
+
+/** Logger callback used by qe6502_set_logger(). */
+typedef void (QE_CALL *qe6502_log_fn)(void* context, const char* topic, const char* message);
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
 #   define QE6502_MODEL_MOS 0
@@ -30,15 +33,17 @@
 #   define QE6502_MODEL_ST  4
 #endif
 
-#define QE_CONTEXT_SIZE   40u
-#define QE_CONTEXT_ALIGN  8u
+#define QE6502_CONTEXT_SIZE   40u
+#define QE6502_CONTEXT_ALIGN  8u
 
+/** Opaque 6502 CPU context. */
 typedef struct qe6502_cpu_t
 {
-    QE_ALIGNAS(QE_CONTEXT_ALIGN)
-    unsigned char bytes[QE_CONTEXT_SIZE];
+    QE_ALIGNAS(QE6502_CONTEXT_ALIGN)
+    unsigned char bytes[QE6502_CONTEXT_SIZE];
 } qe6502_cpu_t;
 
+/** 6502 addressing mode identifier used by qe6502_opcode_meta_t. */
 typedef enum
 {
     QE6502_ADDR_MODE_ILLEGAL        = 0,
@@ -60,6 +65,7 @@ typedef enum
     QE6502_ADDR_MODE_ABSOLUTE_X_INDIRECT = 16
 } qe6502_addr_mode_t;
 
+/** Static metadata for a single opcode. */
 typedef struct
 {
     const char* name;
@@ -73,153 +79,129 @@ typedef struct
     uint8_t reserved_data[4];
 } qe6502_opcode_meta_t;
 
-
-QE_FFI_API(uint32_t)    qe6502_version(void);
-//
-QE_FFI_API(size_t)      qe6502_cpu_size(void);
-QE_FFI_API(size_t)      qe6502_cpu_align(void);
-//
-QE_FFI_API(void)        qe6502_cpu_power_on(qe6502_cpu_t* cpu, uint8_t model);
-QE_FFI_API(void)        qe6502_cpu_tick(qe6502_cpu_t* cpu);
-
-/*
- * Returns a packed CPU state and BUS operation *
- * Bit layout:
+/**
+ * Packed result of a CPU tick.
  *
- *   bits [ 0.. 7] : Memory address LSB
- *   bits [ 8..15] : Memory address MSB
- *   bits [16..23] : Data out, valid only when bit [16] == 1
- *   bits [24    ] : Bus direction, 0 == Read request, 1 == Write request
- *   bits [25    ] : 0 == Started | 1 == Starting
- *   bits [26    ] : 0 == During instruction | 1 == Instruction done
- *   bits [27..30] : Reserved
- *   bits [31    ] : 0 == OK | 1 == Halted / not OK
+ * A tick describes the CPU bus request for the current cycle:
+ * the memory address, whether the CPU is reading or writing,
+ * optional data-out for write cycles, and a few status flags.
  *
- * This is a numeric bit encoding. Decode with shifts and masks.
+ * Typical loop:
+ *   - inspect the current tick;
+ *   - if the CPU is reading, pass memory[QE6502_ADDRESS(tick)] to the next qe6502_tick();
+ *   - if the CPU is writing, store QE6502_DATA(tick) at memory[QE6502_ADDRESS(tick)];
+ *   - use the tick returned by qe6502_tick() as the request for the next cycle.
  */
-QE_FFI_API(uint32_t)    qe6502_cpu_tick_ex(qe6502_cpu_t* cpu, uint8_t data_in);
-// Returns a packed CPU state and BUS operation
-QE_FFI_API(uint32_t)    qe6502_packed_state(qe6502_cpu_t* cpu);
-//
-QE_FFI_API(uint8_t)     qe6502_ok(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_needs_data(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_has_data(const qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_feed_data(qe6502_cpu_t* cpu, uint8_t byte);
-QE_FFI_API(uint8_t)     qe6502_read_data(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint16_t)    qe6502_address(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_is_instr_done(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_is_started(const qe6502_cpu_t* cpu);
-QE_FFI_API(uint8_t)     qe6502_model(const qe6502_cpu_t* cpu);
+typedef uint32_t qe6502_tick_t;
+    // qe6502_tick_t bit offsets
+    #define QE6502_TICK_ADDRESS_OFFS            (0)     // bits [ 0..15] : Memory address
+    #define QE6502_TICK_DATA_OFFS               (16)    // bits [16..23] : Data out, valid only during CPU write cycles
+    #define QE6502_TICK_WRITING_OFFS            (24)    // bits [24    ] : 1 == CPU write cycle, 0 == CPU read cycle
+    #define QE6502_TICK_CPU_STARTING_OFFS       (25)    // bits [25    ] : 1 == Starting in progress, 0 == Started
+    #define QE6502_TICK_INSTR_DONE_OFFS         (26)    // bit  [26    ] : 1 == Instruction boundary, 0 == Mid-instruction
+                                                        // bits [27..30] : Reserved
+    #define QE6502_TICK_NOT_OK_OFFS             (31)    // bits [31    ] : 1 == CPU error, 0 == CPU is OK
+    // qe6502_tick_t getters
+    #define QE6502_ADDRESS(tick)                ((uint16_t)(((tick) >> QE6502_TICK_ADDRESS_OFFS)    & 0xffff))
+    #define QE6502_DATA(tick)                   ((uint8_t)(((tick) >> QE6502_TICK_DATA_OFFS)       & 0xff))
+    #define QE6502_IS_WRITING(tick)             ((uint8_t)(((tick) >> QE6502_TICK_WRITING_OFFS)     & 1))
+    #define QE6502_IS_STARTING(tick)            ((uint8_t)(((tick) >> QE6502_TICK_CPU_STARTING_OFFS)& 1))
 
-QE_FFI_API(uint8_t)     qe6502_read_nmi_pin(const qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_nmi_hi(qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_nmi_lo(qe6502_cpu_t* cpu);
+    // Returns 1 at an instruction boundary.
+    // State dumped at this point can be recovered;
+    // mid-instruction dumps are inspect-only.
+    #define QE6502_IS_INSTR_DONE(tick)          ((uint8_t)(((tick) >> QE6502_TICK_INSTR_DONE_OFFS)  & 1))
 
-QE_FFI_API(uint8_t)     qe6502_read_irq_pin(const qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_irq_hi(qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_irq_lo(qe6502_cpu_t* cpu);
+    #define QE6502_IS_NOT_OK(tick)              ((uint8_t)(((tick) >> QE6502_TICK_NOT_OK_OFFS)      & 1))
+    #define QE6502_IS_OK(tick)                  ((uint8_t)(!QE6502_IS_NOT_OK(tick)))
 
-/*
- * Returns a packed snapshot of the visible CPU registers.
- *
- * Bit layout:
- *   bits [ 0.. 7] : PC LSB
- *   bits [ 8..15] : PC MSB
- *   bits [16..23] : A
- *   bits [24..31] : X
- *   bits [32..39] : Y
- *   bits [40..47] : S
- *   bits [48..55] : P
- *   bits [56..58] : CPU Model
- *   bits [59    ] : 0 == Ok, Reserved - used internally
- *   bits [60    ] : 0 == NMI pin low | 1 == NMI pin high
- *   bits [61    ] : 0 == IRQ pin low | 1 == IRQ pin high
- *   bits [62    ] : 0 == Running | 1 == Waiting (WAI)
- *   bits [63    ] : 0 == CPU is stable/serializable | 1 == CPU not stable/not serializable/stopped
- *
- * This is a numeric bit encoding. Decode with shifts and masks.
+/** Packed CPU state returned by qe6502_dump_state(). */
+typedef uint64_t qe6502_state_t;
+    // qe6502_state_t bit offsets                                              bits
+    #define QE6502_STATE_PC_OFFS                (0)     // [ 0..15] : PC
+    #define QE6502_STATE_A_OFFS                 (16)    // [16..23] : A
+    #define QE6502_STATE_X_OFFS                 (24)    // [24..31] : X
+    #define QE6502_STATE_Y_OFFS                 (32)    // [32..39] : Y
+    #define QE6502_STATE_S_OFFS                 (40)    // [40..47] : S
+    #define QE6502_STATE_P_OFFS                 (48)    // [48..55] : P
+    #define QE6502_STATE_MODEL_OFFS             (56)    // [56..58] : CPU Model
+                                                        // [59    ] : 0, Used internally
+    #define QE6502_STATE_NMI_OFFS               (60)    // [60    ] : NMI pin
+    #define QE6502_STATE_IRQ_OFFS               (61)    // [61    ] : IRQ pin
+    #define QE6502_STATE_WAI_OFFS               (62)    // [62    ] : WAI state
+    #define QE6502_STATE_NOT_RECOVERABLE_OFFS   (63)    // [63    ] : State is not recoverable
+    // qe6502_state_t getters
+    #define QE6502_PC(state)                    ((uint16_t)(((state) >> QE6502_STATE_PC_OFFS)              & 0xffff))
+    #define QE6502_A(state)                     ((uint8_t)(((state) >> QE6502_STATE_A_OFFS)               & 0xff))
+    #define QE6502_X(state)                     ((uint8_t)(((state) >> QE6502_STATE_X_OFFS)               & 0xff))
+    #define QE6502_Y(state)                     ((uint8_t)(((state) >> QE6502_STATE_Y_OFFS)               & 0xff))
+    #define QE6502_S(state)                     ((uint8_t)(((state) >> QE6502_STATE_S_OFFS)               & 0xff))
+    #define QE6502_P(state)                     ((uint8_t)(((state) >> QE6502_STATE_P_OFFS)               & 0xff))
+    #define QE6502_MODEL(state)                 ((uint8_t)(((state) >> QE6502_STATE_MODEL_OFFS)           & 0x7))
+    #define QE6502_IS_NMI_HI(state)             ((uint8_t)(((state) >> QE6502_STATE_NMI_OFFS)             & 0x1))
+    #define QE6502_IS_IRQ_HI(state)             ((uint8_t)(((state) >> QE6502_STATE_IRQ_OFFS)             & 0x1))
+    #define QE6502_IS_WAI(state)                ((uint8_t)(((state) >> QE6502_STATE_WAI_OFFS)             & 0x1))
+    #define QE6502_IS_NOT_RECOVERABLE(state)    ((uint8_t)(((state) >> QE6502_STATE_NOT_RECOVERABLE_OFFS) & 0x1))
+    // qe6502_state_t setters
+    #define QE6502_SET_PC(state, pc)            QE6502_SET_STATE_FIELD_HELPER((state), (pc), QE6502_STATE_PC_OFFS, 0xffff)
+    #define QE6502_SET_A(state, a)              QE6502_SET_STATE_FIELD_HELPER((state), (a), QE6502_STATE_A_OFFS, 0xff)
+    #define QE6502_SET_X(state, x)              QE6502_SET_STATE_FIELD_HELPER((state), (x), QE6502_STATE_X_OFFS, 0xff)
+    #define QE6502_SET_Y(state, y)              QE6502_SET_STATE_FIELD_HELPER((state), (y), QE6502_STATE_Y_OFFS, 0xff)
+    #define QE6502_SET_S(state, s)              QE6502_SET_STATE_FIELD_HELPER((state), (s), QE6502_STATE_S_OFFS, 0xff)
+    #define QE6502_SET_P(state, p)              QE6502_SET_STATE_FIELD_HELPER((state), (p), QE6502_STATE_P_OFFS, 0xff)
+    #define QE6502_SET_MODEL(state, model)      QE6502_SET_STATE_FIELD_HELPER((state), (model), QE6502_STATE_MODEL_OFFS, 0x7)
+    #define QE6502_SET_NMI_HI(state, hi)        QE6502_SET_STATE_FIELD_HELPER((state), (hi), QE6502_STATE_NMI_OFFS, 0x1)
+    #define QE6502_SET_IRQ_HI(state, hi)        QE6502_SET_STATE_FIELD_HELPER((state), (hi), QE6502_STATE_IRQ_OFFS, 0x1)
+    #define QE6502_SET_WAI(state, wai)          QE6502_SET_STATE_FIELD_HELPER((state), (wai), QE6502_STATE_WAI_OFFS, 0x1)
+    #define QE6502_SET_STATE_FIELD_HELPER(state, value, offs, mask) do {(state) = (qe6502_state_t)((((qe6502_state_t)(state)) & ~(((qe6502_state_t)(mask)) << (offs))) | ((((qe6502_state_t)(value)) & ((qe6502_state_t)(mask))) << (offs)));} while (0)
+
+/** Returns the packed library version. */
+QE_FFI_API(uint32_t)        qe6502_version(void);
+
+/** Returns sizeof(qe6502_cpu_t). Useful for FFI bindings. */
+QE_FFI_API(size_t)          qe6502_size(void);
+
+/** Returns the required alignment of qe6502_cpu_t. Useful for FFI bindings. */
+QE_FFI_API(size_t)          qe6502_align(void);
+
+/** Starts the CPU reset sequence using the selected model. Returns the initial tick. */
+QE_FFI_API(qe6502_tick_t)   qe6502_reset(qe6502_cpu_t* cpu, uint8_t model);
+
+/** Advances the CPU by one tick using data for read cycles. Returns the resulting tick. */
+QE_FFI_API(qe6502_tick_t)   qe6502_tick(qe6502_cpu_t* cpu, uint8_t data);
+
+/** Sets the NMI pin level. Does not advance the CPU; returns the updated current tick. */
+QE_FFI_API(qe6502_tick_t)   qe6502_set_nmi(qe6502_cpu_t* cpu, uint8_t high);
+
+/** Sets the IRQ pin level. Does not advance the CPU; returns the updated current tick. */
+QE_FFI_API(qe6502_tick_t)   qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t high);
+
+/** Restores a recoverable CPU state. Returns the resulting tick. */
+QE_FFI_API(qe6502_tick_t)   qe6502_recover(qe6502_cpu_t* cpu, qe6502_state_t stable_state);
+
+/** Returns the last tick without changing CPU state. */
+QE_FFI_API(qe6502_tick_t)   qe6502_last_tick(const qe6502_cpu_t* cpu);
+
+/**
+ * Dumps the current CPU state. Mid-instruction dumps are inspect-only.
+ * A state is recoverable only when qe6502_dump_state() is called immediately
+ * after a tick for which QE6502_IS_INSTR_DONE(tick) is true.
  */
-QE_FFI_API(uint64_t)    qe6502_dump(const qe6502_cpu_t* cpu);
-QE_FFI_API(void)        qe6502_recover(qe6502_cpu_t* cpu, uint64_t stable_state);
+QE_FFI_API(qe6502_state_t)  qe6502_dump_state(const qe6502_cpu_t* cpu);
 
-QE_FFI_API(uint16_t)    qe6502_error_code(const qe6502_cpu_t* cpu);
-QE_FFI_API(const char*) qe6502_error_string(const qe6502_cpu_t* cpu);
-QE_FFI_API(const char*) qe6502_decode_error(uint16_t error_code);
+/** Returns the current CPU error code, or 0 if the CPU is OK. */
+QE_FFI_API(uint16_t)        qe6502_error_code(const qe6502_cpu_t* cpu);
 
+/** Returns a human-readable description of the current CPU error. */
+QE_FFI_API(const char*)     qe6502_error_string(const qe6502_cpu_t* cpu);
+
+/** Decodes an error code returned by qe6502_error_code(). */
+QE_FFI_API(const char*)     qe6502_decode_error(uint16_t error_code);
+
+/** Returns static metadata for opcode. The returned pointer is owned by the library. */
 QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
 
-typedef void (*qe6502_log_fn)(void* context, const char* topic, const char* message);
+/** Sets the global logger callback. */
 QE_FFI_API(void)            qe6502_set_logger(qe6502_log_fn logger, void* context);
 
-// Use only if you are very familiar with the internal implementation of the library.
-
-typedef struct
-{
-    uint8_t word_lsb;
-    uint8_t word_msb;
-    uint8_t word32_lsw;
-    uint8_t word32_msw;
-    uint8_t cmd_address;
-    uint8_t cmd_offset;
-    uint8_t cmd_flags;
-    uint8_t cmd_packed;
-    uint8_t address;
-    uint8_t pointer;
-    uint8_t error_code;
-    uint8_t instr;
-    uint8_t merged;
-    uint8_t data;
-    uint8_t pagecross_overflow;
-    uint8_t model;
-    uint8_t istate;
-    uint8_t opcode;
-    uint8_t PC;
-    uint8_t S;
-    uint8_t A;
-    uint8_t X;
-    uint8_t Y;
-    uint8_t P;
-    //
-    uint8_t sizeof_word;
-    uint8_t sizeof_word32;
-    uint8_t sizeof_cmd_address;
-    uint8_t sizeof_cmd_offset;
-    uint8_t sizeof_cmd_flags;
-    uint8_t sizeof_cmd_packed;
-    uint8_t sizeof_address;
-    uint8_t sizeof_pointer;
-    uint8_t sizeof_error_code;
-    uint8_t sizeof_instr;
-    uint8_t sizeof_merged;
-    uint8_t sizeof_data;
-    uint8_t sizeof_pagecross_overflow;
-    uint8_t sizeof_model;
-    uint8_t sizeof_istate;
-    uint8_t sizeof_opcode;
-    uint8_t sizeof_PC;
-    uint8_t sizeof_S;
-    uint8_t sizeof_A;
-    uint8_t sizeof_X;
-    uint8_t sizeof_Y;
-    uint8_t sizeof_P;
-} qe6502_offsets_t;
-
-// Use only if you are very familiar with the internal implementation of the library.
-QE_FFI_API(void)    qe6502_offsets(qe6502_offsets_t* offsets);
-QE_FFI_API(void)    qe6502_unsafe_overwrite(qe6502_cpu_t* cpu, uint64_t state);
-
-
-
-//////////////////////////////////////
-
-typedef uint32_t qe6502_bus_state_t;
-
-#define QE6502_UNPACK_IS_WRITING    (UINT32_C(1) << 16)
-#define QE6502_UNPACK_STARTING      (UINT32_C(1) << 16)
-#define QE6502_UNPACK_STARTING      (UINT32_C(1) << 16)
-
-
-
-
-
-#endif // QE6502_H__
+#endif // QE6502_H

@@ -12,10 +12,10 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE6502_DEFS_H__
-#define QE6502_DEFS_H__
+#ifndef QE6502_DEFS_H
+#define QE6502_DEFS_H
 
-#include <qe/api_private.h>
+#include <qe/impl_utils.h>
 #include <qe6502/qe6502.h>
 
 // Version
@@ -65,7 +65,7 @@ struct qe6502_cycle_t
     qe6502_microcode_fn execute;
 };
 
-#ifdef QE_LITTLE_ENDIAN
+#if QE_LITTLE_ENDIAN
     typedef union
     {
         struct
@@ -198,7 +198,7 @@ static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
 static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
 
 QE_INTERNAL_API(qe6502_cycle_t)
-qe6502_power_on_impl(qe6502_t* cpu, uint8_t model);
+qe6502_reset_impl(qe6502_t* cpu, uint8_t model);
 
 QE_INTERNAL_API(qe6502_cycle_t)
 qe6502_reset_instruction_impl(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
@@ -230,4 +230,4 @@ QE_HIDDEN extern const char* qe6502_log_inf;
 QE_HIDDEN extern const char* qe6502_log_wrn;
 QE_HIDDEN extern const char* qe6502_log_err;
 
-#endif // QE6502_DEFS_H__
+#endif // QE6502_DEFS_H

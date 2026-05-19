@@ -1,5 +1,5 @@
 #include <qe6502/qe6502.h>
-#include <qe/api_private.h>
+#include <qe/impl_utils.h>
 #include <qe/log.h>
 
 #define QE6502_MEM_ALLOC_CAPACITY   (256)

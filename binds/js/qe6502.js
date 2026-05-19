@@ -17,30 +17,13 @@ const REQUIRED_EXPORTS = [
   "qe6502_init_js",
   "qe6502_cpu_alloc",
   "qe6502_cpu_free",
-  "qe6502_cpu_power_on",
-  "qe6502_cpu_tick_ex",
+  "qe6502_reset",
+  "qe6502_tick",
 
   // Used once after powerOn() to initialize the cached state.
-  "qe6502_ok",
   "qe6502_error_code",
-  "qe6502_needs_data",
-  "qe6502_has_data",
-  "qe6502_read_data",
-  "qe6502_address",
-  "qe6502_is_instr_done",
-  "qe6502_is_started",
 
-  "qe6502_model",
-
-  "qe6502_read_nmi_pin",
-  "qe6502_nmi_hi",
-  "qe6502_nmi_lo",
-
-  "qe6502_read_irq_pin",
-  "qe6502_irq_hi",
-  "qe6502_irq_lo",
-
-  "qe6502_dump",
+  "qe6502_dump_state",
   "qe6502_recover",
   "qe6502_opcode_meta",
 ];
@@ -276,11 +259,11 @@ class QE6502CPU {
   powerOn(model = QE6502_MODEL_MOS) {
     this.#assertAlive();
 
-    this.#exports.qe6502_cpu_power_on(this.#ptr, model | 0);
+    this.#exports.qe6502_reset(this.#ptr, model | 0);
 
     // Initialize the cached bus/status state after power-on.
     // This is intentionally done with the old granular API only once.
-    // The hot path uses qe6502_cpu_tick_ex().
+    // The hot path uses qe6502_tick().
     this.#refreshStateSlow();
 
     this.#dataIn = 0;
@@ -294,7 +277,7 @@ class QE6502CPU {
   tick() {
     this.#assertAlive();
 
-    const packed = this.#exports.qe6502_cpu_tick_ex(
+    const packed = this.#exports.qe6502_tick(
       this.#ptr,
       this.#dataIn & 0xff,
     );
@@ -388,7 +371,7 @@ class QE6502CPU {
 
     const packed = BigInt.asUintN(
       64,
-      this.#exports.qe6502_dump(this.#ptr),
+      this.#exports.qe6502_dump_state(this.#ptr),
     );
 
     const pcl = Number(packed & 0xffn);
@@ -426,8 +409,8 @@ class QE6502CPU {
       (BigInt(p & 0xff) << 48n) |
       (BigInt(istate & 0xff) << 56n);
 
-    this.#exports.qe6502_recover(this.#ptr, packed);
-    this.#refreshStateSlow();
+    const tick = this.#exports.qe6502_recover(this.#ptr, packed);
+    this.#cacheTickExState(tick >>> 0);
   }
 
   dispose() {
@@ -458,23 +441,8 @@ class QE6502CPU {
   }
 
   #refreshStateSlow() {
-    this.#address = this.#exports.qe6502_address(this.#ptr) & 0xffff;
-
-    const hasData = this.#exports.qe6502_has_data(this.#ptr) !== 0;
-    const needsData = this.#exports.qe6502_needs_data(this.#ptr) !== 0;
-
-    // The tick_ex encoding has only read/write direction.
-    // Prefer write if the CPU explicitly reports data available.
-    // Otherwise treat the state as read, matching the existing bus protocol.
-    this.#isWrite = hasData && !needsData;
-
-    this.#isStarted = this.#exports.qe6502_is_started(this.#ptr) !== 0;
-    this.#isInstrDone = this.#exports.qe6502_is_instr_done(this.#ptr) !== 0;
-    this.#ok = this.#exports.qe6502_ok(this.#ptr) !== 0;
-
-    this.#dataOut = this.#isWrite
-      ? this.#exports.qe6502_read_data(this.#ptr) & 0xff
-      : 0;
+    const packed = this.#exports.qe6502_last_tickt(this.#ptr);
+    this.#cacheTickExState(packed >>> 0);
   }
 
   #assertAlive() {
