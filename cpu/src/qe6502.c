@@ -501,7 +501,7 @@ QE_FFI_API_IMPL(qe6502_tick_t) qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t low)
 }
 
 QE_FFI_API_IMPL(uint32_t)
-qe6502_last_tickt(qe6502_cpu_t* cpu)
+qe6502_last_tick(const qe6502_cpu_t* cpu)
 {
     return qe6502_get_tick_impl( CPU(cpu) );
 }

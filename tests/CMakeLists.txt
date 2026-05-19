@@ -1,3 +1,4 @@
 if(NOT QE_BUILD_WASM)
     add_subdirectory(klaus2m5)
+    add_subdirectory(interrupts)
 endif()
