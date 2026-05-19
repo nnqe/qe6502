@@ -472,29 +472,29 @@ qe6502_tick(qe6502_cpu_t* cpu, uint8_t data_in)
     return qe6502_get_tick_impl( cpu_ptr );
 }
 
-QE_FFI_API_IMPL(qe6502_tick_t) qe6502_set_nmi(qe6502_cpu_t* cpu, uint8_t high)
+QE_FFI_API_IMPL(qe6502_tick_t) qe6502_set_nmi(qe6502_cpu_t* cpu, uint8_t low)
 {
-    if (high)
+    if (low)
     {
-        qe6502_nmi_hi_impl(CPU(cpu));
+        qe6502_nmi_lo_impl(CPU(cpu));
     }
     else
     {
-        qe6502_nmi_lo_impl(CPU(cpu));
+        qe6502_nmi_hi_impl(CPU(cpu));
     }
 
     return qe6502_get_tick_impl( CPU(cpu) );
 }
 
-QE_FFI_API_IMPL(qe6502_tick_t) qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t high)
+QE_FFI_API_IMPL(qe6502_tick_t) qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t low)
 {
-    if (high)
+    if (low)
     {
-        qe6502_irq_hi_impl(CPU(cpu));
+        qe6502_irq_lo_impl(CPU(cpu));
     }
     else
     {
-        qe6502_irq_lo_impl(CPU(cpu));
+        qe6502_irq_hi_impl(CPU(cpu));
     }
 
     return qe6502_get_tick_impl( CPU(cpu) );

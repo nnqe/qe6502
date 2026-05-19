@@ -23,15 +23,12 @@
 /** Logger callback used by qe6502_set_logger(). */
 typedef void (QE_CALL *qe6502_log_fn)(void* context, const char* topic, const char* message);
 
-#if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-#   define QE6502_MODEL_MOS 0
-#   define QE6502_MODEL_NES 1
-#endif
-#if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-#   define QE6502_MODEL_WDC 2
-#   define QE6502_MODEL_RW  3
-#   define QE6502_MODEL_ST  4
-#endif
+#define QE6502_MODEL_MOS (0)
+#define QE6502_MODEL_NES (1)
+
+#define QE6502_MODEL_WDC (2)
+#define QE6502_MODEL_RW  (3)
+#define QE6502_MODEL_ST  (4)
 
 #define QE6502_CONTEXT_SIZE   40u
 #define QE6502_CONTEXT_ALIGN  8u
@@ -76,7 +73,8 @@ typedef struct
     uint8_t bytes;
     uint8_t addr_mode;
     uint8_t is_cmos_extension;
-    uint8_t reserved_data[4];
+    uint8_t is_illegal;
+    uint8_t reserved_data[3];
 } qe6502_opcode_meta_t;
 
 /**
@@ -170,11 +168,18 @@ QE_FFI_API(qe6502_tick_t)   qe6502_reset(qe6502_cpu_t* cpu, uint8_t model);
 /** Advances the CPU by one tick using data for read cycles. Returns the resulting tick. */
 QE_FFI_API(qe6502_tick_t)   qe6502_tick(qe6502_cpu_t* cpu, uint8_t data);
 
-/** Sets the NMI pin level. Does not advance the CPU; returns the updated current tick. */
-QE_FFI_API(qe6502_tick_t)   qe6502_set_nmi(qe6502_cpu_t* cpu, uint8_t high);
+/**
+ * Sets NMI level without ticking the CPU.
+ * Note: 1 drives the active-low NMI pin low a high-to-low transition latches NMI.
+ *       0 drives the pin high.
+ */
+QE_FFI_API(qe6502_tick_t)   qe6502_set_nmi(qe6502_cpu_t* cpu, uint8_t low);
 
-/** Sets the IRQ pin level. Does not advance the CPU; returns the updated current tick. */
-QE_FFI_API(qe6502_tick_t)   qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t high);
+/**
+ * Sets IRQ level. Note: this API uses asserted semantics; pass 1 to drive the
+ * active-low IRQ pin low and assert the interrupt, or 0 to deassert it.
+ */
+QE_FFI_API(qe6502_tick_t)   qe6502_set_irq(qe6502_cpu_t* cpu, uint8_t low);
 
 /** Restores a recoverable CPU state. Returns the resulting tick. */
 QE_FFI_API(qe6502_tick_t)   qe6502_recover(qe6502_cpu_t* cpu, qe6502_state_t stable_state);
@@ -199,7 +204,7 @@ QE_FFI_API(const char*)     qe6502_error_string(const qe6502_cpu_t* cpu);
 QE_FFI_API(const char*)     qe6502_decode_error(uint16_t error_code);
 
 /** Returns static metadata for opcode. The returned pointer is owned by the library. */
-QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode);
+QE_FFI_API(const qe6502_opcode_meta_t*) qe6502_opcode_meta(uint8_t opcode, uint8_t cpu_model);
 
 /** Sets the global logger callback. */
 QE_FFI_API(void)            qe6502_set_logger(qe6502_log_fn logger, void* context);

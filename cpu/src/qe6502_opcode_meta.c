@@ -12,7 +12,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x01] = {
         .name = "ORA",
@@ -23,7 +23,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x02] = {
         .name = "ILL",
@@ -34,7 +34,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x03] = {
         .name = "ILL",
@@ -45,7 +45,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x04] = {
         .name = "TSB",
@@ -56,7 +56,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x05] = {
         .name = "ORA",
@@ -67,7 +67,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x06] = {
         .name = "ASL",
@@ -78,7 +78,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x07] = {
         .name = "RMB0",
@@ -89,7 +89,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x08] = {
         .name = "PHP",
@@ -100,7 +100,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x09] = {
         .name = "ORA",
@@ -111,7 +111,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0A] = {
         .name = "ASL",
@@ -122,7 +122,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0B] = {
         .name = "ILL",
@@ -133,7 +133,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0C] = {
         .name = "TSB",
@@ -144,7 +144,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0D] = {
         .name = "ORA",
@@ -155,7 +155,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0E] = {
         .name = "ASL",
@@ -166,7 +166,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x0F] = {
         .name = "BBR0",
@@ -177,7 +177,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x10] = {
         .name = "BPL",
@@ -188,7 +188,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x11] = {
         .name = "ORA",
@@ -199,7 +199,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x12] = {
         .name = "ORA",
@@ -210,7 +210,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x13] = {
         .name = "ILL",
@@ -221,7 +221,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x14] = {
         .name = "TRB",
@@ -232,7 +232,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x15] = {
         .name = "ORA",
@@ -243,7 +243,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x16] = {
         .name = "ASL",
@@ -254,7 +254,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x17] = {
         .name = "RMB1",
@@ -265,7 +265,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x18] = {
         .name = "CLC",
@@ -276,7 +276,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x19] = {
         .name = "ORA",
@@ -287,7 +287,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1A] = {
         .name = "INC",
@@ -298,7 +298,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1B] = {
         .name = "ILL",
@@ -309,7 +309,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1C] = {
         .name = "TRB",
@@ -320,7 +320,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1D] = {
         .name = "ORA",
@@ -331,7 +331,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1E] = {
         .name = "ASL",
@@ -342,7 +342,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x1F] = {
         .name = "BBR1",
@@ -353,7 +353,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x20] = {
         .name = "JSR",
@@ -364,7 +364,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x21] = {
         .name = "AND",
@@ -375,7 +375,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x22] = {
         .name = "ILL",
@@ -386,7 +386,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x23] = {
         .name = "ILL",
@@ -397,7 +397,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x24] = {
         .name = "BIT",
@@ -408,7 +408,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x25] = {
         .name = "AND",
@@ -419,7 +419,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x26] = {
         .name = "ROL",
@@ -430,7 +430,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x27] = {
         .name = "RMB2",
@@ -441,7 +441,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x28] = {
         .name = "PLP",
@@ -452,7 +452,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x29] = {
         .name = "AND",
@@ -463,7 +463,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2A] = {
         .name = "ROL",
@@ -474,7 +474,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2B] = {
         .name = "ILL",
@@ -485,7 +485,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2C] = {
         .name = "BIT",
@@ -496,7 +496,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2D] = {
         .name = "AND",
@@ -507,7 +507,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2E] = {
         .name = "ROL",
@@ -518,7 +518,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x2F] = {
         .name = "BBR2",
@@ -529,7 +529,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x30] = {
         .name = "BMI",
@@ -540,7 +540,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x31] = {
         .name = "AND",
@@ -551,7 +551,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x32] = {
         .name = "AND",
@@ -562,7 +562,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x33] = {
         .name = "ILL",
@@ -573,7 +573,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x34] = {
         .name = "BIT",
@@ -584,7 +584,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x35] = {
         .name = "AND",
@@ -595,7 +595,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x36] = {
         .name = "ROL",
@@ -606,7 +606,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x37] = {
         .name = "RMB3",
@@ -617,7 +617,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x38] = {
         .name = "SEC",
@@ -628,7 +628,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x39] = {
         .name = "AND",
@@ -639,7 +639,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3A] = {
         .name = "DEC",
@@ -650,7 +650,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3B] = {
         .name = "ILL",
@@ -661,7 +661,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3C] = {
         .name = "BIT",
@@ -672,7 +672,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3D] = {
         .name = "AND",
@@ -683,7 +683,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3E] = {
         .name = "ROL",
@@ -694,7 +694,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x3F] = {
         .name = "BBR3",
@@ -705,7 +705,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x40] = {
         .name = "RTI",
@@ -716,7 +716,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x41] = {
         .name = "EOR",
@@ -727,7 +727,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x42] = {
         .name = "ILL",
@@ -738,7 +738,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x43] = {
         .name = "ILL",
@@ -749,7 +749,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x44] = {
         .name = "ILL",
@@ -760,7 +760,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x45] = {
         .name = "EOR",
@@ -771,7 +771,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x46] = {
         .name = "LSR",
@@ -782,7 +782,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x47] = {
         .name = "RMB4",
@@ -793,7 +793,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x48] = {
         .name = "PHA",
@@ -804,7 +804,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x49] = {
         .name = "EOR",
@@ -815,7 +815,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4A] = {
         .name = "LSR",
@@ -826,7 +826,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4B] = {
         .name = "ILL",
@@ -837,7 +837,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4C] = {
         .name = "JMP",
@@ -848,7 +848,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4D] = {
         .name = "EOR",
@@ -859,7 +859,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4E] = {
         .name = "LSR",
@@ -870,7 +870,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x4F] = {
         .name = "BBR4",
@@ -881,7 +881,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x50] = {
         .name = "BVC",
@@ -892,7 +892,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x51] = {
         .name = "EOR",
@@ -903,7 +903,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x52] = {
         .name = "EOR",
@@ -914,7 +914,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x53] = {
         .name = "ILL",
@@ -925,7 +925,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x54] = {
         .name = "ILL",
@@ -936,7 +936,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x55] = {
         .name = "EOR",
@@ -947,7 +947,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x56] = {
         .name = "LSR",
@@ -958,7 +958,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x57] = {
         .name = "RMB5",
@@ -969,7 +969,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x58] = {
         .name = "CLI",
@@ -980,7 +980,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x59] = {
         .name = "EOR",
@@ -991,7 +991,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5A] = {
         .name = "PHY",
@@ -1002,7 +1002,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5B] = {
         .name = "ILL",
@@ -1013,7 +1013,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5C] = {
         .name = "ILL",
@@ -1024,7 +1024,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5D] = {
         .name = "EOR",
@@ -1035,7 +1035,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5E] = {
         .name = "LSR",
@@ -1046,7 +1046,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x5F] = {
         .name = "BBR5",
@@ -1057,7 +1057,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x60] = {
         .name = "RTS",
@@ -1068,7 +1068,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x61] = {
         .name = "ADC",
@@ -1079,7 +1079,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x62] = {
         .name = "ILL",
@@ -1090,7 +1090,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x63] = {
         .name = "ILL",
@@ -1101,7 +1101,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x64] = {
         .name = "STZ",
@@ -1112,7 +1112,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x65] = {
         .name = "ADC",
@@ -1123,7 +1123,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x66] = {
         .name = "ROR",
@@ -1134,7 +1134,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x67] = {
         .name = "RMB6",
@@ -1145,7 +1145,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x68] = {
         .name = "PLA",
@@ -1156,7 +1156,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x69] = {
         .name = "ADC",
@@ -1167,7 +1167,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6A] = {
         .name = "ROR",
@@ -1178,7 +1178,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ACCUMULATOR,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6B] = {
         .name = "ILL",
@@ -1189,7 +1189,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6C] = {
         .name = "JMP",
@@ -1200,7 +1200,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6D] = {
         .name = "ADC",
@@ -1211,7 +1211,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6E] = {
         .name = "ROR",
@@ -1222,7 +1222,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x6F] = {
         .name = "BBR6",
@@ -1233,7 +1233,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x70] = {
         .name = "BVS",
@@ -1244,7 +1244,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x71] = {
         .name = "ADC",
@@ -1255,7 +1255,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x72] = {
         .name = "ADC",
@@ -1266,7 +1266,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x73] = {
         .name = "ILL",
@@ -1277,7 +1277,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x74] = {
         .name = "STZ",
@@ -1288,7 +1288,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x75] = {
         .name = "ADC",
@@ -1299,7 +1299,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x76] = {
         .name = "ROR",
@@ -1310,7 +1310,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x77] = {
         .name = "RMB7",
@@ -1321,7 +1321,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x78] = {
         .name = "SEI",
@@ -1332,7 +1332,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x79] = {
         .name = "ADC",
@@ -1343,7 +1343,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7A] = {
         .name = "PLY",
@@ -1354,7 +1354,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7B] = {
         .name = "ILL",
@@ -1365,7 +1365,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7C] = {
         .name = "JMP",
@@ -1376,7 +1376,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X_INDIRECT,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7D] = {
         .name = "ADC",
@@ -1387,7 +1387,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7E] = {
         .name = "ROR",
@@ -1398,7 +1398,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x7F] = {
         .name = "BBR7",
@@ -1409,7 +1409,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x80] = {
         .name = "BRA",
@@ -1420,7 +1420,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x81] = {
         .name = "STA",
@@ -1431,7 +1431,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x82] = {
         .name = "ILL",
@@ -1442,7 +1442,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x83] = {
         .name = "ILL",
@@ -1453,7 +1453,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x84] = {
         .name = "STY",
@@ -1464,7 +1464,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x85] = {
         .name = "STA",
@@ -1475,7 +1475,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x86] = {
         .name = "STX",
@@ -1486,7 +1486,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x87] = {
         .name = "SMB0",
@@ -1497,7 +1497,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x88] = {
         .name = "DEY",
@@ -1508,7 +1508,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x89] = {
         .name = "BIT",
@@ -1519,7 +1519,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8A] = {
         .name = "TXA",
@@ -1530,7 +1530,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8B] = {
         .name = "ILL",
@@ -1541,7 +1541,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8C] = {
         .name = "STY",
@@ -1552,7 +1552,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8D] = {
         .name = "STA",
@@ -1563,7 +1563,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8E] = {
         .name = "STX",
@@ -1574,7 +1574,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x8F] = {
         .name = "BBS0",
@@ -1585,7 +1585,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x90] = {
         .name = "BCC",
@@ -1596,7 +1596,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x91] = {
         .name = "STA",
@@ -1607,7 +1607,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x92] = {
         .name = "STA",
@@ -1618,7 +1618,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x93] = {
         .name = "ILL",
@@ -1629,7 +1629,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x94] = {
         .name = "STY",
@@ -1640,7 +1640,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x95] = {
         .name = "STA",
@@ -1651,7 +1651,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x96] = {
         .name = "STX",
@@ -1662,7 +1662,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x97] = {
         .name = "SMB1",
@@ -1673,7 +1673,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x98] = {
         .name = "TYA",
@@ -1684,7 +1684,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x99] = {
         .name = "STA",
@@ -1695,7 +1695,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9A] = {
         .name = "TXS",
@@ -1706,7 +1706,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9B] = {
         .name = "ILL",
@@ -1717,7 +1717,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9C] = {
         .name = "STZ",
@@ -1728,7 +1728,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9D] = {
         .name = "STA",
@@ -1739,7 +1739,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9E] = {
         .name = "STZ",
@@ -1750,7 +1750,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0x9F] = {
         .name = "BBS1",
@@ -1761,7 +1761,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA0] = {
         .name = "LDY",
@@ -1772,7 +1772,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA1] = {
         .name = "LDA",
@@ -1783,7 +1783,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA2] = {
         .name = "LDX",
@@ -1794,7 +1794,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA3] = {
         .name = "ILL",
@@ -1805,7 +1805,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA4] = {
         .name = "LDY",
@@ -1816,7 +1816,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA5] = {
         .name = "LDA",
@@ -1827,7 +1827,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA6] = {
         .name = "LDX",
@@ -1838,7 +1838,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA7] = {
         .name = "SMB2",
@@ -1849,7 +1849,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA8] = {
         .name = "TAY",
@@ -1860,7 +1860,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xA9] = {
         .name = "LDA",
@@ -1871,7 +1871,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAA] = {
         .name = "TAX",
@@ -1882,7 +1882,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAB] = {
         .name = "ILL",
@@ -1893,7 +1893,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAC] = {
         .name = "LDY",
@@ -1904,7 +1904,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAD] = {
         .name = "LDA",
@@ -1915,7 +1915,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAE] = {
         .name = "LDX",
@@ -1926,7 +1926,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xAF] = {
         .name = "BBS2",
@@ -1937,7 +1937,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB0] = {
         .name = "BCS",
@@ -1948,7 +1948,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB1] = {
         .name = "LDA",
@@ -1959,7 +1959,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB2] = {
         .name = "LDA",
@@ -1970,7 +1970,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB3] = {
         .name = "ILL",
@@ -1981,7 +1981,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB4] = {
         .name = "LDY",
@@ -1992,7 +1992,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB5] = {
         .name = "LDA",
@@ -2003,7 +2003,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB6] = {
         .name = "LDX",
@@ -2014,7 +2014,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB7] = {
         .name = "SMB3",
@@ -2025,7 +2025,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB8] = {
         .name = "CLV",
@@ -2036,7 +2036,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xB9] = {
         .name = "LDA",
@@ -2047,7 +2047,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBA] = {
         .name = "TSX",
@@ -2058,7 +2058,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBB] = {
         .name = "ILL",
@@ -2069,7 +2069,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBC] = {
         .name = "LDY",
@@ -2080,7 +2080,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBD] = {
         .name = "LDA",
@@ -2091,7 +2091,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBE] = {
         .name = "LDX",
@@ -2102,7 +2102,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xBF] = {
         .name = "BBS3",
@@ -2113,7 +2113,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC0] = {
         .name = "CPY",
@@ -2124,7 +2124,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC1] = {
         .name = "CMP",
@@ -2135,7 +2135,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC2] = {
         .name = "ILL",
@@ -2146,7 +2146,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC3] = {
         .name = "ILL",
@@ -2157,7 +2157,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC4] = {
         .name = "CPY",
@@ -2168,7 +2168,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC5] = {
         .name = "CMP",
@@ -2179,7 +2179,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC6] = {
         .name = "DEC",
@@ -2190,7 +2190,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC7] = {
         .name = "SMB4",
@@ -2201,7 +2201,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC8] = {
         .name = "INY",
@@ -2212,7 +2212,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xC9] = {
         .name = "CMP",
@@ -2223,7 +2223,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCA] = {
         .name = "DEX",
@@ -2234,7 +2234,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCB] = {
         .name = "ILL",
@@ -2245,7 +2245,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCC] = {
         .name = "CPY",
@@ -2256,7 +2256,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCD] = {
         .name = "CMP",
@@ -2267,7 +2267,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCE] = {
         .name = "DEC",
@@ -2278,7 +2278,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xCF] = {
         .name = "BBS4",
@@ -2289,7 +2289,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD0] = {
         .name = "BNE",
@@ -2300,7 +2300,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD1] = {
         .name = "CMP",
@@ -2311,7 +2311,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD2] = {
         .name = "CMP",
@@ -2322,7 +2322,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD3] = {
         .name = "ILL",
@@ -2333,7 +2333,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD4] = {
         .name = "ILL",
@@ -2344,7 +2344,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD5] = {
         .name = "CMP",
@@ -2355,7 +2355,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD6] = {
         .name = "DEC",
@@ -2366,7 +2366,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD7] = {
         .name = "SMB5",
@@ -2377,7 +2377,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD8] = {
         .name = "CLD",
@@ -2388,7 +2388,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xD9] = {
         .name = "CMP",
@@ -2399,7 +2399,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDA] = {
         .name = "PHX",
@@ -2410,7 +2410,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDB] = {
         .name = "ILL",
@@ -2421,7 +2421,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDC] = {
         .name = "ILL",
@@ -2432,7 +2432,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDD] = {
         .name = "CMP",
@@ -2443,7 +2443,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDE] = {
         .name = "DEC",
@@ -2454,7 +2454,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xDF] = {
         .name = "BBS5",
@@ -2465,7 +2465,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE0] = {
         .name = "CPX",
@@ -2476,7 +2476,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE1] = {
         .name = "SBC",
@@ -2487,7 +2487,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IDX_INDIRECT_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE2] = {
         .name = "ILL",
@@ -2498,7 +2498,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE3] = {
         .name = "ILL",
@@ -2509,7 +2509,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE4] = {
         .name = "CPX",
@@ -2520,7 +2520,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE5] = {
         .name = "SBC",
@@ -2531,7 +2531,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE6] = {
         .name = "INC",
@@ -2542,7 +2542,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE7] = {
         .name = "SMB6",
@@ -2553,7 +2553,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE8] = {
         .name = "INX",
@@ -2564,7 +2564,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xE9] = {
         .name = "SBC",
@@ -2575,7 +2575,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_IMMEDIATE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xEA] = {
         .name = "NOP",
@@ -2586,7 +2586,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xEB] = {
         .name = "ILL",
@@ -2597,7 +2597,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xEC] = {
         .name = "CPX",
@@ -2608,7 +2608,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xED] = {
         .name = "SBC",
@@ -2619,7 +2619,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xEE] = {
         .name = "INC",
@@ -2630,7 +2630,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xEF] = {
         .name = "BBS6",
@@ -2641,7 +2641,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF0] = {
         .name = "BEQ",
@@ -2652,7 +2652,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_RELATIVE,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF1] = {
         .name = "SBC",
@@ -2663,7 +2663,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_IDX_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF2] = {
         .name = "SBC",
@@ -2674,7 +2674,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_INDIRECT_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF3] = {
         .name = "ILL",
@@ -2685,7 +2685,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF4] = {
         .name = "ILL",
@@ -2696,7 +2696,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF5] = {
         .name = "SBC",
@@ -2707,7 +2707,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF6] = {
         .name = "INC",
@@ -2718,7 +2718,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF7] = {
         .name = "SMB7",
@@ -2729,7 +2729,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 2,
         .addr_mode = QE6502_ADDR_MODE_ZP,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF8] = {
         .name = "SED",
@@ -2740,7 +2740,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xF9] = {
         .name = "SBC",
@@ -2751,7 +2751,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_Y,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFA] = {
         .name = "PLX",
@@ -2762,7 +2762,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_IMPLIED,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFB] = {
         .name = "ILL",
@@ -2773,7 +2773,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFC] = {
         .name = "ILL",
@@ -2784,7 +2784,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 1,
         .addr_mode = QE6502_ADDR_MODE_ILLEGAL,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFD] = {
         .name = "SBC",
@@ -2795,7 +2795,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFE] = {
         .name = "INC",
@@ -2806,7 +2806,7 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ABSOLUTE_X,
         .is_cmos_extension = 0,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
     [0xFF] = {
         .name = "BBS7",
@@ -2817,13 +2817,16 @@ static const qe6502_opcode_meta_t qe6502_opcode_table[256] =
         .bytes = 3,
         .addr_mode = QE6502_ADDR_MODE_ZP_RELATIVE,
         .is_cmos_extension = 1,
-        .reserved_data = {0, 0, 0, 0}
+        .reserved_data = {0, 0, 0}
     },
 };
 
 QE_FFI_API_IMPL(const qe6502_opcode_meta_t*)
-qe6502_opcode_meta(uint8_t opcode)
+qe6502_opcode_meta(uint8_t opcode, uint8_t cpu_model)
 {
+    // TODO:
+    QE_UNUSED(cpu_model);
+
     QE_STATIC_ASSERT(sizeof(qe6502_opcode_table) / sizeof(qe6502_opcode_table[0]) == 256, "Opcode meta data error");
     return &(qe6502_opcode_table[opcode]);
 }
