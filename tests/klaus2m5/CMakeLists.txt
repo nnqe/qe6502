@@ -51,12 +51,12 @@ if(QE6502_ENABLE_NMOS_6502)
             TIMEOUT 30
     )
 
-    set_tests_properties(
-        qe6502.klaus2m5.mos.standard.reset_cycles
-        PROPERTIES
-            LABELS "cpu;klaus;functional;serialization"
-            TIMEOUT 180
-    )
+    # set_tests_properties(
+    #     qe6502.klaus2m5.mos.standard.reset_cycles
+    #     PROPERTIES
+    #         LABELS "cpu;klaus;functional;serialization"
+    #         TIMEOUT 180
+    # )
 
 endif()
 
@@ -97,11 +97,11 @@ if(QE6502_ENABLE_CMOS_65C02)
             TIMEOUT 30
     )
 
-    set_tests_properties(
-        qe6502.klaus2m5.wdc.extended.reset_cycles
-        PROPERTIES
-            LABELS "cpu;klaus;functional;serialization"
-            TIMEOUT 180
-    )
+    # set_tests_properties(
+    #     qe6502.klaus2m5.wdc.extended.reset_cycles
+    #     PROPERTIES
+    #         LABELS "cpu;klaus;functional;serialization"
+    #         TIMEOUT 180
+    # )
 
 endif()
