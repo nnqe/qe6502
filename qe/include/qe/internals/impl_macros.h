@@ -10,8 +10,7 @@
 #ifndef QE_IMPL_MACROS_H
 #define QE_IMPL_MACROS_H
 
-#include <qe/internals/abi_macros.h>
-
+#include <qe/internals/abi_defs.h>
 
 /* ------------------------------------------------------------------------- */
 /* Internal IMPL primitives                                                    */
@@ -77,7 +76,7 @@
 #   define QE_HAS_CPP_MAYBE_UNUSED_ 0
 #endif
 
-#if defined(__has_cpp_attribute)
+#if defined(__cplusplus) && (__cplusplus >= 201703L) && defined(__has_cpp_attribute)
 #   if __has_cpp_attribute(maybe_unused)
 #       define QE_HAS_CPP_ATTRIBUTE_MAYBE_UNUSED_ 1
 #   else
@@ -99,7 +98,7 @@
 #   define QE_HAS_ATTRIBUTE_UNUSED_ 0
 #endif
 
-#if QE_HAS_CPP_MAYBE_UNUSED_ || QE_HAS_CPP_ATTRIBUTE_MAYBE_UNUSED_
+#if QE_HAS_CPP_ATTRIBUTE_MAYBE_UNUSED_
 #   define QE_MAYBE_UNUSED_ [[maybe_unused]]
 #elif QE_HAS_ATTRIBUTE_UNUSED_
 #   define QE_MAYBE_UNUSED_ __attribute__((unused))

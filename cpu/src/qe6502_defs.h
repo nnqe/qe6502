@@ -26,7 +26,7 @@
 
 // Major++ on ABI break, Minor++ on backwards-compatible extension.
 // Any pointer may be NULL.
-QE_INTERNAL_API(void)
+QE_PRIVATE_API(void)
 qe6502_version_impl(uint16_t* version,
                uint8_t* version_major,
                uint8_t* version_minor);
@@ -197,10 +197,10 @@ static const uint8_t qe6502_flag_UN = ( 1 << 5 ); //qe6502_flagpos_UN
 static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
 static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 qe6502_reset_impl(qe6502_t* cpu, uint8_t model);
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 qe6502_reset_instruction_impl(qe6502_t* cpu); // Debug/test-only utility; do not use in normal operation.
 
 QE_SIC qe_bool  qe6502_ok_impl(const qe6502_t* cpu) { return !(cpu->istate & qe6502_halted); }

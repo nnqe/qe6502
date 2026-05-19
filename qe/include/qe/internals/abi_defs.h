@@ -98,7 +98,8 @@
 /* Public API macros                                                         */
 /* ------------------------------------------------------------------------- */
 
-#define QE_ALIGNAS(n)           QE_ALIGNAS_(n)
-#define QE_CALL                 QE_CALL_
+#define QE_ALIGNAS(n)               QE_ALIGNAS_(n)
+#define QE_CALL                     QE_CALL_
+#define QE_FFI_API_(rettype)        QE_EXTERN_C_ QE_EXPORT_ rettype QE_CALL_
 
 #endif // QE_ABI_DEFS_H

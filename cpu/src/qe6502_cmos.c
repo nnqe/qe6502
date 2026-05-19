@@ -60,21 +60,21 @@ cmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return resume_to( cmos_opcode_dispatcher );
 }
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     qe_log_info("Rockwell fetcher attached");
     return cmos_fetch_opcode(cpu);
 }
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     qe_log_info("WDC fetcher attached");
     return cmos_fetch_opcode(cpu);
 }
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     qe_log_info("Synertek fetcher attached");

@@ -1,6 +1,13 @@
-#ifndef QE_API_PRIVATE_H
-#define QE_API_PRIVATE_H
+/*
+ * C implementation utilities.
+ *
+ * This header is intended for C implementation units. It is not guaranteed to
+ * be C++-clean. Public C/C++ ABI headers should include <qe/abi_utils.h>
+ * instead.
+ */
 
+#ifndef QE_IMPL_UTILS_H
+#define QE_IMPL_UTILS_H
 
 #include <qe/internals/impl_defs.h>
 #include <stdint.h>
@@ -186,4 +193,4 @@ QE_MAYBE_UNUSED QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_REST
     }
 }
 
-#endif // QE_API_PRIVATE_H
+#endif // QE_IMPL_UTILS_H

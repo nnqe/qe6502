@@ -7,6 +7,11 @@ set(target qe_static)
 set(QE_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/abi_utils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/impl_utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/log.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/internals/abi_macros.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/internals/abi_defs.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/internals/impl_macros.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe/internals/impl_defs.h
 )
 
 # Private source files

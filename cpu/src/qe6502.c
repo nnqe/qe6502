@@ -26,7 +26,7 @@
 #endif
 #endif
 
-QE_INTERNAL_API(void)
+QE_PRIVATE_API(void)
 qe6502_version_impl(uint16_t* version,
                     uint8_t* version_major,
                     uint8_t* version_minor)
@@ -111,7 +111,7 @@ reset_to_normal_state( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     return select_fetch_opcode_bridge(cpu);
 }
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 qe6502_reset_impl(qe6502_t* cpu, uint8_t model)
 {
     qe_log_info("Power ON");
@@ -359,7 +359,7 @@ qe6502_reset_impl(qe6502_t* cpu, uint8_t model)
     return resume_to(power_on_routine);
 }
 
-QE_INTERNAL_API(qe6502_cycle_t)
+QE_PRIVATE_API(qe6502_cycle_t)
 qe6502_reset_instruction_impl(qe6502_t *cpu)
 {
     cpu->P |= qe6502_flag_UN;

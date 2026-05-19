@@ -12,14 +12,14 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
  */
 
-#ifndef QE_API_UTILS_H
-#define QE_API_UTILS_H
+#ifndef QE_ABI_UTILS_H
+#define QE_ABI_UTILS_H
 
 #include <qe/internals/abi_defs.h>
 
 
-#define QE_FFI_API(rettype)     QE_EXTERN_C_ QE_EXPORT_ rettype QE_CALL_
+#define QE_FFI_API(rettype)     QE_FFI_API_(rettype)
 #define QE_IMPORT(module, name) QE_IMPORT_(module, name)
 
 
-#endif // QE_API_UTILS_H
+#endif // QE_ABI_UTILS_H

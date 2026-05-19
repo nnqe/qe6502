@@ -41,13 +41,13 @@ static void qe_log_impl(const char* topic, const char *fmt, va_list ap)
 
 #define QE_LOG_IMPL(topic) { va_list ap; va_start(ap, fmt); qe_log_impl(topic, fmt, ap); va_end(ap); }
 
-QE_API_IMPL(void) qe_set_logger(qe_log_fn logger, void* context)    {qe_external_logger = logger; qe_external_logger_context = context;}
-QE_API_IMPL(void) qe_log(const char* topic, const char *fmt, ...)   {QE_LOG_IMPL(topic);}
-QE_API_IMPL(void) qe_log_warn(const char *fmt, ...)                 {QE_LOG_IMPL("WARNING");}
-QE_API_IMPL(void) qe_log_error(const char *fmt, ...)                {QE_LOG_IMPL("ERROR");}
+QE_STATIC_API_IMPL(void) qe_set_logger(qe_log_fn logger, void* context)    {qe_external_logger = logger; qe_external_logger_context = context;}
+QE_STATIC_API_IMPL(void) qe_log(const char* topic, const char *fmt, ...)   {QE_LOG_IMPL(topic);}
+QE_STATIC_API_IMPL(void) qe_log_warn(const char *fmt, ...)                 {QE_LOG_IMPL("WARNING");}
+QE_STATIC_API_IMPL(void) qe_log_error(const char *fmt, ...)                {QE_LOG_IMPL("ERROR");}
 
 #if defined(QE_DEBUG_BUILD) && (QE_DEBUG_BUILD == 1)
-    QE_API_IMPL(void) qe_log_info(const char *fmt, ...)             {QE_LOG_IMPL("INFO");}
+    QE_STATIC_API_IMPL(void) qe_log_info(const char *fmt, ...)             {QE_LOG_IMPL("INFO");}
 #endif
 
 static void qe_fmt_putc(char* out, size_t cap, size_t* len, char ch)

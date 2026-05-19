@@ -12,13 +12,13 @@
 #define INSTR_ARGS
 
 #if defined(QE6502_ENABLE_NMOS_6502) && (QE6502_ENABLE_NMOS_6502 == 1)
-    QE_INTERNAL_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_PRIVATE_API(qe6502_cycle_t) mos_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_PRIVATE_API(qe6502_cycle_t) nes_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 #endif
 #if defined(QE6502_ENABLE_CMOS_65C02) && (QE6502_ENABLE_CMOS_65C02 == 1)
-    QE_INTERNAL_API(qe6502_cycle_t) rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
-    QE_INTERNAL_API(qe6502_cycle_t) st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_PRIVATE_API(qe6502_cycle_t) rw_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_PRIVATE_API(qe6502_cycle_t) wdc_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
+    QE_PRIVATE_API(qe6502_cycle_t) st_fetch_opcode_bridge( INSTR_ARGS qe6502_t* QE_RESTRICT cpu );
 #endif
 
 static const uint32_t writing_packed_cmd = (1 << 24); //(uint32_t)qe6502_writing << 24;
