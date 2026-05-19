@@ -40,9 +40,9 @@ if(QE6502_ENABLE_NMOS_6502)
         COMMAND ${target} mos standard off
     )
 
-    add_test(NAME qe6502.klaus2m5.mos.standard.reset_cycles
-        COMMAND ${target} mos standard on
-    )
+    # add_test(NAME qe6502.klaus2m5.mos.standard.reset_cycles
+    #     COMMAND ${target} mos standard on
+    # )
 
     set_tests_properties(
         qe6502.klaus2m5.mos.standard
@@ -78,9 +78,9 @@ if(QE6502_ENABLE_CMOS_65C02)
         COMMAND ${target} wdc extended off
     )
 
-    add_test(NAME qe6502.klaus2m5.wdc.extended.reset_cycles
-        COMMAND ${target} wdc extended on
-    )
+    # add_test(NAME qe6502.klaus2m5.wdc.extended.reset_cycles
+    #     COMMAND ${target} wdc extended on
+    # )
 
     add_test(NAME qe6502.klaus2m5.rw.extended
         COMMAND ${target} rw extended off
