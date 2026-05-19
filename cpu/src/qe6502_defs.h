@@ -213,13 +213,21 @@ QE_SIC qe_bool  qe6502_instr_done_impl(const qe6502_t* cpu) { return (cpu->cmd.f
 QE_SIC qe_bool  qe6502_started_impl(const qe6502_t* cpu){return qe6502_ok_impl(cpu) && ((cpu->cmd.flags & qe6502_starting)?0:1);}
 QE_SIC uint8_t  qe6502_model_impl(const qe6502_t* cpu) { return (cpu->model & qe6502_model_max); }
 
-QE_SIC uint8_t  qe6502_nmi_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
-QE_SIC void     qe6502_nmi_hi_impl(qe6502_t* cpu) {  cpu->istate &= QE_U8(~qe6502_nmi_pin_lo); }
-QE_SIC void     qe6502_nmi_lo_impl(qe6502_t* cpu) { if (qe6502_nmi_pin_impl(cpu)){cpu->istate |= QE_U8(qe6502_nmi_pin_chg);} cpu->istate |= QE_U8(qe6502_nmi_pin_lo); }
+QE_SIC uint8_t  qe6502_nmi_chg_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_chg); }
+QE_SIC void     qe6502_nmi_chg_set(qe6502_t* cpu) { cpu->istate |= QE_U8(qe6502_nmi_pin_chg); }
+QE_SIC void     qe6502_nmi_chg_clr(qe6502_t* cpu) { cpu->istate &= QE_U8(~qe6502_nmi_pin_chg); }
 
-QE_SIC uint8_t  qe6502_irq_pin_impl(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
-QE_SIC void     qe6502_irq_hi_impl(qe6502_t* cpu) { cpu->istate &= QE_U8(~qe6502_irq_pin_lo); }
-QE_SIC void     qe6502_irq_lo_impl(qe6502_t* cpu) { cpu->istate |= QE_U8(qe6502_irq_pin_lo); }
+QE_SIC uint8_t  qe6502_nmi_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_nmi_pin_lo)?0:1; }
+QE_SIC void     qe6502_nmi_hi(qe6502_t* cpu) {  cpu->istate &= QE_U8(~qe6502_nmi_pin_lo); }
+QE_SIC void     qe6502_nmi_lo(qe6502_t* cpu) { if (qe6502_nmi_pin(cpu)){qe6502_nmi_chg_set(cpu);} cpu->istate |= QE_U8(qe6502_nmi_pin_lo); }
+
+QE_SIC uint8_t  qe6502_irq_pin(const qe6502_t* cpu) { return (cpu->istate & qe6502_irq_pin_lo)?0:1; }
+QE_SIC void     qe6502_irq_hi(qe6502_t* cpu) { cpu->istate &= QE_U8(~qe6502_irq_pin_lo); }
+QE_SIC void     qe6502_irq_lo(qe6502_t* cpu) { cpu->istate |= QE_U8(qe6502_irq_pin_lo); }
+
+QE_SIC qe_bool  qe6502_pending_interrupt(qe6502_t* cpu) { return (cpu->istate & ( qe6502_nmi_pin_chg | qe6502_irq_pin_lo )); }
+QE_SIC qe_bool  qe6502_pending_irq(qe6502_t* cpu) { return !qe6502_irq_pin(cpu); }
+QE_SIC qe_bool  qe6502_iterrupts_enabled(qe6502_t* cpu) { return !(cpu->P & qe6502_flag_I); }
 
 
 #define QE6502_LOG_INFO     "INFO"

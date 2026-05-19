@@ -39,16 +39,15 @@ cmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     request_read(cpu, cpu->PC, OFFSETOF(opcode));
 
-    if (cpu->istate & ( qe6502_nmi_pin_chg | qe6502_irq_pin_lo ))
+    if (qe6502_pending_interrupt(cpu))
     {
-        if (cpu->istate & qe6502_nmi_pin_chg)
+        if (qe6502_nmi_chg_pin(cpu))
         {
             cpu->address.u8_0 = 0;
             return resume_to_dummy_read( cpu, cmos_nmi );
         }
 
-        if (  (cpu->istate & qe6502_irq_pin_lo) &&
-              (!(cpu->P & qe6502_flag_I)) )
+        if ( qe6502_pending_irq(cpu) && qe6502_iterrupts_enabled(cpu) )
         {
             cpu->address.u8_0 = 0;
             return resume_to_dummy_read( cpu, cmos_irq );
@@ -4041,7 +4040,6 @@ cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     switch(cpu->address.u8_0)
     {
     case 1:
-        cpu->istate &= QE_U8(~qe6502_nmi_pin_chg);
         request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
         break;
@@ -4058,6 +4056,7 @@ cmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         request_read(cpu, (qe_word16_t){.u16=0xfffa}, OFFSETOF(PC.u8_0));
         break;
     case 5:
+        qe6502_nmi_chg_clr(cpu);
         request_read(cpu, (qe_word16_t){.u16=0xfffb}, OFFSETOF(PC.u8_1));
         return resume_to(cmos_fetch_opcode);
     default:

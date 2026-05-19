@@ -441,7 +441,7 @@ class QE6502CPU {
   }
 
   #refreshStateSlow() {
-    const packed = this.#exports.qe6502_last_tickt(this.#ptr);
+    const packed = this.#exports.qe6502_last_tick(this.#ptr);
     this.#cacheTickExState(packed >>> 0);
   }
 

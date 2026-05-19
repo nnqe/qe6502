@@ -37,24 +37,22 @@ nmos_opcode_dispatcher( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 INSTR_RETTYPE qe6502_cycle_t
 nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
-    request_read(cpu, cpu->PC, OFFSETOF(opcode));
-
-    if (cpu->istate & ( qe6502_nmi_pin_chg | qe6502_irq_pin_lo ))
+    if (qe6502_pending_interrupt(cpu))
     {
-        if (cpu->istate & qe6502_nmi_pin_chg)
+        if (qe6502_nmi_chg_pin(cpu))
         {
-            cpu->address.u8_0 = 0;
-            return resume_to_dummy_read( cpu, nmos_nmi );
+            cpu->PC.u16--;
+            return jump_to(cpu, nmos_instr_BRK);
         }
 
-        if (  (cpu->istate & qe6502_irq_pin_lo) &&
-              (!(cpu->P & qe6502_flag_I)) )
+        if ( qe6502_pending_irq(cpu) && qe6502_iterrupts_enabled(cpu) )
         {
-            cpu->address.u8_0 = 0;
-            return resume_to_dummy_read( cpu, nmos_irq );
+            cpu->PC.u16--;
+            return jump_to(cpu, nmos_instr_BRK);
         }
     }
 
+    request_read(cpu, cpu->PC, OFFSETOF(opcode));
     cpu->cmd.flags |= qe6502_wait_opcode;
 
     return resume_to( nmos_opcode_dispatcher );
@@ -568,6 +566,9 @@ nmos_instr_BPL( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 
 INSTR_FW_DECL(nmos_instr_BRK_2);
 INSTR_FW_DECL(nmos_instr_BRK_finalize);
+INSTR_FW_DECL( nmos_nmi_vector_fetch );
+INSTR_FW_DECL( nmos_irq_vector_fetch );
+
 
 INSTR_RETTYPE qe6502_cycle_t
 nmos_instr_BRK( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
@@ -598,6 +599,19 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         cpu->data = cpu->P | qe6502_flag_B;
         request_stack_write(cpu, cpu->S, OFFSETOF(data));
         cpu->S--;
+
+        // https://www.nesdev.org/wiki/Visual6502wiki/6502_Interrupt_Hijacking
+        if (qe6502_pending_interrupt(cpu))
+        {
+            if (qe6502_nmi_chg_pin(cpu))
+            {
+                return resume_to( nmos_nmi_vector_fetch );
+            }
+            if ( qe6502_pending_irq(cpu) && qe6502_iterrupts_enabled(cpu) )
+            {
+                return resume_to( nmos_irq_vector_fetch );
+            }
+        }
         break;
     case 4:
         request_read(cpu, (qe_word16_t){.u16=0xfffe}, OFFSETOF(PC.u8_0));
@@ -3128,6 +3142,7 @@ nmos_pre_w_zeropage_y_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
  *
  ********************************************************/
 
+QE_MAYBE_UNUSED
 INSTR_RETTYPE qe6502_cycle_t  //
 nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
@@ -3145,14 +3160,7 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 3:
         request_stack_write(cpu, cpu->S, OFFSETOF(P));
         cpu->S--;
-        break;
-    case 4:
-        cpu->P |= qe6502_flag_I;
-        request_read(cpu, (qe_word16_t){.u16=0xfffe}, OFFSETOF(PC.u8_0));
-        break;
-    case 5:
-        request_read(cpu, (qe_word16_t){.u16=0xffff}, OFFSETOF(PC.u8_1));
-        return resume_to(nmos_fetch_opcode);
+        return resume_to(nmos_irq_vector_fetch);
     default:
         qe_log_error("IRQ interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_corrupt_state);
@@ -3161,13 +3169,46 @@ nmos_irq( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 }
 
 INSTR_RETTYPE qe6502_cycle_t  //
+nmos_irq_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    cpu->address.u8_0++;
+    switch(cpu->address.u8_0)
+    {
+    case 4:
+        cpu->P |= qe6502_flag_I;
+        request_read(cpu, (qe_word16_t){.u16=0xfffe}, OFFSETOF(PC.u8_0));
+        break;
+    case 5:
+        request_read(cpu, (qe_word16_t){.u16=0xffff}, OFFSETOF(PC.u8_1));
+
+        // https://www.nesdev.org/wiki/Visual6502wiki/6502_Timing_of_Interrupt_Handling
+        // Interrupts colliding, lost NMI.
+
+        // Lost NMI quirk: a short NMI pulse during IRQ acknowledge,
+        // released after about 2.5 cycles, may be cleared
+        // by the interrupt response and never serviced.
+        if (qe6502_nmi_pin(cpu))
+        {
+            // If the NMI pin has already returned high here, the IRQ acknowledge sequence
+            // may clear the internal NMI edge latch before it can be serviced.
+            qe6502_nmi_chg_clr(cpu);
+        }
+        return resume_to(nmos_fetch_opcode);
+    default:
+        qe_log_error("IRQ interrupt unexpected state");
+        return cpu_error(cpu,  qe6502_err_corrupt_state);
+    }
+    return resume_to(nmos_irq_vector_fetch);
+}
+
+QE_MAYBE_UNUSED
+INSTR_RETTYPE qe6502_cycle_t  //
 nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     cpu->address.u8_0++;
     switch(cpu->address.u8_0)
     {
     case 1:
-        cpu->istate &= QE_U8(~qe6502_nmi_pin_chg);
         request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
         break;
@@ -3178,19 +3219,33 @@ nmos_nmi( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 3:
         request_stack_write(cpu, cpu->S, OFFSETOF(P));
         cpu->S--;
-        break;
+        return resume_to(nmos_nmi_vector_fetch);
+    default:
+        qe_log_error("NMI interrupt unexpected state");
+        return cpu_error(cpu,  qe6502_err_corrupt_state);
+    }
+    return resume_to(nmos_nmi);
+}
+
+INSTR_RETTYPE qe6502_cycle_t  //
+nmos_nmi_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    cpu->address.u8_0++;
+    switch(cpu->address.u8_0)
+    {
     case 4:
         cpu->P |= qe6502_flag_I;
         request_read(cpu, (qe_word16_t){.u16=0xfffa}, OFFSETOF(PC.u8_0));
         break;
     case 5:
+        qe6502_nmi_chg_clr(cpu);
         request_read(cpu, (qe_word16_t){.u16=0xfffb}, OFFSETOF(PC.u8_1));
         return resume_to(nmos_fetch_opcode);
     default:
         qe_log_error("NMI interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_corrupt_state);
     }
-    return resume_to(nmos_nmi);
+    return resume_to(nmos_nmi_vector_fetch);
 }
 
 #else
