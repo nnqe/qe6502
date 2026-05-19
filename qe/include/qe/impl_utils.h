@@ -12,8 +12,7 @@
 #include <qe/internals/impl_defs.h>
 #include <stdint.h>
 #include <stddef.h>
-
-
+#include <stdarg.h>
 
 typedef uint8_t qe_bool;
 
@@ -192,5 +191,9 @@ QE_MAYBE_UNUSED QE_SIC void qe_memcpy(void* QE_RESTRICT dst, const void* QE_REST
         --count;
     }
 }
+
+QE_STATIC_API(int) qe_vsnprintf(char* out, size_t cap, const char* fmt, va_list ap);
+QE_STATIC_API(int) qe_snprintf(char* out, size_t cap, const char* fmt, ...);
+
 
 #endif // QE_IMPL_UTILS_H
