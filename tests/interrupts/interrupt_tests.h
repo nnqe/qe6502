@@ -26,6 +26,7 @@
 #define IT_OP_NOP           ((uint8_t)0xEAu)
 
 #define IT_FLAG_I           ((uint8_t)0x04u)
+#define IT_FLAG_B           ((uint8_t)0x10u)
 
 #define IT_REQUIRE(cond, message) do { if (!(cond)) { return (message); } } while (0)
 
@@ -56,5 +57,11 @@ uint16_t it_stack_addr(uint8_t s);
 const char* qe6502_interrupt_irq_tests(uint8_t model);
 const char* qe6502_interrupt_nmi_tests(uint8_t model);
 const char* qe6502_interrupt_combined_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_quirk_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_brk_nmi_hijack_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_brk_irq_hijack_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_irq_nmi_hijack_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_lost_nmi_tests(uint8_t model);
+const char* qe6502_interrupt_nmos_late_nmi_tests(uint8_t model);
 
 #endif /* QE6502_INTERRUPT_TESTS_H */

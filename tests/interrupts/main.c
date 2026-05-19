@@ -20,7 +20,13 @@ typedef struct interrupt_model
 static const interrupt_suite suites[] = {
     { "irq",      qe6502_interrupt_irq_tests },
     { "nmi",      qe6502_interrupt_nmi_tests },
-    { "combined", qe6502_interrupt_combined_tests }
+    { "combined", qe6502_interrupt_combined_tests },
+    { "nmos_quirks", qe6502_interrupt_nmos_quirk_tests },
+    { "brk_nmi_hijack", qe6502_interrupt_nmos_brk_nmi_hijack_tests },
+    { "brk_irq_hijack", qe6502_interrupt_nmos_brk_irq_hijack_tests },
+    { "irq_nmi_hijack", qe6502_interrupt_nmos_irq_nmi_hijack_tests },
+    { "lost_nmi", qe6502_interrupt_nmos_lost_nmi_tests },
+    { "late_nmi", qe6502_interrupt_nmos_late_nmi_tests }
 };
 
 static const interrupt_model models[] = {
@@ -45,7 +51,7 @@ static const interrupt_model models[] = {
 static void print_usage(const char* exe)
 {
     fprintf(stderr,
-        "Usage: %s [irq|nmi|combined|all] [mos|nes|wdc|rw|st|all]\n"
+        "Usage: %s [irq|nmi|combined|nmos_quirks|brk_nmi_hijack|brk_irq_hijack|irq_nmi_hijack|lost_nmi|late_nmi|all] [mos|nes|wdc|rw|st|all]\n"
         "Default: %s all all\n",
         exe,
         exe);

@@ -35,6 +35,15 @@ nmos_opcode_dispatcher( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 }
 
 INSTR_RETTYPE qe6502_cycle_t
+nmos_fetch_opcode_no_interrupts( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
+{
+    request_read(cpu, cpu->PC, OFFSETOF(opcode));
+    cpu->cmd.flags |= qe6502_wait_opcode;
+
+    return resume_to( nmos_opcode_dispatcher );
+}
+
+INSTR_RETTYPE qe6502_cycle_t
 nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
 {
     if (qe6502_pending_interrupt(cpu))
@@ -52,10 +61,7 @@ nmos_fetch_opcode( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
         }
     }
 
-    request_read(cpu, cpu->PC, OFFSETOF(opcode));
-    cpu->cmd.flags |= qe6502_wait_opcode;
-
-    return resume_to( nmos_opcode_dispatcher );
+    return jump_to(cpu, nmos_fetch_opcode_no_interrupts);
 }
 
 QE_PRIVATE_API(qe6502_cycle_t)
@@ -590,13 +596,26 @@ nmos_instr_BRK_2( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 1:
         request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_1));
         cpu->S--;
+        if (!qe6502_pending_interrupt(cpu))
+        {
+            // break
+            cpu->pointer.u8_0 = cpu->P | qe6502_flag_B;
+        }
+        else
+        {
+            // interrupt
+            cpu->pointer.u8_0  = cpu->P;
+        }
+        // t3
         break;
     case 2:
         request_stack_write(cpu, cpu->S, OFFSETOF(PC.u8_0));
         cpu->S--;
+        // t4
         break;
     case 3:
-        cpu->data = cpu->P | qe6502_flag_B;
+        // we save P early because of the possible interruption hijacking
+        cpu->data = cpu->pointer.u8_0;
         request_stack_write(cpu, cpu->S, OFFSETOF(data));
         cpu->S--;
 
@@ -3193,7 +3212,7 @@ nmos_irq_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
             // may clear the internal NMI edge latch before it can be serviced.
             qe6502_nmi_chg_clr(cpu);
         }
-        return resume_to(nmos_fetch_opcode);
+        return resume_to(nmos_fetch_opcode_no_interrupts);
     default:
         qe_log_error("IRQ interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_corrupt_state);
@@ -3240,7 +3259,7 @@ nmos_nmi_vector_fetch( INSTR_ARGS qe6502_t* QE_RESTRICT cpu )
     case 5:
         qe6502_nmi_chg_clr(cpu);
         request_read(cpu, (qe_word16_t){.u16=0xfffb}, OFFSETOF(PC.u8_1));
-        return resume_to(nmos_fetch_opcode);
+        return resume_to(nmos_fetch_opcode_no_interrupts);
     default:
         qe_log_error("NMI interrupt unexpected state");
         return cpu_error(cpu,  qe6502_err_corrupt_state);

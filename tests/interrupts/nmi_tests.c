@@ -29,15 +29,18 @@ static const char* nmi_takes_even_when_i_set(uint8_t model)
 {
     const char* fail = 0;
     qe6502_it_context ctx;
+    uint8_t s_before;
 
     it_init(&ctx, model);
     it_write8(&ctx, IT_ADDR_MAIN, IT_OP_NOP);
     IT_REQUIRE(it_boot(&ctx, &fail), fail);
     IT_REQUIRE((it_p(&ctx) & IT_FLAG_I) != 0u, "nmi_i: reset should leave I set");
 
+    s_before = it_s(&ctx);
     it_set_nmi(&ctx, 1u);
     IT_REQUIRE(it_step_instruction(&ctx, &fail), fail);
     IT_REQUIRE(it_pc(&ctx) == IT_ADDR_NMI_HANDLER, "nmi_i: NMI should be taken even when I is set");
+    IT_REQUIRE((it_read8(&ctx, it_stack_addr((uint8_t)(s_before - 2u))) & IT_FLAG_B) == 0u, "nmi_i: hardware NMI should push B=0");
     return 0;
 }
 

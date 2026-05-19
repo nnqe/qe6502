@@ -25,6 +25,7 @@ static const char* irq_level_accepted_at_boundary(uint8_t model)
     IT_REQUIRE(it_read8(&ctx, it_stack_addr(s_before)) == (uint8_t)(IT_ADDR_MAIN >> 8), "irq_level: wrong pushed PCH");
     IT_REQUIRE(it_read8(&ctx, it_stack_addr((uint8_t)(s_before - 1u))) == (uint8_t)((IT_ADDR_MAIN + 2u) & 0x00ffu), "irq_level: wrong pushed PCL");
     IT_REQUIRE((it_read8(&ctx, it_stack_addr((uint8_t)(s_before - 2u))) & IT_FLAG_I) == 0u, "irq_level: pushed P should preserve old I=0");
+    IT_REQUIRE((it_read8(&ctx, it_stack_addr((uint8_t)(s_before - 2u))) & IT_FLAG_B) == 0u, "irq_level: hardware IRQ should push B=0");
     IT_REQUIRE((it_p(&ctx) & IT_FLAG_I) != 0u, "irq_level: IRQ handler should run with I set");
 
     return 0;
