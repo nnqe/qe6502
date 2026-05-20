@@ -66,8 +66,6 @@ int run_opcode_sweep_test(qe6502_cpu_t* cpu,
             continue;
         }
 
-        printf("Opcode: %s, %u   \n", name, opcode);
-
         for (trial = 0u; trial < trials_per_opcode; ++trial)
         {
             const uint32_t seed_before = *seed;

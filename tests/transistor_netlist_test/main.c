@@ -3,6 +3,7 @@
 #include "netlist_helpers.h"
 #include "opcode_test.h"
 #include "opcode_sweep_test.h"
+#include "interrupt_test.h"
 #include "setup_test.h"
 #include "third_party/perfect6502/perfect6502.h"
 
@@ -82,6 +83,7 @@ int main(int argc, char** argv)
     uint32_t seed = make_seed();
     uint8_t run_sweep = 0u;
     uint8_t include_illegal = 0u;
+    uint8_t run_irq_lda = 0u;
     uint32_t sweep_trials = 8u;
     char error[4096];
     int argi;
@@ -98,6 +100,10 @@ int main(int argc, char** argv)
         {
             run_sweep = 1u;
             include_illegal = 1u;
+        }
+        else if (strcmp(argv[argi], "irq_lda") == 0)
+        {
+            run_irq_lda = 1u;
         }
         else if ((strcmp(argv[argi], "legal") == 0) ||
                  (strcmp(argv[argi], "standard") == 0) ||
@@ -181,6 +187,23 @@ int main(int argc, char** argv)
                 printf("program %s failed: %s\n", programs[i].name, error);
                 return rc;
             }
+        }
+    }
+
+
+    if (run_irq_lda != 0u)
+    {
+        qe6502_cpu_t cpu;
+        const int rc = run_irq_lda_abs_timing_test(&cpu,
+                                                   qe_mem,
+                                                   memory,
+                                                   &seed,
+                                                   error,
+                                                   sizeof(error));
+        if (rc != OK)
+        {
+            printf("irq lda test failed: %s\n", error);
+            return rc;
         }
     }
 

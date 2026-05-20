@@ -10,6 +10,7 @@ file(GLOB_RECURSE NETLIST_PRIVATE_SOURCE
         opcode_test.c
         opcode_sweep_test.c
         setup_test.c
+        interrupt_test.c
         ./third_party/perfect6502/netlist_sim.c
         ./third_party/perfect6502/perfect6502.c)
 
@@ -32,6 +33,7 @@ else()
         -Wdouble-promotion -Wformat=2 -Wundef
         -Wunused-function -Werror=unused-function
     )
+
 endif()
 
 # Set C standard
@@ -57,5 +59,16 @@ if(QE6502_ENABLE_NMOS_6502)
         PROPERTIES
             LABELS "cpu;transistor_netlist;opcode_sweep"
             TIMEOUT 600
+    )
+
+    add_test(NAME qe6502.netlist.mos.irq_lda_abs
+        COMMAND ${target} irq_lda
+    )
+    set_tests_properties(
+        qe6502.netlist.mos.irq_lda_abs
+        PROPERTIES
+            LABELS "cpu;transistor_netlist;interrupt"
+            TIMEOUT 60
+            DISABLED TRUE
     )
 endif()
