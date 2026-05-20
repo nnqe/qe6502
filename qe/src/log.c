@@ -41,6 +41,6 @@ QE_STATIC_API_IMPL(void) qe_log(const char* topic, const char *fmt, ...)   {QE_L
 QE_STATIC_API_IMPL(void) qe_log_warn(const char *fmt, ...)                 {QE_LOG_IMPL("WARNING");}
 QE_STATIC_API_IMPL(void) qe_log_error(const char *fmt, ...)                {QE_LOG_IMPL("ERROR");}
 
-#if defined(QE_DEBUG_BUILD) && (QE_DEBUG_BUILD == 1)
+#ifndef NDEBUG
     QE_STATIC_API_IMPL(void) qe_log_info(const char *fmt, ...)             {QE_LOG_IMPL("INFO");}
 #endif

@@ -7,8 +7,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug_native",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "QE_DEBUG_BUILD": "ON"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -28,8 +27,7 @@
       "toolchainFile": "${sourceDir}/cmake/toolchains/wasm32-unknown-unknown-clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "QE_BUILD_WASM": "ON",
-        "QE_DEBUG_BUILD": "ON"
+        "QE_BUILD_WASM": "ON"
       }
     },
     {

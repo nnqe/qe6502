@@ -20,7 +20,6 @@ function(qe6502_configure_core_target target)
             QE6502_ENABLE_NMOS_6502=$<BOOL:${QE6502_ENABLE_NMOS_6502}>
             QE6502_ENABLE_CMOS_65C02=$<BOOL:${QE6502_ENABLE_CMOS_65C02}>
         PRIVATE
-            QE_DEBUG_BUILD=$<BOOL:${QE_DEBUG_BUILD}>
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
     )
 

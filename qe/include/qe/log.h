@@ -18,7 +18,7 @@ QE_STATIC_API(void) qe_log(const char* topic, const char *fmt, ...);
 QE_STATIC_API(void) qe_log_warn(const char *fmt, ...);
 QE_STATIC_API(void) qe_log_error(const char *fmt, ...);
 
-#if defined(QE_DEBUG_BUILD) && (QE_DEBUG_BUILD == 1)
+#ifndef NDEBUG
     QE_STATIC_API(void) qe_log_info(const char *fmt, ...);
 #else
 #   define qe_log_info(...) ((void)0)

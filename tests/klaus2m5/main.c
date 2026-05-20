@@ -39,7 +39,7 @@ static void logger(void* context, const char* topic, const char* message)
     (void)context;
     const char* topic_notnull = topic? topic : "";
     const char* message_notnull = message? message : "";
-    printf("[qe6502::%s] %s\n", topic_notnull, message_notnull);
+    printf("[klaus2m5::%s] %s\n", topic_notnull, message_notnull);
     fflush(stdout);
 }
 
