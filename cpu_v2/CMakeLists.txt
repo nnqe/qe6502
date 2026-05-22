@@ -2,7 +2,7 @@
 # qe6502: no external dependencies
 
 set(QE6502_V2_PUBLIC_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502_abi.h
 )
 
 file(GLOB_RECURSE QE6502_V2_PRIVATE_SOURCE ./src/*.c)
@@ -20,6 +20,7 @@ function(qe6502_v2_configure_core_target target)
         PRIVATE
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
     )
+
 
     target_link_libraries(${target} PUBLIC qe_static)
 
