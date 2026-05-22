@@ -1,0 +1,2373 @@
+{
+  "meta": {
+    "cpu": "NMOS 6502",
+    "scope": "Documented standard NMOS 6502 opcodes only; undocumented opcode slots are empty objects.",
+    "source": {
+      "addressing_modes": "https://www.nesdev.org/obelisk-6502-guide/addressing.html",
+      "instruction_reference": "https://www.nesdev.org/obelisk-6502-guide/reference.html"
+    },
+    "field_notes": {
+      "class": "Opcode execution class. This is the key that should select a microcode flow template.",
+      "cycles": "[min, max]. Branches and indexed read modes may vary by condition/page crossing.",
+      "flags": "Optional short behavioral notes useful for generation or validation."
+    },
+    "instructions": {
+      "ADC": {
+        "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+      },
+      "AND": {
+        "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+      },
+      "ASL": {
+        "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+      },
+      "BCC": {
+        "summary": "Branch relative if carry flag is clear."
+      },
+      "BCS": {
+        "summary": "Branch relative if carry flag is set."
+      },
+      "BEQ": {
+        "summary": "Branch relative if zero flag is set."
+      },
+      "BIT": {
+        "summary": "Test bits in memory against A; sets Z from A&M, and copies memory bits 7 and 6 into N and V."
+      },
+      "BMI": {
+        "summary": "Branch relative if negative flag is set."
+      },
+      "BNE": {
+        "summary": "Branch relative if zero flag is clear."
+      },
+      "BPL": {
+        "summary": "Branch relative if negative flag is clear."
+      },
+      "BRK": {
+        "summary": "Force interrupt sequence; pushes PC and status, sets break state, and loads the IRQ/BRK vector."
+      },
+      "BVC": {
+        "summary": "Branch relative if overflow flag is clear."
+      },
+      "BVS": {
+        "summary": "Branch relative if overflow flag is set."
+      },
+      "CLC": {
+        "summary": "Clear carry flag."
+      },
+      "CLD": {
+        "summary": "Clear decimal mode flag."
+      },
+      "CLI": {
+        "summary": "Clear interrupt disable flag."
+      },
+      "CLV": {
+        "summary": "Clear overflow flag."
+      },
+      "CMP": {
+        "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+      },
+      "CPX": {
+        "summary": "Compare X with memory operand; updates N, Z, C without changing X."
+      },
+      "CPY": {
+        "summary": "Compare Y with memory operand; updates N, Z, C without changing Y."
+      },
+      "DEC": {
+        "summary": "Decrement memory operand by one; updates N and Z."
+      },
+      "DEX": {
+        "summary": "Decrement X by one; updates N and Z."
+      },
+      "DEY": {
+        "summary": "Decrement Y by one; updates N and Z."
+      },
+      "EOR": {
+        "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+      },
+      "INC": {
+        "summary": "Increment memory operand by one; updates N and Z."
+      },
+      "INX": {
+        "summary": "Increment X by one; updates N and Z."
+      },
+      "INY": {
+        "summary": "Increment Y by one; updates N and Z."
+      },
+      "JMP": {
+        "summary": "Load PC with the target address."
+      },
+      "JSR": {
+        "summary": "Push return address to stack and jump to subroutine target."
+      },
+      "LDA": {
+        "summary": "Load A from memory operand; updates N and Z."
+      },
+      "LDX": {
+        "summary": "Load X from memory operand; updates N and Z."
+      },
+      "LDY": {
+        "summary": "Load Y from memory operand; updates N and Z."
+      },
+      "LSR": {
+        "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+      },
+      "NOP": {
+        "summary": "No operation; consumes cycles without changing registers or flags."
+      },
+      "ORA": {
+        "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+      },
+      "PHA": {
+        "summary": "Push A to stack."
+      },
+      "PHP": {
+        "summary": "Push processor status to stack."
+      },
+      "PLA": {
+        "summary": "Pull A from stack; updates N and Z."
+      },
+      "PLP": {
+        "summary": "Pull processor status from stack."
+      },
+      "ROL": {
+        "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+      },
+      "ROR": {
+        "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+      },
+      "RTI": {
+        "summary": "Pull processor status and PC from stack to return from interrupt."
+      },
+      "RTS": {
+        "summary": "Pull return address from stack, increment it, and continue after JSR."
+      },
+      "SBC": {
+        "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+      },
+      "SEC": {
+        "summary": "Set carry flag."
+      },
+      "SED": {
+        "summary": "Set decimal mode flag."
+      },
+      "SEI": {
+        "summary": "Set interrupt disable flag."
+      },
+      "STA": {
+        "summary": "Store A to memory."
+      },
+      "STX": {
+        "summary": "Store X to memory."
+      },
+      "STY": {
+        "summary": "Store Y to memory."
+      },
+      "TAX": {
+        "summary": "Transfer A to X; updates N and Z."
+      },
+      "TAY": {
+        "summary": "Transfer A to Y; updates N and Z."
+      },
+      "TSX": {
+        "summary": "Transfer stack pointer to X; updates N and Z."
+      },
+      "TXA": {
+        "summary": "Transfer X to A; updates N and Z."
+      },
+      "TXS": {
+        "summary": "Transfer X to stack pointer."
+      },
+      "TYA": {
+        "summary": "Transfer Y to A; updates N and Z."
+      }
+    },
+    "classes": {
+      "r_imm": {
+        "summary": "Read-class instruction using an immediate operand."
+      },
+      "r_zp": {
+        "summary": "Read-class instruction using zero-page addressing."
+      },
+      "r_zpx": {
+        "summary": "Read-class instruction using zero-page,X addressing."
+      },
+      "r_zpy": {
+        "summary": "Read-class instruction using zero-page,Y addressing."
+      },
+      "r_abs": {
+        "summary": "Read-class instruction using absolute addressing."
+      },
+      "r_abx": {
+        "summary": "Read-class instruction using absolute,X addressing; may include page-cross correction."
+      },
+      "r_aby": {
+        "summary": "Read-class instruction using absolute,Y addressing; may include page-cross correction."
+      },
+      "r_izx": {
+        "summary": "Read-class instruction using indexed-indirect addressing, (zp,X)."
+      },
+      "r_izy": {
+        "summary": "Read-class instruction using indirect-indexed addressing, (zp),Y; may include page-cross correction."
+      },
+      "w_zp": {
+        "summary": "Write-class instruction using zero-page addressing."
+      },
+      "w_zpx": {
+        "summary": "Write-class instruction using zero-page,X addressing."
+      },
+      "w_zpy": {
+        "summary": "Write-class instruction using zero-page,Y addressing."
+      },
+      "w_abs": {
+        "summary": "Write-class instruction using absolute addressing."
+      },
+      "w_abx": {
+        "summary": "Write-class instruction using absolute,X addressing; fixed write timing."
+      },
+      "w_aby": {
+        "summary": "Write-class instruction using absolute,Y addressing; fixed write timing."
+      },
+      "w_izx": {
+        "summary": "Write-class instruction using indexed-indirect addressing, (zp,X)."
+      },
+      "w_izy": {
+        "summary": "Write-class instruction using indirect-indexed addressing, (zp),Y; fixed write timing."
+      },
+      "rw_zp": {
+        "summary": "Read-modify-write instruction using zero-page addressing."
+      },
+      "rw_zpx": {
+        "summary": "Read-modify-write instruction using zero-page,X addressing."
+      },
+      "rw_abs": {
+        "summary": "Read-modify-write instruction using absolute addressing."
+      },
+      "rw_abx": {
+        "summary": "Read-modify-write instruction using absolute,X addressing."
+      },
+      "acc": {
+        "summary": "Accumulator operation; the instruction operates on A rather than memory."
+      },
+      "imp": {
+        "summary": "Implicit/register instruction with no operand bytes."
+      },
+      "branch_rel": {
+        "summary": "Conditional relative branch; cycles depend on branch taken and page crossing."
+      },
+      "brk": {
+        "summary": "BRK interrupt-entry flow."
+      },
+      "jmp_abs": {
+        "summary": "Absolute jump flow."
+      },
+      "jmp_ind": {
+        "summary": "Indirect jump flow."
+      },
+      "jsr_abs": {
+        "summary": "JSR absolute subroutine-call flow."
+      },
+      "rts": {
+        "summary": "Return-from-subroutine flow."
+      },
+      "rti": {
+        "summary": "Return-from-interrupt flow."
+      },
+      "stack_push": {
+        "summary": "Push register/status value to stack."
+      },
+      "stack_pull": {
+        "summary": "Pull register/status value from stack."
+      }
+    },
+    "addressing_modes": {
+      "Implicit": {
+        "token": "imp",
+        "bytes": 1,
+        "summary": "Operand is implied by the instruction; no explicit operand byte is encoded."
+      },
+      "Accumulator": {
+        "token": "acc",
+        "bytes": 1,
+        "summary": "Instruction operates directly on the accumulator, written as operand A."
+      },
+      "Immediate": {
+        "token": "imm",
+        "bytes": 2,
+        "summary": "The next byte is an 8-bit constant operand."
+      },
+      "Zero Page": {
+        "token": "zp",
+        "bytes": 2,
+        "summary": "The operand byte is an address in $0000-$00FF."
+      },
+      "Zero Page,X": {
+        "token": "zpx",
+        "bytes": 2,
+        "summary": "The operand byte is added to X with zero-page wraparound."
+      },
+      "Zero Page,Y": {
+        "token": "zpy",
+        "bytes": 2,
+        "summary": "The operand byte is added to Y with zero-page wraparound; used by LDX and STX."
+      },
+      "Relative": {
+        "token": "rel",
+        "bytes": 2,
+        "summary": "The operand byte is a signed branch displacement relative to the PC after the branch instruction."
+      },
+      "Absolute": {
+        "token": "abs",
+        "bytes": 3,
+        "summary": "Two operand bytes form a full 16-bit address."
+      },
+      "Absolute,X": {
+        "token": "abx",
+        "bytes": 3,
+        "summary": "A 16-bit base address is indexed by X; read instructions may need an extra cycle on page crossing."
+      },
+      "Absolute,Y": {
+        "token": "aby",
+        "bytes": 3,
+        "summary": "A 16-bit base address is indexed by Y; read instructions may need an extra cycle on page crossing."
+      },
+      "Indirect": {
+        "token": "ind",
+        "bytes": 3,
+        "summary": "Used by JMP; the operand address points to the 16-bit jump target."
+      },
+      "(Indirect,X)": {
+        "token": "izx",
+        "bytes": 2,
+        "summary": "The operand byte is indexed by X in zero page, then used as a pointer to the effective address."
+      },
+      "(Indirect),Y": {
+        "token": "izy",
+        "bytes": 2,
+        "summary": "The operand byte points to a zero-page address pair; Y is added to the resulting address."
+      }
+    }
+  },
+  "opcodes": {
+    "0x00": {
+      "mnemonic": "BRK",
+      "class": "brk",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "BRK",
+      "summary": "Force interrupt sequence; pushes PC and status, sets break state, and loads the IRQ/BRK vector."
+    },
+    "0x01": {
+      "mnemonic": "ORA",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ORA (zp,X)",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x02": {},
+    "0x03": {},
+    "0x04": {},
+    "0x05": {
+      "mnemonic": "ORA",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "ORA zp",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x06": {
+      "mnemonic": "ASL",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "ASL zp",
+      "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+    },
+    "0x07": {},
+    "0x08": {
+      "mnemonic": "PHP",
+      "class": "stack_push",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "PHP",
+      "summary": "Push processor status to stack."
+    },
+    "0x09": {
+      "mnemonic": "ORA",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "ORA #imm",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x0A": {
+      "mnemonic": "ASL",
+      "class": "acc",
+      "addressing_mode": "Accumulator",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "ASL A",
+      "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+    },
+    "0x0B": {},
+    "0x0C": {},
+    "0x0D": {
+      "mnemonic": "ORA",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "ORA abs",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x0E": {
+      "mnemonic": "ASL",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ASL abs",
+      "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+    },
+    "0x0F": {},
+    "0x10": {
+      "mnemonic": "BPL",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BPL rel",
+      "summary": "Branch relative if negative flag is clear."
+    },
+    "0x11": {
+      "mnemonic": "ORA",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ORA (zp),Y",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x12": {},
+    "0x13": {},
+    "0x14": {},
+    "0x15": {
+      "mnemonic": "ORA",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "ORA zp,X",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x16": {
+      "mnemonic": "ASL",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ASL zp,X",
+      "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+    },
+    "0x17": {},
+    "0x18": {
+      "mnemonic": "CLC",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CLC",
+      "summary": "Clear carry flag."
+    },
+    "0x19": {
+      "mnemonic": "ORA",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ORA abs,Y",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x1A": {},
+    "0x1B": {},
+    "0x1C": {},
+    "0x1D": {
+      "mnemonic": "ORA",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ORA abs,X",
+      "summary": "Logical OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x1E": {
+      "mnemonic": "ASL",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "ASL abs,X",
+      "summary": "Shift accumulator or memory operand left by one bit; old bit 7 goes to C; updates N and Z."
+    },
+    "0x1F": {},
+    "0x20": {
+      "mnemonic": "JSR",
+      "class": "jsr_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "JSR abs",
+      "summary": "Push return address to stack and jump to subroutine target."
+    },
+    "0x21": {
+      "mnemonic": "AND",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "AND (zp,X)",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x22": {},
+    "0x23": {},
+    "0x24": {
+      "mnemonic": "BIT",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "BIT zp",
+      "summary": "Test bits in memory against A; sets Z from A&M, and copies memory bits 7 and 6 into N and V."
+    },
+    "0x25": {
+      "mnemonic": "AND",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "AND zp",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x26": {
+      "mnemonic": "ROL",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "ROL zp",
+      "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+    },
+    "0x27": {},
+    "0x28": {
+      "mnemonic": "PLP",
+      "class": "stack_pull",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "PLP",
+      "summary": "Pull processor status from stack."
+    },
+    "0x29": {
+      "mnemonic": "AND",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "AND #imm",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x2A": {
+      "mnemonic": "ROL",
+      "class": "acc",
+      "addressing_mode": "Accumulator",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "ROL A",
+      "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+    },
+    "0x2B": {},
+    "0x2C": {
+      "mnemonic": "BIT",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "BIT abs",
+      "summary": "Test bits in memory against A; sets Z from A&M, and copies memory bits 7 and 6 into N and V."
+    },
+    "0x2D": {
+      "mnemonic": "AND",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "AND abs",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x2E": {
+      "mnemonic": "ROL",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ROL abs",
+      "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+    },
+    "0x2F": {},
+    "0x30": {
+      "mnemonic": "BMI",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BMI rel",
+      "summary": "Branch relative if negative flag is set."
+    },
+    "0x31": {
+      "mnemonic": "AND",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "AND (zp),Y",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x32": {},
+    "0x33": {},
+    "0x34": {},
+    "0x35": {
+      "mnemonic": "AND",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "AND zp,X",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x36": {
+      "mnemonic": "ROL",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ROL zp,X",
+      "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+    },
+    "0x37": {},
+    "0x38": {
+      "mnemonic": "SEC",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "SEC",
+      "summary": "Set carry flag."
+    },
+    "0x39": {
+      "mnemonic": "AND",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "AND abs,Y",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x3A": {},
+    "0x3B": {},
+    "0x3C": {},
+    "0x3D": {
+      "mnemonic": "AND",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "AND abs,X",
+      "summary": "Logical AND between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x3E": {
+      "mnemonic": "ROL",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "ROL abs,X",
+      "summary": "Rotate accumulator or memory operand left through C; updates N, Z, C."
+    },
+    "0x3F": {},
+    "0x40": {
+      "mnemonic": "RTI",
+      "class": "rti",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "RTI",
+      "summary": "Pull processor status and PC from stack to return from interrupt."
+    },
+    "0x41": {
+      "mnemonic": "EOR",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "EOR (zp,X)",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x42": {},
+    "0x43": {},
+    "0x44": {},
+    "0x45": {
+      "mnemonic": "EOR",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "EOR zp",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x46": {
+      "mnemonic": "LSR",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "LSR zp",
+      "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+    },
+    "0x47": {},
+    "0x48": {
+      "mnemonic": "PHA",
+      "class": "stack_push",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "PHA",
+      "summary": "Push A to stack."
+    },
+    "0x49": {
+      "mnemonic": "EOR",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "EOR #imm",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x4A": {
+      "mnemonic": "LSR",
+      "class": "acc",
+      "addressing_mode": "Accumulator",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "LSR A",
+      "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+    },
+    "0x4B": {},
+    "0x4C": {
+      "mnemonic": "JMP",
+      "class": "jmp_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "JMP abs",
+      "summary": "Load PC with the target address."
+    },
+    "0x4D": {
+      "mnemonic": "EOR",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "EOR abs",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x4E": {
+      "mnemonic": "LSR",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "LSR abs",
+      "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+    },
+    "0x4F": {},
+    "0x50": {
+      "mnemonic": "BVC",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BVC rel",
+      "summary": "Branch relative if overflow flag is clear."
+    },
+    "0x51": {
+      "mnemonic": "EOR",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "EOR (zp),Y",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x52": {},
+    "0x53": {},
+    "0x54": {},
+    "0x55": {
+      "mnemonic": "EOR",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "EOR zp,X",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x56": {
+      "mnemonic": "LSR",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "LSR zp,X",
+      "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+    },
+    "0x57": {},
+    "0x58": {
+      "mnemonic": "CLI",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CLI",
+      "summary": "Clear interrupt disable flag."
+    },
+    "0x59": {
+      "mnemonic": "EOR",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "EOR abs,Y",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x5A": {},
+    "0x5B": {},
+    "0x5C": {},
+    "0x5D": {
+      "mnemonic": "EOR",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "EOR abs,X",
+      "summary": "Exclusive OR between A and memory operand; stores result in A; updates N and Z."
+    },
+    "0x5E": {
+      "mnemonic": "LSR",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "LSR abs,X",
+      "summary": "Shift accumulator or memory operand right by one bit; old bit 0 goes to C; updates N and Z."
+    },
+    "0x5F": {},
+    "0x60": {
+      "mnemonic": "RTS",
+      "class": "rts",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "RTS",
+      "summary": "Pull return address from stack, increment it, and continue after JSR."
+    },
+    "0x61": {
+      "mnemonic": "ADC",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ADC (zp,X)",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x62": {},
+    "0x63": {},
+    "0x64": {},
+    "0x65": {
+      "mnemonic": "ADC",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "ADC zp",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x66": {
+      "mnemonic": "ROR",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "ROR zp",
+      "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+    },
+    "0x67": {},
+    "0x68": {
+      "mnemonic": "PLA",
+      "class": "stack_pull",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "PLA",
+      "summary": "Pull A from stack; updates N and Z."
+    },
+    "0x69": {
+      "mnemonic": "ADC",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "ADC #imm",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x6A": {
+      "mnemonic": "ROR",
+      "class": "acc",
+      "addressing_mode": "Accumulator",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "ROR A",
+      "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+    },
+    "0x6B": {},
+    "0x6C": {
+      "mnemonic": "JMP",
+      "class": "jmp_ind",
+      "addressing_mode": "Indirect",
+      "bytes": 3,
+      "cycles": [
+        5,
+        5
+      ],
+      "flags": [
+        "nmos_indirect_wrap_bug"
+      ],
+      "syntax": "JMP (abs)",
+      "summary": "Load PC with the target address."
+    },
+    "0x6D": {
+      "mnemonic": "ADC",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "ADC abs",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x6E": {
+      "mnemonic": "ROR",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ROR abs",
+      "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+    },
+    "0x6F": {},
+    "0x70": {
+      "mnemonic": "BVS",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BVS rel",
+      "summary": "Branch relative if overflow flag is set."
+    },
+    "0x71": {
+      "mnemonic": "ADC",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ADC (zp),Y",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x72": {},
+    "0x73": {},
+    "0x74": {},
+    "0x75": {
+      "mnemonic": "ADC",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "ADC zp,X",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x76": {
+      "mnemonic": "ROR",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "ROR zp,X",
+      "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+    },
+    "0x77": {},
+    "0x78": {
+      "mnemonic": "SEI",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "SEI",
+      "summary": "Set interrupt disable flag."
+    },
+    "0x79": {
+      "mnemonic": "ADC",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ADC abs,Y",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x7A": {},
+    "0x7B": {},
+    "0x7C": {},
+    "0x7D": {
+      "mnemonic": "ADC",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "ADC abs,X",
+      "summary": "Add memory operand and carry flag to A; updates N, V, Z, C."
+    },
+    "0x7E": {
+      "mnemonic": "ROR",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "ROR abs,X",
+      "summary": "Rotate accumulator or memory operand right through C; updates N, Z, C."
+    },
+    "0x7F": {},
+    "0x80": {},
+    "0x81": {
+      "mnemonic": "STA",
+      "class": "w_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "STA (zp,X)",
+      "summary": "Store A to memory."
+    },
+    "0x82": {},
+    "0x83": {},
+    "0x84": {
+      "mnemonic": "STY",
+      "class": "w_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "STY zp",
+      "summary": "Store Y to memory."
+    },
+    "0x85": {
+      "mnemonic": "STA",
+      "class": "w_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "STA zp",
+      "summary": "Store A to memory."
+    },
+    "0x86": {
+      "mnemonic": "STX",
+      "class": "w_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "STX zp",
+      "summary": "Store X to memory."
+    },
+    "0x87": {},
+    "0x88": {
+      "mnemonic": "DEY",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "DEY",
+      "summary": "Decrement Y by one; updates N and Z."
+    },
+    "0x89": {},
+    "0x8A": {
+      "mnemonic": "TXA",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TXA",
+      "summary": "Transfer X to A; updates N and Z."
+    },
+    "0x8B": {},
+    "0x8C": {
+      "mnemonic": "STY",
+      "class": "w_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STY abs",
+      "summary": "Store Y to memory."
+    },
+    "0x8D": {
+      "mnemonic": "STA",
+      "class": "w_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STA abs",
+      "summary": "Store A to memory."
+    },
+    "0x8E": {
+      "mnemonic": "STX",
+      "class": "w_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STX abs",
+      "summary": "Store X to memory."
+    },
+    "0x8F": {},
+    "0x90": {
+      "mnemonic": "BCC",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BCC rel",
+      "summary": "Branch relative if carry flag is clear."
+    },
+    "0x91": {
+      "mnemonic": "STA",
+      "class": "w_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "STA (zp),Y",
+      "summary": "Store A to memory."
+    },
+    "0x92": {},
+    "0x93": {},
+    "0x94": {
+      "mnemonic": "STY",
+      "class": "w_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STY zp,X",
+      "summary": "Store Y to memory."
+    },
+    "0x95": {
+      "mnemonic": "STA",
+      "class": "w_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STA zp,X",
+      "summary": "Store A to memory."
+    },
+    "0x96": {
+      "mnemonic": "STX",
+      "class": "w_zpy",
+      "addressing_mode": "Zero Page,Y",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "STX zp,Y",
+      "summary": "Store X to memory."
+    },
+    "0x97": {},
+    "0x98": {
+      "mnemonic": "TYA",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TYA",
+      "summary": "Transfer Y to A; updates N and Z."
+    },
+    "0x99": {
+      "mnemonic": "STA",
+      "class": "w_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "STA abs,Y",
+      "summary": "Store A to memory."
+    },
+    "0x9A": {
+      "mnemonic": "TXS",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TXS",
+      "summary": "Transfer X to stack pointer."
+    },
+    "0x9B": {},
+    "0x9C": {},
+    "0x9D": {
+      "mnemonic": "STA",
+      "class": "w_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "STA abs,X",
+      "summary": "Store A to memory."
+    },
+    "0x9E": {},
+    "0x9F": {},
+    "0xA0": {
+      "mnemonic": "LDY",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "LDY #imm",
+      "summary": "Load Y from memory operand; updates N and Z."
+    },
+    "0xA1": {
+      "mnemonic": "LDA",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "LDA (zp,X)",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xA2": {
+      "mnemonic": "LDX",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "LDX #imm",
+      "summary": "Load X from memory operand; updates N and Z."
+    },
+    "0xA3": {},
+    "0xA4": {
+      "mnemonic": "LDY",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "LDY zp",
+      "summary": "Load Y from memory operand; updates N and Z."
+    },
+    "0xA5": {
+      "mnemonic": "LDA",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "LDA zp",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xA6": {
+      "mnemonic": "LDX",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "LDX zp",
+      "summary": "Load X from memory operand; updates N and Z."
+    },
+    "0xA7": {},
+    "0xA8": {
+      "mnemonic": "TAY",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TAY",
+      "summary": "Transfer A to Y; updates N and Z."
+    },
+    "0xA9": {
+      "mnemonic": "LDA",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "LDA #imm",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xAA": {
+      "mnemonic": "TAX",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TAX",
+      "summary": "Transfer A to X; updates N and Z."
+    },
+    "0xAB": {},
+    "0xAC": {
+      "mnemonic": "LDY",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDY abs",
+      "summary": "Load Y from memory operand; updates N and Z."
+    },
+    "0xAD": {
+      "mnemonic": "LDA",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDA abs",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xAE": {
+      "mnemonic": "LDX",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDX abs",
+      "summary": "Load X from memory operand; updates N and Z."
+    },
+    "0xAF": {},
+    "0xB0": {
+      "mnemonic": "BCS",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BCS rel",
+      "summary": "Branch relative if carry flag is set."
+    },
+    "0xB1": {
+      "mnemonic": "LDA",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "LDA (zp),Y",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xB2": {},
+    "0xB3": {},
+    "0xB4": {
+      "mnemonic": "LDY",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDY zp,X",
+      "summary": "Load Y from memory operand; updates N and Z."
+    },
+    "0xB5": {
+      "mnemonic": "LDA",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDA zp,X",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xB6": {
+      "mnemonic": "LDX",
+      "class": "r_zpy",
+      "addressing_mode": "Zero Page,Y",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "LDX zp,Y",
+      "summary": "Load X from memory operand; updates N and Z."
+    },
+    "0xB7": {},
+    "0xB8": {
+      "mnemonic": "CLV",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CLV",
+      "summary": "Clear overflow flag."
+    },
+    "0xB9": {
+      "mnemonic": "LDA",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "LDA abs,Y",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xBA": {
+      "mnemonic": "TSX",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "TSX",
+      "summary": "Transfer stack pointer to X; updates N and Z."
+    },
+    "0xBB": {},
+    "0xBC": {
+      "mnemonic": "LDY",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "LDY abs,X",
+      "summary": "Load Y from memory operand; updates N and Z."
+    },
+    "0xBD": {
+      "mnemonic": "LDA",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "LDA abs,X",
+      "summary": "Load A from memory operand; updates N and Z."
+    },
+    "0xBE": {
+      "mnemonic": "LDX",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "LDX abs,Y",
+      "summary": "Load X from memory operand; updates N and Z."
+    },
+    "0xBF": {},
+    "0xC0": {
+      "mnemonic": "CPY",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CPY #imm",
+      "summary": "Compare Y with memory operand; updates N, Z, C without changing Y."
+    },
+    "0xC1": {
+      "mnemonic": "CMP",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "CMP (zp,X)",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xC2": {},
+    "0xC3": {},
+    "0xC4": {
+      "mnemonic": "CPY",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "CPY zp",
+      "summary": "Compare Y with memory operand; updates N, Z, C without changing Y."
+    },
+    "0xC5": {
+      "mnemonic": "CMP",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "CMP zp",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xC6": {
+      "mnemonic": "DEC",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "DEC zp",
+      "summary": "Decrement memory operand by one; updates N and Z."
+    },
+    "0xC7": {},
+    "0xC8": {
+      "mnemonic": "INY",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "INY",
+      "summary": "Increment Y by one; updates N and Z."
+    },
+    "0xC9": {
+      "mnemonic": "CMP",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CMP #imm",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xCA": {
+      "mnemonic": "DEX",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "DEX",
+      "summary": "Decrement X by one; updates N and Z."
+    },
+    "0xCB": {},
+    "0xCC": {
+      "mnemonic": "CPY",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "CPY abs",
+      "summary": "Compare Y with memory operand; updates N, Z, C without changing Y."
+    },
+    "0xCD": {
+      "mnemonic": "CMP",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "CMP abs",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xCE": {
+      "mnemonic": "DEC",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "DEC abs",
+      "summary": "Decrement memory operand by one; updates N and Z."
+    },
+    "0xCF": {},
+    "0xD0": {
+      "mnemonic": "BNE",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BNE rel",
+      "summary": "Branch relative if zero flag is clear."
+    },
+    "0xD1": {
+      "mnemonic": "CMP",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "CMP (zp),Y",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xD2": {},
+    "0xD3": {},
+    "0xD4": {},
+    "0xD5": {
+      "mnemonic": "CMP",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "CMP zp,X",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xD6": {
+      "mnemonic": "DEC",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "DEC zp,X",
+      "summary": "Decrement memory operand by one; updates N and Z."
+    },
+    "0xD7": {},
+    "0xD8": {
+      "mnemonic": "CLD",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CLD",
+      "summary": "Clear decimal mode flag."
+    },
+    "0xD9": {
+      "mnemonic": "CMP",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "CMP abs,Y",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xDA": {},
+    "0xDB": {},
+    "0xDC": {},
+    "0xDD": {
+      "mnemonic": "CMP",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "CMP abs,X",
+      "summary": "Compare A with memory operand; updates N, Z, C without changing A."
+    },
+    "0xDE": {
+      "mnemonic": "DEC",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "DEC abs,X",
+      "summary": "Decrement memory operand by one; updates N and Z."
+    },
+    "0xDF": {},
+    "0xE0": {
+      "mnemonic": "CPX",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "CPX #imm",
+      "summary": "Compare X with memory operand; updates N, Z, C without changing X."
+    },
+    "0xE1": {
+      "mnemonic": "SBC",
+      "class": "r_izx",
+      "addressing_mode": "(Indirect,X)",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "SBC (zp,X)",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xE2": {},
+    "0xE3": {},
+    "0xE4": {
+      "mnemonic": "CPX",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "CPX zp",
+      "summary": "Compare X with memory operand; updates N, Z, C without changing X."
+    },
+    "0xE5": {
+      "mnemonic": "SBC",
+      "class": "r_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        3,
+        3
+      ],
+      "syntax": "SBC zp",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xE6": {
+      "mnemonic": "INC",
+      "class": "rw_zp",
+      "addressing_mode": "Zero Page",
+      "bytes": 2,
+      "cycles": [
+        5,
+        5
+      ],
+      "syntax": "INC zp",
+      "summary": "Increment memory operand by one; updates N and Z."
+    },
+    "0xE7": {},
+    "0xE8": {
+      "mnemonic": "INX",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "INX",
+      "summary": "Increment X by one; updates N and Z."
+    },
+    "0xE9": {
+      "mnemonic": "SBC",
+      "class": "r_imm",
+      "addressing_mode": "Immediate",
+      "bytes": 2,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "SBC #imm",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xEA": {
+      "mnemonic": "NOP",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "NOP",
+      "summary": "No operation; consumes cycles without changing registers or flags."
+    },
+    "0xEB": {},
+    "0xEC": {
+      "mnemonic": "CPX",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "CPX abs",
+      "summary": "Compare X with memory operand; updates N, Z, C without changing X."
+    },
+    "0xED": {
+      "mnemonic": "SBC",
+      "class": "r_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "SBC abs",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xEE": {
+      "mnemonic": "INC",
+      "class": "rw_abs",
+      "addressing_mode": "Absolute",
+      "bytes": 3,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "INC abs",
+      "summary": "Increment memory operand by one; updates N and Z."
+    },
+    "0xEF": {},
+    "0xF0": {
+      "mnemonic": "BEQ",
+      "class": "branch_rel",
+      "addressing_mode": "Relative",
+      "bytes": 2,
+      "cycles": [
+        2,
+        4
+      ],
+      "flags": [
+        "branch_taken",
+        "page_cross"
+      ],
+      "syntax": "BEQ rel",
+      "summary": "Branch relative if zero flag is set."
+    },
+    "0xF1": {
+      "mnemonic": "SBC",
+      "class": "r_izy",
+      "addressing_mode": "(Indirect),Y",
+      "bytes": 2,
+      "cycles": [
+        5,
+        6
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "SBC (zp),Y",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xF2": {},
+    "0xF3": {},
+    "0xF4": {},
+    "0xF5": {
+      "mnemonic": "SBC",
+      "class": "r_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        4,
+        4
+      ],
+      "syntax": "SBC zp,X",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xF6": {
+      "mnemonic": "INC",
+      "class": "rw_zpx",
+      "addressing_mode": "Zero Page,X",
+      "bytes": 2,
+      "cycles": [
+        6,
+        6
+      ],
+      "syntax": "INC zp,X",
+      "summary": "Increment memory operand by one; updates N and Z."
+    },
+    "0xF7": {},
+    "0xF8": {
+      "mnemonic": "SED",
+      "class": "imp",
+      "addressing_mode": "Implicit",
+      "bytes": 1,
+      "cycles": [
+        2,
+        2
+      ],
+      "syntax": "SED",
+      "summary": "Set decimal mode flag."
+    },
+    "0xF9": {
+      "mnemonic": "SBC",
+      "class": "r_aby",
+      "addressing_mode": "Absolute,Y",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "SBC abs,Y",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xFA": {},
+    "0xFB": {},
+    "0xFC": {},
+    "0xFD": {
+      "mnemonic": "SBC",
+      "class": "r_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        4,
+        5
+      ],
+      "flags": [
+        "page_cross"
+      ],
+      "syntax": "SBC abs,X",
+      "summary": "Subtract memory operand and inverse carry from A; updates N, V, Z, C."
+    },
+    "0xFE": {
+      "mnemonic": "INC",
+      "class": "rw_abx",
+      "addressing_mode": "Absolute,X",
+      "bytes": 3,
+      "cycles": [
+        7,
+        7
+      ],
+      "syntax": "INC abs,X",
+      "summary": "Increment memory operand by one; updates N and Z."
+    },
+    "0xFF": {}
+  }
+}
