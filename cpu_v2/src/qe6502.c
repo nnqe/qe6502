@@ -41,7 +41,7 @@ static inline qe6502_tick_t read(const qe6502_t* cpu, uint16_t address)
 {
     return (qe6502_tick_t){
         .address = address,
-        .status = cpu->status & (~qe6502_status_writing)
+        .status = (uint8_t)(cpu->status & (~qe6502_status_writing))
     };
 }
 
@@ -50,7 +50,7 @@ static inline qe6502_tick_t write(const qe6502_t* cpu, uint16_t address, uint8_t
     return (qe6502_tick_t){
         .address = address,
         .bus = data,
-        .status = cpu->status | qe6502_status_writing
+        .status = (uint8_t)(cpu->status | qe6502_status_writing)
     };
 }
 
