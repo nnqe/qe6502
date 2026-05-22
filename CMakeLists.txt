@@ -8,6 +8,7 @@ include(CTest)
 option(QE6502_ENABLE_CYCLE_MERGE "Enable cpu cycles merge (adds -DQE6502_ENABLE_CYCLE_MERGE)" OFF)
 option(QE6502_ENABLE_NMOS_6502 "Enable NMOS 6502 (adds -DQE6502_ENABLE_NMOS_6502)" ON)
 option(QE6502_ENABLE_CMOS_65C02 "Enable CMOS 65C02 (adds -DQE6502_ENABLE_CMOS_65C02)" ON)
+option(QE6502_VERBOS "Enable verbos build (adds -DQE6502_VERBOS)" OFF)
 option(QE6502_BUILD_EXAMPLES "Enable examples (adds -DQE6502_BUILD_EXAMPLES)" ON)
 
 if(NOT QE6502_ENABLE_NMOS_6502 AND NOT QE6502_ENABLE_CMOS_65C02)
@@ -20,12 +21,14 @@ endif()
 message(STATUS "qe6502 config:")
 message(STATUS "  QE6502_ENABLE_NMOS_6502   = ${QE6502_ENABLE_NMOS_6502}")
 message(STATUS "  QE6502_ENABLE_CMOS_65C02  = ${QE6502_ENABLE_CMOS_65C02}")
+message(STATUS "  QE6502_VERBOS             = ${QE6502_VERBOS}")
 message(STATUS "  QE6502_ENABLE_CYCLE_MERGE = ${QE6502_ENABLE_CYCLE_MERGE}")
 message(STATUS "  QE6502_BUILD_EXAMPLES     = ${QE6502_BUILD_EXAMPLES}")
 
 # Add subdirectories
 add_subdirectory(qe)
 add_subdirectory(cpu)
+add_subdirectory(cpu_v2)
 add_subdirectory(binds)
 
 if(QE6502_BUILD_EXAMPLES)

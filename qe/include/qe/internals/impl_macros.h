@@ -153,4 +153,36 @@
 #   define QE_UNLIKELY_(x) (x)
 #endif
 
+/* -------------------------------------------------------------------------- */
+/* assert                                                                     */
+/* -------------------------------------------------------------------------- */
+
+#ifndef QE_ASSERT
+#   ifdef NDEBUG
+#       define QE_ASSERT_(expr) ((void)0)
+#   else
+#       ifndef QE_TRAP
+#           if defined(_MSC_VER)
+#               include <intrin.h>
+#               define QE_TRAP() __debugbreak()
+#           elif defined(__clang__) || defined(__GNUC__)
+#               define QE_TRAP() __builtin_trap()
+#           else
+                static inline void qe_trap(void)
+                {
+                    for (;;) {}
+                }
+#               define QE_TRAP() qe_trap()
+#           endif
+#       endif
+#       define QE_ASSERT_(expr)      \
+        do {                        \
+                if (!(expr)) {      \
+                    QE_TRAP();      \
+            }                       \
+        } while (0)
+#   endif
+#endif
+
+
 #endif // QE_IMPL_MACROS_H

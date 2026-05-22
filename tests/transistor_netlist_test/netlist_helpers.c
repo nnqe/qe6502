@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <qe/impl_utils.h>
 
 #define MEM_SIZE 65536u
 
@@ -12,7 +13,7 @@ static void set_error(char* error, size_t error_size, const char* fmt, ...)
     {
         va_list args;
         va_start(args, fmt);
-        (void)vsnprintf(error, error_size, fmt, args);
+        qe_vsnprintf(error, error_size, fmt, args);
         va_end(args);
     }
 }

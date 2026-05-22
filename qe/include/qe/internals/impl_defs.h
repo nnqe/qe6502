@@ -37,6 +37,7 @@
 #define QE_SIC                              static inline QE_ALWAYS_INLINE_
 #define QE_NULL                             ((void*)0)
 #define QE_STATIC_ASSERT(cond, msg)         QE_STATIC_ASSERT_(cond, msg)
+#define QE_ASSERT(expr)                     QE_ASSERT_(expr)
 
 /* ------------------------------------------------------------------------- */
 /* Target endianness helpers                                                  */
