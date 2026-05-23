@@ -37,8 +37,9 @@ typedef enum service_flow
 {
     service_flow_reset = 0,
     service_flow_light_reset = 1,
-    service_flow_nmi = 2,
-    service_flow_irq = 3,
+    service_flow_goto = 2,
+    service_flow_nmi = 3,
+    service_flow_irq = 4,
 
     service_flow_count_used
 } service_flow_t;
@@ -96,16 +97,17 @@ static inline qe6502_tick_t stack_read(qe6502_t* cpu)
     return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
-void qe6502_v2_light_reset_to(qe6502_t* cpu, uint16_t address)
+void qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
 {
     cpu->status = 0;
     cpu->PC = address;
-    enter_service_flow(cpu, service_flow_light_reset);
+    enter_service_flow(cpu, service_flow_goto);
 }
 
 void qe6502_v2_light_reset(qe6502_t* cpu)
 {
-    qe6502_v2_light_reset_to(cpu, cpu->PC);
+    cpu->status = 0;
+    enter_service_flow(cpu, service_flow_light_reset);
 }
 
 qe6502_tick_t dispatcher(qe6502_t* cpu, uint8_t bus)
@@ -333,6 +335,30 @@ static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
     qe6502_tick_t tick = read(cpu, cpu->PC);
     tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);
     return tick;
+}
+
+/* service_handler; role=vec_lo; action=read_reset_vector_low */
+static qe6502_tick_t mc_light_reset_c0_vec_lo(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read(cpu, 0xfffcu);
+}
+
+/* service_handler; role=vec_hi; action=consume_reset_vector_low_and_read_reset_vector_high */
+static qe6502_tick_t mc_light_reset_c1_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+
+    return read(cpu, 0xfffdu);
+}
+
+/* service_handler; role=fetch; action=consume_reset_vector_high_and_fetch_opcode */
+static qe6502_tick_t mc_light_reset_c2_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+
+    return mc_fetch(cpu, bus);
 }
 
 /* control_handler; role=apply; action=apply_signed_offset_to_pc_low_and_request_branch_dummy_read */
@@ -1904,14 +1930,23 @@ static qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 
 const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
     {
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 0)] = &mc_fetch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 1)] = &mc_dispatch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 2)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 3)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 2)] = &mc_light_reset_c2_fetch,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 3)] = &mc_dispatch,
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 4)] = &op_ILL,
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 5)] = &op_ILL,
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 6)] = &op_ILL,
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 7)] = &op_ILL,
+
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 0)] = &mc_fetch,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 1)] = &mc_dispatch,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 2)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 3)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 4)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 5)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 6)] = &op_ILL,
+        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 7)] = &op_ILL,
 
         /* 0x00 BRK ; class=brk */
         [IDX(qe6502_model_nmos, 0x00, 0)] = &mc_brk_c0_pad,

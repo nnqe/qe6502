@@ -78,7 +78,7 @@ typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 extern const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size];
 
 void qe6502_v2_light_reset(qe6502_t* cpu);
-void qe6502_v2_light_reset_to(qe6502_t* cpu, uint16_t address);
+void qe6502_v2_goto(qe6502_t* cpu, uint16_t address);
 
 static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
 {
