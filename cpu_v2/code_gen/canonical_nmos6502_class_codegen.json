@@ -1,6 +1,6 @@
 {
   "meta": {
-    "schema": "qe6502-nmos-class-codegen-v1",
+    "schema": "qe6502-nmos-class-codegen-v2-terminal-contract",
     "purpose": "Microcode class code-generation rules for classes referenced by nmos6502_opcodes_meta.json.",
     "cycle_semantics": "classes[*].cycles are microcode table entries. They intentionally include the final mc_dispatch entry, so len(cycles) must equal documented max instruction cycles + 1.",
     "dispatch_policy": "mc_dispatch is the only intentional dispatch exception; it consumes the fetched opcode and transfers control to the selected opcode class.",
@@ -38,7 +38,28 @@
       "v1_opcode_entry_mapping": "passed",
       "errors": [],
       "ai_certainty": "high",
-      "ai_comment": "Validation was run after generation. Empty errors means class coverage, cycle counts, dispatch endings, symbol rules, and v1 opcode-entry mapping passed."
+      "ai_comment": "Validation was run after generation. Empty errors means class coverage, cycle counts, dispatch endings, symbol rules, and v1 opcode-entry mapping passed.",
+      "terminal_contract_rule": "passed"
+    },
+    "terminal_contracts": {
+      "purpose": "Describes what is already available to a terminal mnemonic handler and what it still receives from the bus.",
+      "ready_values": {
+        "none": "No effective operand/address state is required before the terminal mnemonic handler.",
+        "addr": "cpu->latch_addr already contains the final effective address.",
+        "addrlo": "The low byte of the final effective address is already available; the high byte is still pending or class-specific.",
+        "addr_data": "cpu->latch_addr contains the final effective address and cpu->latch_data contains the memory data.",
+        "custom": "Special/control flow. The generic mnemonic terminal contract is not used for code generation."
+      },
+      "pending_values": {
+        "none": "The terminal mnemonic handler does not need a meaningful bus byte.",
+        "data": "The terminal mnemonic handler receives operand data in bus.",
+        "addrlo": "The terminal mnemonic handler receives a low address byte in bus.",
+        "addrhi": "The terminal mnemonic handler receives a high address byte in bus.",
+        "custom": "Special/control flow. The generic mnemonic terminal contract is not used for code generation."
+      },
+      "symbol_suffix": "ready_{ready}_pending_{pending}",
+      "ai_certainty": "high",
+      "ai_comment": "Added to avoid ambiguous terminal mnemonic handlers, especially for writer flows where some classes enter the mnemonic handler with a ready address and others still receive the final address byte from bus."
     }
   },
   "classes": {
@@ -58,12 +79,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -79,7 +104,11 @@
         "nmos_pre_r_immediate"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_zp": {
       "description": "Reader flow for zero-page operands.",
@@ -108,12 +137,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -130,7 +163,11 @@
         "nmos_pre_r_zeropage_2"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_zpx": {
       "description": "Reader flow for zero-page,X operands.",
@@ -170,12 +207,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -193,7 +234,11 @@
         "nmos_pre_r_zeropage_x_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_zpy": {
       "description": "Reader flow for zero-page,Y operands; used by LDX.",
@@ -233,12 +278,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -256,7 +305,11 @@
         "nmos_pre_r_zeropage_y_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_abs": {
       "description": "Reader flow for absolute operands.",
@@ -296,12 +349,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -319,7 +376,11 @@
         "nmos_pre_r_absolute_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_abx": {
       "description": "Reader flow for absolute,X operands with optional page-cross correction.",
@@ -371,12 +432,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -395,7 +460,11 @@
         "nmos_pre_r_absolute_x_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_aby": {
       "description": "Reader flow for absolute,Y operands with optional page-cross correction.",
@@ -447,12 +516,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -471,7 +544,11 @@
         "nmos_pre_r_absolute_y_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_izx": {
       "description": "Reader flow for indexed-indirect (zp,X) operands.",
@@ -533,12 +610,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -558,7 +639,11 @@
         "nmos_pre_r_indexed_x_5"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "r_izy": {
       "description": "Reader flow for indirect-indexed (zp),Y operands with optional page-cross correction.",
@@ -621,12 +706,16 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_r_fetch",
+          "symbol": "op_{mnemonic}_r_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_operand_mnemonic_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
           "ai_certainty": "high",
-          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here."
+          "ai_comment": "Mnemonic-specific reader semantic handler. No opcode name is used in addressing handlers; mnemonic appears only here. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -646,7 +735,11 @@
         "nmos_pre_r_indexed_y_5"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "w_zp": {
       "description": "Writer flow for zero-page operands.",
@@ -664,12 +757,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "addrlo"
+          }
         },
         {
           "role": "fetch",
@@ -694,7 +791,11 @@
         "nmos_pre_w_zeropage"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "addrlo"
+      }
     },
     "w_zpx": {
       "description": "Writer flow for zero-page,X operands.",
@@ -723,12 +824,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -754,7 +859,11 @@
         "nmos_pre_w_zeropage_x_2"
       ],
       "ai_certainty": "medium",
-      "ai_comment": "Matches v1 timing; marked medium because v1 differs from analogous zero-page,Y writer by using request_read instead of dummy-read helper."
+      "ai_comment": "Matches v1 timing; marked medium because v1 differs from analogous zero-page,Y writer by using request_read instead of dummy-read helper.",
+      "terminal_contract": {
+        "ready": "addr",
+        "pending": "none"
+      }
     },
     "w_zpy": {
       "description": "Writer flow for zero-page,Y operands; used by STX.",
@@ -783,12 +892,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -814,7 +927,11 @@
         "nmos_pre_w_zeropage_y_2"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr",
+        "pending": "none"
+      }
     },
     "w_abs": {
       "description": "Writer flow for absolute operands.",
@@ -843,12 +960,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addrlo",
+            "pending": "addrhi"
+          }
         },
         {
           "role": "fetch",
@@ -874,7 +995,11 @@
         "nmos_pre_w_absolute_2"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addrlo",
+        "pending": "addrhi"
+      }
     },
     "w_abx": {
       "description": "Writer flow for absolute,X operands with fixed indexing probe cycle.",
@@ -914,12 +1039,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -946,7 +1075,11 @@
         "nmos_pre_w_absolute_x_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr",
+        "pending": "none"
+      }
     },
     "w_aby": {
       "description": "Writer flow for absolute,Y operands with fixed indexing probe cycle.",
@@ -986,12 +1119,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1018,7 +1155,11 @@
         "nmos_pre_w_absolute_y_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr",
+        "pending": "none"
+      }
     },
     "w_izx": {
       "description": "Writer flow for indexed-indirect (zp,X) operands.",
@@ -1069,12 +1210,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addrlo",
+            "pending": "addrhi"
+          }
         },
         {
           "role": "fetch",
@@ -1102,7 +1247,11 @@
         "nmos_pre_w_indexed_x_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addrlo",
+        "pending": "addrhi"
+      }
     },
     "w_izy": {
       "description": "Writer flow for indirect-indexed (zp),Y operands with fixed indexing probe cycle.",
@@ -1153,12 +1302,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_w_wr",
+          "symbol": "op_{mnemonic}_w_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "Writer semantic handler emits the final memory write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1186,7 +1339,11 @@
         "nmos_pre_w_indexed_y_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr",
+        "pending": "none"
+      }
     },
     "rw_zp": {
       "description": "Read-modify-write flow for zero-page operands.",
@@ -1226,12 +1383,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_rw_wr",
+          "symbol": "op_{mnemonic}_rw_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_modify_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr_data",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1258,7 +1419,11 @@
         "nmos_pre_rw_zeropage_3"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr_data",
+        "pending": "none"
+      }
     },
     "rw_zpx": {
       "description": "Read-modify-write flow for zero-page,X operands.",
@@ -1309,12 +1474,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_rw_wr",
+          "symbol": "op_{mnemonic}_rw_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_modify_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr_data",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1342,7 +1511,11 @@
         "nmos_pre_rw_zeropage_x_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr_data",
+        "pending": "none"
+      }
     },
     "rw_abs": {
       "description": "Read-modify-write flow for absolute operands.",
@@ -1393,12 +1566,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_rw_wr",
+          "symbol": "op_{mnemonic}_rw_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_modify_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr_data",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1426,7 +1603,11 @@
         "nmos_pre_rw_absolute_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr_data",
+        "pending": "none"
+      }
     },
     "rw_abx": {
       "description": "Read-modify-write flow for absolute,X operands.",
@@ -1488,12 +1669,16 @@
         },
         {
           "role": "exec_write",
-          "symbol": "op_{mnemonic}_rw_wr",
+          "symbol": "op_{mnemonic}_rw_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "execute_read_modify_write_mnemonic_and_emit_final_memory_write",
           "terminal_action": "write_then_next_cycle",
           "ai_certainty": "high",
-          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle."
+          "ai_comment": "RMW semantic handler emits the final modified-value write; following mc_fetch consumes that write bus cycle. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "addr_data",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1522,14 +1707,18 @@
         "nmos_pre_rw_absolute_x_5"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addr_data",
+        "pending": "none"
+      }
     },
     "acc": {
       "description": "Accumulator operation flow; semantic body operates on A, not memory.",
       "cycles": [
         {
           "role": "exec_dummy",
-          "symbol": "op_{mnemonic}_acc_dummy",
+          "symbol": "op_{mnemonic}_acc_{terminal_contract}_dummy",
           "handler_kind": "mnemonic_handler",
           "action": "execute_accumulator_mnemonic_and_emit_dummy_pc_read",
           "terminal_action": "dummy_then_next_cycle",
@@ -1540,7 +1729,11 @@
             "nmos_instr_ROR_accumulator"
           ],
           "ai_certainty": "high",
-          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow."
+          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1568,14 +1761,18 @@
         "nmos_instr_ROR_accumulator"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "none"
+      }
     },
     "imp": {
       "description": "Implicit/register operation flow; semantic body emits the fixed dummy PC read.",
       "cycles": [
         {
           "role": "exec_dummy",
-          "symbol": "op_{mnemonic}_imp_dummy",
+          "symbol": "op_{mnemonic}_imp_{terminal_contract}_dummy",
           "handler_kind": "mnemonic_handler",
           "action": "execute_implied_mnemonic_and_emit_dummy_pc_read",
           "terminal_action": "dummy_then_next_cycle",
@@ -1585,7 +1782,11 @@
             "nmos_instr_TAX"
           ],
           "ai_certainty": "high",
-          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow."
+          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1627,7 +1828,11 @@
         "nmos_instr_TYA"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "none"
+      }
     },
     "branch_rel": {
       "description": "Conditional relative branch flow; first cycle is mnemonic-specific because the branch condition differs.",
@@ -1700,7 +1905,11 @@
         "nmos_do_relative_branch_2"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "custom",
+        "pending": "custom"
+      }
     },
     "stack_push": {
       "description": "Stack push flow for PHA/PHP.",
@@ -1719,7 +1928,7 @@
         },
         {
           "role": "write",
-          "symbol": "op_{mnemonic}_stack_push_wr",
+          "symbol": "op_{mnemonic}_stack_push_{terminal_contract}_wr",
           "handler_kind": "mnemonic_handler",
           "action": "write_mnemonic_value_to_stack_and_decrement_s",
           "terminal_action": "write_then_next_cycle",
@@ -1728,7 +1937,11 @@
             "nmos_instr_PHP_2"
           ],
           "ai_certainty": "high",
-          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow."
+          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "none"
+          }
         },
         {
           "role": "fetch",
@@ -1756,7 +1969,11 @@
         "nmos_instr_PHP_2"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "none"
+      }
     },
     "stack_pull": {
       "description": "Stack pull flow for PLA/PLP.",
@@ -1799,7 +2016,7 @@
         },
         {
           "role": "exec_fetch",
-          "symbol": "op_{mnemonic}_stack_pull_fetch",
+          "symbol": "op_{mnemonic}_stack_pull_{terminal_contract}_fetch",
           "handler_kind": "mnemonic_handler",
           "action": "consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode",
           "terminal_action": "fetch_now",
@@ -1808,7 +2025,11 @@
             "nmos_instr_PLP_4"
           ],
           "ai_certainty": "high",
-          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow."
+          "ai_comment": "Cycle role and order were derived from qe6502 v1 NMOS handler flow. Terminal mnemonic symbol now includes terminal_contract suffix.",
+          "terminal_contract": {
+            "ready": "none",
+            "pending": "data"
+          }
         },
         {
           "role": "dispatch",
@@ -1831,7 +2052,11 @@
         "nmos_instr_PLP_4"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "none",
+        "pending": "data"
+      }
     },
     "brk": {
       "description": "BRK interrupt-entry flow.",
@@ -1930,7 +2155,11 @@
         "nmos_instr_BRK_finalize"
       ],
       "ai_certainty": "medium",
-      "ai_comment": "Core 7-cycle BRK flow is verified against v1; ai_certainty is medium because v1 also models BRK/IRQ/NMI hijacking details that should remain explicit in this class."
+      "ai_comment": "Core 7-cycle BRK flow is verified against v1; ai_certainty is medium because v1 also models BRK/IRQ/NMI hijacking details that should remain explicit in this class.",
+      "terminal_contract": {
+        "ready": "custom",
+        "pending": "custom"
+      }
     },
     "jmp_abs": {
       "description": "Absolute JMP flow.",
@@ -1985,7 +2214,11 @@
         "nmos_instr_JMP"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addrlo",
+        "pending": "addrhi"
+      }
     },
     "jmp_ind": {
       "description": "Indirect JMP flow with NMOS page-wrap vector behavior.",
@@ -2064,7 +2297,11 @@
         "nmos_instr_JMP"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Verified against v1. The c2 action intentionally preserves the NMOS indirect JMP page-wrap behavior."
+      "ai_comment": "Verified against v1. The c2 action intentionally preserves the NMOS indirect JMP page-wrap behavior.",
+      "terminal_contract": {
+        "ready": "addrlo",
+        "pending": "addrhi"
+      }
     },
     "jsr_abs": {
       "description": "JSR absolute flow.",
@@ -2155,7 +2392,11 @@
         "nmos_instr_JSR_6"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "addrlo",
+        "pending": "addrhi"
+      }
     },
     "rts": {
       "description": "RTS return-from-subroutine flow.",
@@ -2242,7 +2483,11 @@
         "nmos_instr_RTS_5"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "custom",
+        "pending": "custom"
+      }
     },
     "rti": {
       "description": "RTI return-from-interrupt flow.",
@@ -2329,7 +2574,11 @@
         "nmos_instr_RTI_5"
       ],
       "ai_certainty": "high",
-      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry."
+      "ai_comment": "Class cycle count is max documented opcode cycles plus one final mc_dispatch entry.",
+      "terminal_contract": {
+        "ready": "custom",
+        "pending": "custom"
+      }
     }
   }
 }
