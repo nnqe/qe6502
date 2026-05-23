@@ -97,6 +97,13 @@ static inline void update_flags_nzc(qe6502_t* cpu, uint8_t value, uint8_t carry)
     cpu->P = (uint8_t)((cpu->P & (uint8_t)(~mask)) | flags);
 }
 
+static inline void compare_register_with_value(qe6502_t* cpu, uint8_t reg, uint8_t value)
+{
+    const uint8_t result = (uint8_t)(reg - value);
+    update_flags_nzc(cpu, result, flag_C_if(reg >= value));
+}
+
+
 /*
  * Generated QE6502 v2 NMOS skeleton.
  * Paste into cpu_v2/src/qe6502.c after the low-level helpers.
@@ -1184,7 +1191,8 @@ static qe6502_tick_t op_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->A = (uint8_t)(cpu->A & bus);
+    update_flags_nz(cpu, cpu->A);
     return mc_fetch(cpu, bus);
 }
 
@@ -1241,8 +1249,14 @@ static qe6502_tick_t op_beq_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
 static qe6502_tick_t op_bit_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
+    const uint8_t mask = (uint8_t)(flag_Z | flag_V | flag_N);
+    const uint8_t flags = (uint8_t)(
+        flag_Z_if((cpu->A & bus) == 0u) |
+        (bus & (uint8_t)(flag_V | flag_N))
+        );
+
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->P = (uint8_t)((cpu->P & (uint8_t)(~mask)) | flags);
     return mc_fetch(cpu, bus);
 }
 
@@ -1317,7 +1331,7 @@ static qe6502_tick_t op_clv_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_cmp_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    compare_register_with_value(cpu, cpu->A, bus);
     return mc_fetch(cpu, bus);
 }
 
@@ -1325,7 +1339,7 @@ static qe6502_tick_t op_cmp_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_cpx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    compare_register_with_value(cpu, cpu->X, bus);
     return mc_fetch(cpu, bus);
 }
 
@@ -1333,7 +1347,7 @@ static qe6502_tick_t op_cpx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_cpy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    compare_register_with_value(cpu, cpu->Y, bus);
     return mc_fetch(cpu, bus);
 }
 
@@ -1365,7 +1379,8 @@ static qe6502_tick_t op_dey_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_eor_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->A = (uint8_t)(cpu->A ^ bus);
+    update_flags_nz(cpu, cpu->A);
     return mc_fetch(cpu, bus);
 }
 
@@ -1397,7 +1412,8 @@ static qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_lda_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->A = bus;
+    update_flags_nz(cpu, cpu->A);
     return mc_fetch(cpu, bus);
 }
 
@@ -1405,7 +1421,8 @@ static qe6502_tick_t op_lda_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_ldx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->X = bus;
+    update_flags_nz(cpu, cpu->X);
     return mc_fetch(cpu, bus);
 }
 
@@ -1413,7 +1430,8 @@ static qe6502_tick_t op_ldx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_ldy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->Y = bus;
+    update_flags_nz(cpu, cpu->Y);
     return mc_fetch(cpu, bus);
 }
 
@@ -1445,7 +1463,8 @@ static qe6502_tick_t op_nop_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_ora_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    cpu->A = (uint8_t)(cpu->A | bus);
+    update_flags_nz(cpu, cpu->A);
     return mc_fetch(cpu, bus);
 }
 
