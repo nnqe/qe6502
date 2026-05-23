@@ -1300,7 +1300,8 @@ static qe6502_tick_t op_bvs_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t op_clc_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P & (uint8_t)(~flag_C));
     return read(cpu, cpu->PC);
 }
 
@@ -1308,7 +1309,8 @@ static qe6502_tick_t op_clc_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_cld_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P & (uint8_t)(~flag_D));
     return read(cpu, cpu->PC);
 }
 
@@ -1316,7 +1318,8 @@ static qe6502_tick_t op_cld_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_cli_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P & (uint8_t)(~flag_I));
     return read(cpu, cpu->PC);
 }
 
@@ -1324,7 +1327,8 @@ static qe6502_tick_t op_cli_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_clv_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P & (uint8_t)(~flag_V));
     return read(cpu, cpu->PC);
 }
 
@@ -1364,7 +1368,9 @@ static qe6502_tick_t op_dec_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
 static qe6502_tick_t op_dex_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->X--;
+    update_flags_nz(cpu, cpu->X);
     return read(cpu, cpu->PC);
 }
 
@@ -1372,7 +1378,9 @@ static qe6502_tick_t op_dex_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_dey_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->Y--;
+    update_flags_nz(cpu, cpu->Y);
     return read(cpu, cpu->PC);
 }
 
@@ -1397,7 +1405,9 @@ static qe6502_tick_t op_inc_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
 static qe6502_tick_t op_inx_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->X++;
+    update_flags_nz(cpu, cpu->X);
     return read(cpu, cpu->PC);
 }
 
@@ -1405,7 +1415,9 @@ static qe6502_tick_t op_inx_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->Y++;
+    update_flags_nz(cpu, cpu->Y);
     return read(cpu, cpu->PC);
 }
 
@@ -1456,7 +1468,7 @@ static qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
 static qe6502_tick_t op_nop_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
     return read(cpu, cpu->PC);
 }
 
@@ -1546,7 +1558,8 @@ static qe6502_tick_t op_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_sec_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P | flag_C);
     return read(cpu, cpu->PC);
 }
 
@@ -1554,7 +1567,8 @@ static qe6502_tick_t op_sec_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_sed_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P | flag_D);
     return read(cpu, cpu->PC);
 }
 
@@ -1562,7 +1576,8 @@ static qe6502_tick_t op_sed_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->P = (uint8_t)(cpu->P | flag_I);
     return read(cpu, cpu->PC);
 }
 
@@ -1633,7 +1648,9 @@ static qe6502_tick_t op_sty_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_
 static qe6502_tick_t op_tax_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->X = cpu->A;
+    update_flags_nz(cpu, cpu->X);
     return read(cpu, cpu->PC);
 }
 
@@ -1641,7 +1658,9 @@ static qe6502_tick_t op_tax_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_tay_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->Y = cpu->A;
+    update_flags_nz(cpu, cpu->Y);
     return read(cpu, cpu->PC);
 }
 
@@ -1649,7 +1668,9 @@ static qe6502_tick_t op_tay_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_tsx_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->X = cpu->S;
+    update_flags_nz(cpu, cpu->X);
     return read(cpu, cpu->PC);
 }
 
@@ -1657,7 +1678,9 @@ static qe6502_tick_t op_tsx_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_txa_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->A = cpu->X;
+    update_flags_nz(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
@@ -1665,7 +1688,8 @@ static qe6502_tick_t op_txa_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_txs_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->S = cpu->X;
     return read(cpu, cpu->PC);
 }
 
@@ -1673,7 +1697,9 @@ static qe6502_tick_t op_txs_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement implied/register mnemonic semantics. */
+
+    cpu->A = cpu->Y;
+    update_flags_nz(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
