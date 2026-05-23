@@ -133,6 +133,121 @@ static inline uint8_t ror_value(qe6502_t* cpu, uint8_t value)
     return result;
 }
 
+static inline void update_flags_cvzn(qe6502_t* cpu, uint8_t flags)
+{
+    const uint8_t mask = (uint8_t)(flag_C | flag_Z | flag_V | flag_N);
+    cpu->P = (uint8_t)((cpu->P & (uint8_t)(~mask)) | (flags & mask));
+}
+
+static inline void adc_binary(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t carry = ((cpu->P & flag_C) != 0u) ? 1u : 0u;
+    const uint16_t result16 = (uint16_t)((uint16_t)cpu->A + (uint16_t)value + (uint16_t)carry);
+    const uint8_t result = (uint8_t)result16;
+
+    const uint8_t flags = (uint8_t)(
+        flag_C_if(result16 > 0xffu) |
+        flag_Z_if(result == 0u) |
+        (result & flag_N) |
+        flag_V_if((((uint8_t)(~(cpu->A ^ value)) & (cpu->A ^ result)) & flag_N) != 0u)
+        );
+
+    update_flags_cvzn(cpu, flags);
+    cpu->A = result;
+}
+
+static inline void adc_decimal_nmos(qe6502_t* cpu, uint8_t value)
+{
+    uint8_t flags = 0;
+
+    const uint8_t carry = ((cpu->P & flag_C) != 0u) ? 1u : 0u;
+    const uint8_t bin_result = (uint8_t)(cpu->A + value + carry);
+    flags |= flag_Z_if(bin_result == 0u);
+
+    uint8_t low = (uint8_t)((cpu->A & 0x0fu) + (value & 0x0fu) + carry);
+    uint8_t high = (uint8_t)((cpu->A >> 4) + (value >> 4));
+    if (low > 9u)
+    {
+        low = (uint8_t)(low - 10u);
+        high++;
+    }
+
+    uint8_t result = (uint8_t)((uint8_t)(high << 4) | (low & 0x0fu));
+    flags |= (uint8_t)(result & flag_N);
+    if ((((uint8_t)(~(cpu->A ^ value)) & (cpu->A ^ result)) & flag_N) != 0u)
+    {
+        flags |= flag_V;
+    }
+
+    if (high > 9u)
+    {
+        result = (uint8_t)(result - (10u * 16u));
+        flags |= flag_C;
+    }
+
+    update_flags_cvzn(cpu, flags);
+    cpu->A = result;
+}
+
+static inline void adc_value(qe6502_t* cpu, uint8_t value)
+{
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, value);
+    }
+    else
+    {
+        adc_decimal_nmos(cpu, value);
+    }
+}
+
+static inline void sbc_decimal_nmos(qe6502_t* cpu, uint8_t value)
+{
+    uint8_t flags = flag_C;
+
+    const uint8_t carry = ((cpu->P & flag_C) != 0u) ? 1u : 0u;
+    const uint8_t bin_result = (uint8_t)(cpu->A + (uint8_t)(value ^ 0xffu) + carry);
+    flags |= flag_Z_if(bin_result == 0u);
+
+    const int8_t carry_inv = (carry == 0u) ? 1 : 0;
+    int8_t low = (int8_t)((int8_t)(cpu->A & 0x0fu) - (int8_t)(value & 0x0fu) - carry_inv);
+    int8_t high = (int8_t)((int8_t)(cpu->A >> 4) - (int8_t)(value >> 4));
+
+    if (low < 0)
+    {
+        low = (int8_t)(low + 10);
+        high = (int8_t)(high - 1);
+    }
+
+    uint8_t result = (uint8_t)(((uint8_t)high << 4) | ((uint8_t)low & 0x0fu));
+    flags |= (uint8_t)(result & flag_N);
+    if ((((cpu->A ^ value) & (cpu->A ^ result)) & flag_N) != 0u)
+    {
+        flags |= flag_V;
+    }
+
+    if (high < 0)
+    {
+        result = (uint8_t)(result + (10u * 16u));
+        flags = (uint8_t)(flags & (uint8_t)(~flag_C));
+    }
+
+    update_flags_cvzn(cpu, flags);
+    cpu->A = result;
+}
+
+static inline void sbc_value(qe6502_t* cpu, uint8_t value)
+{
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, (uint8_t)(value ^ 0xffu));
+    }
+    else
+    {
+        sbc_decimal_nmos(cpu, value);
+    }
+}
+
 
 /*
  * Generated QE6502 v2 NMOS skeleton.
@@ -1214,7 +1329,7 @@ static qe6502_tick_t mc_w_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t op_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    adc_value(cpu, bus);
     return mc_fetch(cpu, bus);
 }
 
@@ -1592,7 +1707,7 @@ static qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
 static qe6502_tick_t op_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
-    /* TODO: implement reader mnemonic semantics before fetching next opcode. */
+    sbc_value(cpu, bus);
     return mc_fetch(cpu, bus);
 }
 
