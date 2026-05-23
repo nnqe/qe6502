@@ -1,2 +1,2 @@
 add_subdirectory(speed_benchmark)
-
+add_subdirectory(speed_benchmark_v2)
