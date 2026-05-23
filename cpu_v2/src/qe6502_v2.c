@@ -134,7 +134,8 @@ static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
 /* shared_handler; role=fetch; action=consume_vector_high_and_fetch_next_opcode_without_interrupt_check */
 static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
 {
-    (void)bus;
+    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+
     qe6502_tick_t tick = read(cpu, cpu->PC);
     tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);
     return tick;
@@ -175,51 +176,52 @@ static inline qe6502_tick_t mc_branch_rel_c2_pgfix(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=pad; action=dummy_read_signature_byte_and_increment_pc */
 static qe6502_tick_t mc_brk_c0_pad(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: generic microcode placeholder. */
-    return read(cpu, cpu->PC);
+    (void)bus;
+
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+    return tick;
 }
 
-/* special_handler; role=push_pch; action=push_pc_high_to_stack_and_prepare_status_value */
+/* special_handler; role=push_pch; action=push_pc_high_to_stack */
 static qe6502_tick_t mc_brk_c1_push_pch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: replace with exact stack push value. */
-    return stack_write(cpu, cpu->latch_data);
+
+    return stack_write(cpu, qe_u16_byte(cpu->PC, 1));
 }
 
 /* special_handler; role=push_pcl; action=push_pc_low_to_stack */
 static qe6502_tick_t mc_brk_c2_push_pcl(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: replace with exact stack push value. */
-    return stack_write(cpu, cpu->latch_data);
+
+    return stack_write(cpu, qe_u16_byte(cpu->PC, 0));
 }
 
-/* special_handler; role=push_p; action=push_status_to_stack_and_handle_possible_interrupt_hijack */
+/* special_handler; role=push_p; action=push_status_to_stack */
 static qe6502_tick_t mc_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: replace with exact stack push value. */
-    return stack_write(cpu, cpu->latch_data);
+
+    return stack_write(cpu, (uint8_t)(cpu->P | flag_B));
 }
 
-/* special_handler; role=vec_lo; action=read_irq_brk_vector_low_to_pc_low */
+/* special_handler; role=vec_lo; action=read_brk_vector_low_to_pc_low */
 static qe6502_tick_t mc_brk_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
 {
-    set_latch_addr0(cpu, bus);
-    /* TODO: replace with exact low-byte/address behavior. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC = (uint16_t)(cpu->PC + 1u);
-    return tick;
+    (void)bus;
+
+    return read(cpu, 0xfffeu);
 }
 
-/* special_handler; role=vec_hi; action=read_irq_brk_vector_high_to_pc_high_and_set_interrupt_disable */
+/* special_handler; role=vec_hi; action=read_brk_vector_high_to_pc_high_and_set_interrupt_disable */
 static qe6502_tick_t mc_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
-    set_latch_addr1(cpu, bus);
-    /* TODO: replace with exact high-byte/address behavior. */
-    return read(cpu, cpu->PC);
+    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+    cpu->P = (uint8_t)(cpu->P | flag_I);
+
+    return read(cpu, 0xffffu);
 }
 /* special_handler; role=lo; action=read_pc_to_ea_low_and_increment_pc */
 static inline qe6502_tick_t mc_jmp_abs_c0_lo(qe6502_t* cpu, uint8_t bus)
@@ -672,41 +674,49 @@ static qe6502_tick_t mc_r_zpy_c2_data(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
 static qe6502_tick_t mc_rti_c0_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTI is a special control/stack flow. */
+    (void)bus;
+
     return read(cpu, cpu->PC);
 }
 
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
 static qe6502_tick_t mc_rti_c1_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTI is a special control/stack flow. */
-    return read(cpu, cpu->PC);
+    (void)bus;
+
+    return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
 /* special_handler; role=pull_p; action=increment_s_and_read_status_from_stack */
 static qe6502_tick_t mc_rti_c2_pull_p(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTI is a special control/stack flow. */
+    (void)bus;
+
     return stack_read(cpu);
 }
 
 /* special_handler; role=pull_pcl; action=normalize_status_increment_s_and_read_pc_low */
 static qe6502_tick_t mc_rti_c3_pull_pcl(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTI is a special control/stack flow. */
+    cpu->P = (uint8_t)((bus | flag_UN) & (uint8_t)(~flag_B));
+
     return stack_read(cpu);
 }
 
 /* special_handler; role=pull_pch; action=increment_s_and_read_pc_high */
 static qe6502_tick_t mc_rti_c4_pull_pch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTI is a special control/stack flow. */
+    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+
     return stack_read(cpu);
+}
+
+/* special_handler; role=fetch; action=consume_pc_high_and_fetch_next_opcode */
+static qe6502_tick_t mc_rti_c5_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+
+    return mc_fetch(cpu, bus);
 }
 
 /* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
@@ -2306,7 +2316,7 @@ const qe6502_microcode_fn qe6502_microcode_table[2176] =
         [IDX(0x40, 2)] = &mc_rti_c2_pull_p,
         [IDX(0x40, 3)] = &mc_rti_c3_pull_pcl,
         [IDX(0x40, 4)] = &mc_rti_c4_pull_pch,
-        [IDX(0x40, 5)] = &mc_fetch,
+        [IDX(0x40, 5)] = &mc_rti_c5_fetch,
         [IDX(0x40, 6)] = &mc_dispatch,
         [IDX(0x40, 7)] = &op_ILL,
 
