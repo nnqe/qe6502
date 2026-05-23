@@ -712,41 +712,43 @@ static qe6502_tick_t mc_rti_c4_pull_pch(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
 static qe6502_tick_t mc_rts_c0_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTS is a special control/stack flow. */
+    (void)bus;
+
     return read(cpu, cpu->PC);
 }
 
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
 static qe6502_tick_t mc_rts_c1_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTS is a special control/stack flow. */
-    return read(cpu, cpu->PC);
+    (void)bus;
+
+    return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
 /* special_handler; role=pull_pcl; action=increment_s_and_read_return_pc_low */
 static qe6502_tick_t mc_rts_c2_pull_pcl(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTS is a special control/stack flow. */
+    (void)bus;
+
     return stack_read(cpu);
 }
 
 /* special_handler; role=pull_pch; action=increment_s_and_read_return_pc_high */
 static qe6502_tick_t mc_rts_c3_pull_pch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTS is a special control/stack flow. */
+    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+
     return stack_read(cpu);
 }
 
 /* special_handler; role=inc_pc_dummy; action=dummy_read_return_address_then_increment_pc */
 static qe6502_tick_t mc_rts_c4_inc_pc_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; RTS is a special control/stack flow. */
-    return read(cpu, cpu->PC);
+    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+    return tick;
 }
 
 /* rw_abs c0: request absolute low operand byte */
