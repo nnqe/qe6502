@@ -1079,9 +1079,10 @@ static qe6502_tick_t mc_w_izx_c2_ptrlo(qe6502_t* cpu, uint8_t bus)
 /* addressing_handler; role=ptrhi; action=read_zp_pointer_to_ea_high */
 static qe6502_tick_t mc_w_izx_c3_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
+    const uint16_t ptr_hi_addr = cpu->latch_addr;
 
-    return read(cpu, cpu->latch_addr);
+    set_latch_addr0(cpu, bus);
+    return read(cpu, ptr_hi_addr);
 }
 
 /* addressing_handler; role=ptr; action=read_pc_to_zp_pointer_and_increment_pc */
@@ -1569,7 +1570,6 @@ static qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_sta_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement store/write mnemonic semantics. Address is already ready. */
     return write(cpu, cpu->latch_addr, cpu->A);
 }
 
@@ -1577,7 +1577,6 @@ static qe6502_tick_t op_sta_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t 
 static qe6502_tick_t op_sta_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr1(cpu, bus);
-    /* TODO: implement store/write mnemonic semantics. bus completes the high address byte. */
     return write(cpu, cpu->latch_addr, cpu->A);
 }
 
@@ -1585,7 +1584,6 @@ static qe6502_tick_t op_sta_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint
 static qe6502_tick_t op_sta_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_addr = bus;
-    /* TODO: implement store/write mnemonic semantics. bus is the low/zero-page address byte. */
     return write(cpu, cpu->latch_addr, cpu->A);
 }
 
@@ -1593,7 +1591,6 @@ static qe6502_tick_t op_sta_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_
 static qe6502_tick_t op_stx_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement store/write mnemonic semantics. Address is already ready. */
     return write(cpu, cpu->latch_addr, cpu->X);
 }
 
@@ -1601,7 +1598,6 @@ static qe6502_tick_t op_stx_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t 
 static qe6502_tick_t op_stx_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr1(cpu, bus);
-    /* TODO: implement store/write mnemonic semantics. bus completes the high address byte. */
     return write(cpu, cpu->latch_addr, cpu->X);
 }
 
@@ -1609,7 +1605,6 @@ static qe6502_tick_t op_stx_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint
 static qe6502_tick_t op_stx_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_addr = bus;
-    /* TODO: implement store/write mnemonic semantics. bus is the low/zero-page address byte. */
     return write(cpu, cpu->latch_addr, cpu->X);
 }
 
@@ -1617,7 +1612,6 @@ static qe6502_tick_t op_stx_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_
 static qe6502_tick_t op_sty_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement store/write mnemonic semantics. Address is already ready. */
     return write(cpu, cpu->latch_addr, cpu->Y);
 }
 
@@ -1625,7 +1619,6 @@ static qe6502_tick_t op_sty_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t 
 static qe6502_tick_t op_sty_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr1(cpu, bus);
-    /* TODO: implement store/write mnemonic semantics. bus completes the high address byte. */
     return write(cpu, cpu->latch_addr, cpu->Y);
 }
 
@@ -1633,7 +1626,6 @@ static qe6502_tick_t op_sty_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint
 static qe6502_tick_t op_sty_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_addr = bus;
-    /* TODO: implement store/write mnemonic semantics. bus is the low/zero-page address byte. */
     return write(cpu, cpu->latch_addr, cpu->Y);
 }
 
