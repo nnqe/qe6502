@@ -4,6 +4,24 @@
 #include <stdarg.h>
 #include <qe/impl_utils.h>
 
+enum
+{
+    qe6502_model_nmos = 0,
+    qe6502_model_nes  = 1,
+    qe6502_model_wdc  = 2,
+    qe6502_model_rw   = 3,
+    qe6502_model_st   = 4,
+
+    qe6502_supported_models_count = 5,
+
+    qe6502_microcode_cycle_bits        = 3,
+    qe6502_microcode_flow_bits         = 9,
+    qe6502_microcode_cycles_per_flow   = 1u << qe6502_microcode_cycle_bits,
+    qe6502_microcode_flows_per_model   = 1u << qe6502_microcode_flow_bits,
+    qe6502_microcode_entries_per_model = qe6502_microcode_flows_per_model * qe6502_microcode_cycles_per_flow,
+    qe6502_microcode_table_size        = qe6502_microcode_entries_per_model * qe6502_supported_models_count
+};
+
 typedef struct qe6502
 {
     /* Configuration */
@@ -57,7 +75,7 @@ QE_MAYBE_UNUSED static const uint8_t qe6502_error_illegal_op   = (1);
 
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 
-extern const qe6502_microcode_fn qe6502_microcode_table[(256+16)*8];
+extern const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size];
 
 static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
 {

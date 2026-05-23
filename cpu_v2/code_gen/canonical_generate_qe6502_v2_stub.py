@@ -26,9 +26,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-TABLE_ROWS = 256 + 16
+OPCODE_ROWS = 256
+MODEL_COUNT = 5
+FLOWS_PER_MODEL = 512
 CYCLES_PER_ROW = 8
-TABLE_SIZE = TABLE_ROWS * CYCLES_PER_ROW
+TABLE_SIZE = MODEL_COUNT * FLOWS_PER_MODEL * CYCLES_PER_ROW
 
 ALLOWED_READY = {"none", "addr", "addrlo", "addr_data", "custom"}
 ALLOWED_PENDING = {"none", "data", "addrlo", "addrhi", "custom"}
@@ -254,8 +256,8 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
         lines.append("    return read(cpu, cpu->PC);")
 
     elif symbol == "mc_dispatch":
-        lines.append("    cpu->microcode = (uint16_t)((uint16_t)bus << 3);")
-        lines.append("    cpu->PC++;")
+        lines.append("    cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));")
+        lines.append("    cpu->PC = (uint16_t)(cpu->PC + 1u);")
         lines.append("    return qe6502_microcode_table[cpu->microcode](cpu, bus);")
 
     elif symbol in {"mc_fetch", "mc_fetch_no_interrupts"}:
@@ -305,7 +307,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
             lines.append("    (void)bus;")
             lines.append("    /* TODO: read signed branch offset, test condition, and adjust microcode. */")
             lines.append("    qe6502_tick_t tick = read(cpu, cpu->PC);")
-            lines.append("    cpu->PC++;")
+            lines.append("    cpu->PC = (uint16_t)(cpu->PC + 1u);")
             lines.append("    return tick;")
 
         else:
@@ -336,7 +338,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
             lines.append("    set_latch_addr0(cpu, bus);")
             lines.append("    /* TODO: replace with exact low-byte/address behavior. */")
             lines.append("    qe6502_tick_t tick = read(cpu, cpu->PC);")
-            lines.append("    cpu->PC++;")
+            lines.append("    cpu->PC = (uint16_t)(cpu->PC + 1u);")
             lines.append("    return tick;")
         elif "fetch" in symbol:
             lines.append("    return mc_fetch(cpu, bus);")
@@ -369,29 +371,24 @@ def table_symbols_for_opcode(opcode: dict[str, Any], classes: dict[str, Any]) ->
 
 def emit_table(opcodes: dict[str, Any], classes: dict[str, Any]) -> str:
     lines: list[str] = []
-    lines.append("#define IDX(opcode, cycle) ((((opcode) & 0x1FFu) << 3u) + (cycle))")
+    lines.append("#define IDX(model, opcode, cycle) ((((model) & 0x0Fu) << 12u) + (((opcode) & 0x1FFu) << 3u) + (cycle))")
     lines.append("")
-    lines.append(f"const qe6502_microcode_fn qe6502_microcode_table[{TABLE_SIZE}] =")
-    lines.append("{")
+    lines.append("const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =")
+    lines.append("    {")
 
-    for opcode_value in range(TABLE_ROWS):
-        if opcode_value < 256:
-            code = f"0x{opcode_value:02X}"
-            opcode = opcodes[code]
-            if opcode:
-                title = f"{code} {opcode['syntax']} ; class={opcode['class']}"
-                symbols = table_symbols_for_opcode(opcode, classes)
-            else:
-                title = f"{code} undocumented/illegal"
-                symbols = ["op_ILL"] * CYCLES_PER_ROW
+    for opcode_value in range(OPCODE_ROWS):
+        code = f"0x{opcode_value:02X}"
+        opcode = opcodes[code]
+        if opcode:
+            title = f"{code} {opcode['syntax']} ; class={opcode['class']}"
+            symbols = table_symbols_for_opcode(opcode, classes)
         else:
-            code = f"0x{opcode_value:03X}"
-            title = f"{code} reserved extension row"
+            title = f"{code} undocumented/illegal"
             symbols = ["op_ILL"] * CYCLES_PER_ROW
 
-        lines.append(f"    /* {title} */")
+        lines.append(f"        /* {title} */")
         for cycle, symbol in enumerate(symbols):
-            lines.append(f"    [IDX({code}, {cycle})] = &{symbol},")
+            lines.append(f"        [IDX(qe6502_model_nmos, {code}, {cycle})] = &{symbol},")
         lines.append("")
 
     lines.append("};")

@@ -1,6 +1,6 @@
 {
-  "function_count": 168,
-  "table_ref_count": 2176,
+  "function_count": 169,
+  "table_ref_count": 2048,
   "legacy_op_symbols": [],
   "missing_table_definitions": [],
   "ok": true
