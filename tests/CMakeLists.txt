@@ -1,5 +1,6 @@
 if(NOT QE_BUILD_WASM)
     add_subdirectory(klaus2m5)
+    add_subdirectory(klaus2m5_v2)
     add_subdirectory(interrupts)
     add_subdirectory(transistor_netlist_test)
 endif()
