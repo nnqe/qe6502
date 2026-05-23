@@ -219,8 +219,7 @@ static inline void sbc_decimal_nmos(qe6502_t* cpu, uint8_t value)
         high = (int8_t)(high - 1);
     }
 
-    uint8_t result = (uint8_t)(((uint8_t)high << 4) | ((uint8_t)low & 0x0fu));
-    flags |= (uint8_t)(result & flag_N);
+    uint8_t result = (uint8_t)(((unsigned int)(uint8_t)high << 4u) | ((unsigned int)(uint8_t)low & 0x0fu));    flags |= (uint8_t)(result & flag_N);
     if ((((cpu->A ^ value) & (cpu->A ^ result)) & flag_N) != 0u)
     {
         flags |= flag_V;
