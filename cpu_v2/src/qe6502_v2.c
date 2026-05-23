@@ -368,6 +368,15 @@ static qe6502_tick_t mc_read_latch_addr(qe6502_t* cpu, uint8_t bus)
     return read(cpu, cpu->latch_addr);
 }
 
+
+/* shared_handler; role=read_stack_current_s; action=read_stack_address_without_incrementing_s */
+static qe6502_tick_t mc_read_stack_current_s(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read(cpu, (uint16_t)(0x0100u | cpu->S));
+}
+
 /* shared_handler; role=fetch; action=consume_vector_high_and_fetch_next_opcode_without_interrupt_check */
 static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
 {
@@ -802,14 +811,6 @@ static qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
-/* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
-static qe6502_tick_t mc_rti_c1_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, (uint16_t)(0x0100u | cpu->S));
-}
-
 /* special_handler; role=pull_p; action=increment_s_and_read_status_from_stack */
 static qe6502_tick_t mc_rti_c2_pull_p(qe6502_t* cpu, uint8_t bus)
 {
@@ -840,14 +841,6 @@ static qe6502_tick_t mc_rti_c5_fetch(qe6502_t* cpu, uint8_t bus)
     cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
 
     return mc_fetch(cpu, bus);
-}
-
-/* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
-static qe6502_tick_t mc_rts_c1_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
 /* special_handler; role=pull_pcl; action=increment_s_and_read_return_pc_low */
@@ -1008,14 +1001,6 @@ static inline qe6502_tick_t mc_rw_zpx_c3_wb(qe6502_t* cpu, uint8_t bus)
     cpu->latch_data = bus;
 
     return write(cpu, cpu->latch_addr, cpu->latch_data);
-}
-
-/* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
-static qe6502_tick_t mc_stack_pull_c1_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
 /* special_handler; role=read; action=increment_s_and_read_stack_value */
@@ -2129,7 +2114,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x28 PLP ; class=stack_pull */
         [IDX(qe6502_model_nmos, 0x28, 0)] = &mc_read_pc,
-        [IDX(qe6502_model_nmos, 0x28, 1)] = &mc_stack_pull_c1_dummy,
+        [IDX(qe6502_model_nmos, 0x28, 1)] = &mc_read_stack_current_s,
         [IDX(qe6502_model_nmos, 0x28, 2)] = &mc_stack_pull_c2_read,
         [IDX(qe6502_model_nmos, 0x28, 3)] = &op_plp_stack_pull_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x28, 4)] = &mc_dispatch,
@@ -2369,7 +2354,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x40 RTI ; class=rti */
         [IDX(qe6502_model_nmos, 0x40, 0)] = &mc_read_pc,
-        [IDX(qe6502_model_nmos, 0x40, 1)] = &mc_rti_c1_dummy,
+        [IDX(qe6502_model_nmos, 0x40, 1)] = &mc_read_stack_current_s,
         [IDX(qe6502_model_nmos, 0x40, 2)] = &mc_rti_c2_pull_p,
         [IDX(qe6502_model_nmos, 0x40, 3)] = &mc_rti_c3_pull_pcl,
         [IDX(qe6502_model_nmos, 0x40, 4)] = &mc_rti_c4_pull_pch,
@@ -2689,7 +2674,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x60 RTS ; class=rts */
         [IDX(qe6502_model_nmos, 0x60, 0)] = &mc_read_pc,
-        [IDX(qe6502_model_nmos, 0x60, 1)] = &mc_rts_c1_dummy,
+        [IDX(qe6502_model_nmos, 0x60, 1)] = &mc_read_stack_current_s,
         [IDX(qe6502_model_nmos, 0x60, 2)] = &mc_rts_c2_pull_pcl,
         [IDX(qe6502_model_nmos, 0x60, 3)] = &mc_rts_c3_pull_pch,
         [IDX(qe6502_model_nmos, 0x60, 4)] = &mc_rts_c4_inc_pc_dummy,
@@ -2769,7 +2754,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x68 PLA ; class=stack_pull */
         [IDX(qe6502_model_nmos, 0x68, 0)] = &mc_read_pc,
-        [IDX(qe6502_model_nmos, 0x68, 1)] = &mc_stack_pull_c1_dummy,
+        [IDX(qe6502_model_nmos, 0x68, 1)] = &mc_read_stack_current_s,
         [IDX(qe6502_model_nmos, 0x68, 2)] = &mc_stack_pull_c2_read,
         [IDX(qe6502_model_nmos, 0x68, 3)] = &op_pla_stack_pull_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x68, 4)] = &mc_dispatch,
