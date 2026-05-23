@@ -530,8 +530,8 @@ static inline qe6502_tick_t mc_jmp_ind_c2_target_lo(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
-/* special_handler; role=target_hi; action=read_wrapped_pointer_to_ea_high */
-static inline qe6502_tick_t mc_jmp_ind_c3_target_hi(qe6502_t* cpu, uint8_t bus)
+/* common_handler; action=latch_bus_as_data_read_latch_addr */
+static inline qe6502_tick_t mc_latch_data_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
 
@@ -562,8 +562,8 @@ static inline qe6502_tick_t mc_jsr_abs_c4_hi(qe6502_t* cpu, uint8_t bus)
     return read(cpu, cpu->PC);
 }
 
-/* addressing_handler; role=data; action=read_effective_address_to_data */
-static inline qe6502_tick_t mc_r_abs_c2_data(qe6502_t* cpu, uint8_t bus)
+/* common_handler; action=latch_bus_as_addr_high_read_latch_addr */
+static inline qe6502_tick_t mc_latch_addr1_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr1(cpu, bus);
 
@@ -630,14 +630,6 @@ static inline qe6502_tick_t mc_r_izx_c2_ptrlo(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
-/* addressing_handler; role=ptrhi; action=read_zp_pointer_to_ea_high */
-static inline qe6502_tick_t mc_r_izx_c3_ptrhi(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->latch_data = bus;
-
-    return read(cpu, cpu->latch_addr);
-}
-
 /* addressing_handler; role=data; action=read_effective_address_to_data */
 static inline qe6502_tick_t mc_r_izx_c4_data(qe6502_t* cpu, uint8_t bus)
 {
@@ -646,8 +638,8 @@ static inline qe6502_tick_t mc_r_izx_c4_data(qe6502_t* cpu, uint8_t bus)
     return read(cpu, cpu->latch_addr);
 }
 
-/* addressing_handler; role=ptrlo; action=read_zp_pointer_to_ea_low */
-static inline qe6502_tick_t mc_r_izy_c1_ptrlo(qe6502_t* cpu, uint8_t bus)
+/* common_handler; action=latch_bus_as_addr_low_read_latch_addr */
+static inline qe6502_tick_t mc_latch_addr0_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
@@ -722,14 +714,6 @@ static qe6502_tick_t mc_rts_c4_inc_pc_dummy(qe6502_t* cpu, uint8_t bus)
     return read_pc_inc(cpu);
 }
 
-/* rw_abs c2: capture high byte, read from effective address */
-static inline qe6502_tick_t mc_rw_abs_c2_data(qe6502_t* cpu, uint8_t bus)
-{
-    set_latch_addr1(cpu, bus);
-
-    return read(cpu, cpu->latch_addr);
-}
-
 /* rw_abx c1: capture low byte, add X to low byte, request high operand byte */
 static inline qe6502_tick_t mc_rw_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
 {
@@ -739,14 +723,6 @@ static inline qe6502_tick_t mc_rw_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
     return read_pc_inc(cpu);
-}
-
-/* rw_zp c1: capture zero-page address and read old memory value */
-static inline qe6502_tick_t mc_rw_zp_c1_data(qe6502_t* cpu, uint8_t bus)
-{
-    set_latch_addr0(cpu, bus);
-
-    return read(cpu, cpu->latch_addr);
 }
 
 /* rw_zpx c1: capture base address, dummy-read it, then add X with zero-page wraparound */
@@ -1426,7 +1402,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x01, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x01, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0x01, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0x01, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0x01, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x01, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0x01, 5)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x01, 6)] = &mc_dispatch,
@@ -1474,7 +1450,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x06 ASL zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0x06, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x06, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0x06, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x06, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x06, 3)] = &op_asl_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x06, 4)] = &mc_fetch,
@@ -1545,7 +1521,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x0D ORA abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0x0D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x0D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x0D, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x0D, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x0D, 3)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x0D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x0D, 5)] = &op_ILL,
@@ -1555,7 +1531,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x0E ASL abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0x0E, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x0E, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x0E, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x0E, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x0E, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x0E, 4)] = &op_asl_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x0E, 5)] = &mc_fetch,
@@ -1584,7 +1560,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x11 ORA (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0x11, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x11, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0x11, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x11, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0x11, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0x11, 4)] = &mc_read_latch_addr,
@@ -1746,7 +1722,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x21, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x21, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0x21, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0x21, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0x21, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x21, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0x21, 5)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x21, 6)] = &mc_dispatch,
@@ -1794,7 +1770,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x26 ROL zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0x26, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x26, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0x26, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x26, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x26, 3)] = &op_rol_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x26, 4)] = &mc_fetch,
@@ -1855,7 +1831,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x2C BIT abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0x2C, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x2C, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x2C, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x2C, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x2C, 3)] = &op_bit_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x2C, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x2C, 5)] = &op_ILL,
@@ -1865,7 +1841,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x2D AND abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0x2D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x2D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x2D, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x2D, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x2D, 3)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x2D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x2D, 5)] = &op_ILL,
@@ -1875,7 +1851,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x2E ROL abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0x2E, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x2E, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x2E, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x2E, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x2E, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x2E, 4)] = &op_rol_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x2E, 5)] = &mc_fetch,
@@ -1904,7 +1880,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x31 AND (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0x31, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x31, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0x31, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x31, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0x31, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0x31, 4)] = &mc_read_latch_addr,
@@ -2066,7 +2042,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x41, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x41, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0x41, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0x41, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0x41, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x41, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0x41, 5)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x41, 6)] = &mc_dispatch,
@@ -2114,7 +2090,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x46 LSR zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0x46, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x46, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0x46, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x46, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x46, 3)] = &op_lsr_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x46, 4)] = &mc_fetch,
@@ -2185,7 +2161,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x4D EOR abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0x4D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x4D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x4D, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x4D, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x4D, 3)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x4D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x4D, 5)] = &op_ILL,
@@ -2195,7 +2171,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x4E LSR abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0x4E, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x4E, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x4E, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x4E, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x4E, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x4E, 4)] = &op_lsr_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x4E, 5)] = &mc_fetch,
@@ -2224,7 +2200,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x51 EOR (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0x51, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x51, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0x51, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x51, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0x51, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0x51, 4)] = &mc_read_latch_addr,
@@ -2386,7 +2362,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x61, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x61, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0x61, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0x61, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0x61, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x61, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0x61, 5)] = &op_adc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x61, 6)] = &mc_dispatch,
@@ -2434,7 +2410,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x66 ROR zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0x66, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x66, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0x66, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x66, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x66, 3)] = &op_ror_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x66, 4)] = &mc_fetch,
@@ -2496,7 +2472,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x6C, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x6C, 1)] = &mc_latch_addr0_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x6C, 2)] = &mc_jmp_ind_c2_target_lo,
-        [IDX(qe6502_model_nmos, 0x6C, 3)] = &mc_jmp_ind_c3_target_hi,
+        [IDX(qe6502_model_nmos, 0x6C, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x6C, 4)] = &mc_jmp_ind_c4_fetch,
         [IDX(qe6502_model_nmos, 0x6C, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x6C, 6)] = &op_ILL,
@@ -2505,7 +2481,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x6D ADC abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0x6D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x6D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x6D, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x6D, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x6D, 3)] = &op_adc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x6D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x6D, 5)] = &op_ILL,
@@ -2515,7 +2491,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0x6E ROR abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0x6E, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x6E, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x6E, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0x6E, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x6E, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x6E, 4)] = &op_ror_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x6E, 5)] = &mc_fetch,
@@ -2544,7 +2520,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0x71 ADC (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0x71, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x71, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0x71, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x71, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0x71, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0x71, 4)] = &mc_read_latch_addr,
@@ -3026,7 +3002,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0xA1, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xA1, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0xA1, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0xA1, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0xA1, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xA1, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0xA1, 5)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xA1, 6)] = &mc_dispatch,
@@ -3135,7 +3111,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xAC LDY abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xAC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xAC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xAC, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xAC, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xAC, 3)] = &op_ldy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xAC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xAC, 5)] = &op_ILL,
@@ -3145,7 +3121,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xAD LDA abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xAD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xAD, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xAD, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xAD, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xAD, 3)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xAD, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xAD, 5)] = &op_ILL,
@@ -3155,7 +3131,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xAE LDX abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xAE, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xAE, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xAE, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xAE, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xAE, 3)] = &op_ldx_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xAE, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xAE, 5)] = &op_ILL,
@@ -3184,7 +3160,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0xB1 LDA (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0xB1, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xB1, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0xB1, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xB1, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0xB1, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0xB1, 4)] = &mc_read_latch_addr,
@@ -3346,7 +3322,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0xC1, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xC1, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0xC1, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0xC1, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0xC1, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xC1, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0xC1, 5)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xC1, 6)] = &mc_dispatch,
@@ -3394,7 +3370,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0xC6 DEC zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0xC6, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xC6, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0xC6, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xC6, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xC6, 3)] = &op_dec_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0xC6, 4)] = &mc_fetch,
@@ -3455,7 +3431,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xCC CPY abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xCC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xCC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xCC, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xCC, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xCC, 3)] = &op_cpy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xCC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xCC, 5)] = &op_ILL,
@@ -3465,7 +3441,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xCD CMP abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xCD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xCD, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xCD, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xCD, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xCD, 3)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xCD, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xCD, 5)] = &op_ILL,
@@ -3475,7 +3451,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xCE DEC abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0xCE, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xCE, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xCE, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xCE, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xCE, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xCE, 4)] = &op_dec_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0xCE, 5)] = &mc_fetch,
@@ -3504,7 +3480,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0xD1 CMP (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0xD1, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xD1, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0xD1, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xD1, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0xD1, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0xD1, 4)] = &mc_read_latch_addr,
@@ -3666,7 +3642,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0xE1, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xE1, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_nmos, 0xE1, 2)] = &mc_r_izx_c2_ptrlo,
-        [IDX(qe6502_model_nmos, 0xE1, 3)] = &mc_r_izx_c3_ptrhi,
+        [IDX(qe6502_model_nmos, 0xE1, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xE1, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nmos, 0xE1, 5)] = &op_sbc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xE1, 6)] = &mc_dispatch,
@@ -3714,7 +3690,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0xE6 INC zp ; class=rw_zp */
         [IDX(qe6502_model_nmos, 0xE6, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xE6, 1)] = &mc_rw_zp_c1_data,
+        [IDX(qe6502_model_nmos, 0xE6, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xE6, 2)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xE6, 3)] = &op_inc_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0xE6, 4)] = &mc_fetch,
@@ -3775,7 +3751,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xEC CPX abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xEC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xEC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xEC, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xEC, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xEC, 3)] = &op_cpx_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xEC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xEC, 5)] = &op_ILL,
@@ -3785,7 +3761,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xED SBC abs ; class=r_abs */
         [IDX(qe6502_model_nmos, 0xED, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xED, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xED, 2)] = &mc_r_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xED, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xED, 3)] = &op_sbc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xED, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xED, 5)] = &op_ILL,
@@ -3795,7 +3771,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         /* 0xEE INC abs ; class=rw_abs */
         [IDX(qe6502_model_nmos, 0xEE, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0xEE, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xEE, 2)] = &mc_rw_abs_c2_data,
+        [IDX(qe6502_model_nmos, 0xEE, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xEE, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xEE, 4)] = &op_inc_rw_ready_addr_data_pending_none_wr,
         [IDX(qe6502_model_nmos, 0xEE, 5)] = &mc_fetch,
@@ -3824,7 +3800,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
 
         /* 0xF1 SBC (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nmos, 0xF1, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xF1, 1)] = &mc_r_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0xF1, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xF1, 2)] = &mc_r_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0xF1, 3)] = &mc_r_indexed_probe,
         [IDX(qe6502_model_nmos, 0xF1, 4)] = &mc_read_latch_addr,
