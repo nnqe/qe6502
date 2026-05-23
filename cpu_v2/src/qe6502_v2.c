@@ -103,6 +103,36 @@ static inline void compare_register_with_value(qe6502_t* cpu, uint8_t reg, uint8
     update_flags_nzc(cpu, result, flag_C_if(reg >= value));
 }
 
+static inline uint8_t asl_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t result = (uint8_t)(value << 1);
+    update_flags_nzc(cpu, result, flag_C_if((value & flag_N) != 0u));
+    return result;
+}
+
+static inline uint8_t lsr_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t result = (uint8_t)(value >> 1);
+    update_flags_nzc(cpu, result, flag_C_if((value & 1u) != 0u));
+    return result;
+}
+
+static inline uint8_t rol_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t old_carry = (uint8_t)(cpu->P & flag_C);
+    const uint8_t result = (uint8_t)((value << 1) | old_carry);
+    update_flags_nzc(cpu, result, flag_C_if((value & flag_N) != 0u));
+    return result;
+}
+
+static inline uint8_t ror_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t old_carry = (uint8_t)(cpu->P & flag_C);
+    const uint8_t result = (uint8_t)((value >> 1) | (uint8_t)(old_carry << 7));
+    update_flags_nzc(cpu, result, flag_C_if((value & 1u) != 0u));
+    return result;
+}
+
 
 /*
  * Generated QE6502 v2 NMOS skeleton.
@@ -1201,7 +1231,8 @@ static qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_asl_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement accumulator mnemonic semantics. */
+
+    cpu->A = asl_value(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
@@ -1209,7 +1240,8 @@ static qe6502_tick_t op_asl_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_asl_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data = asl_value(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
@@ -1360,7 +1392,9 @@ static qe6502_tick_t op_cpy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_dec_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data--;
+    update_flags_nz(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
@@ -1397,7 +1431,9 @@ static qe6502_tick_t op_eor_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_inc_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data++;
+    update_flags_nz(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
@@ -1452,7 +1488,8 @@ static qe6502_tick_t op_ldy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_lsr_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement accumulator mnemonic semantics. */
+
+    cpu->A = lsr_value(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
@@ -1460,7 +1497,8 @@ static qe6502_tick_t op_lsr_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data = lsr_value(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
@@ -1518,7 +1556,8 @@ static qe6502_tick_t op_plp_stack_pull_ready_none_pending_data_fetch(qe6502_t* c
 static qe6502_tick_t op_rol_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement accumulator mnemonic semantics. */
+
+    cpu->A = rol_value(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
@@ -1526,7 +1565,8 @@ static qe6502_tick_t op_rol_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_rol_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data = rol_value(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
@@ -1534,7 +1574,8 @@ static qe6502_tick_t op_rol_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
 static qe6502_tick_t op_ror_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: implement accumulator mnemonic semantics. */
+
+    cpu->A = ror_value(cpu, cpu->A);
     return read(cpu, cpu->PC);
 }
 
@@ -1542,7 +1583,8 @@ static qe6502_tick_t op_ror_acc_ready_none_pending_none_dummy(qe6502_t* cpu, uin
 static qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: modify cpu->latch_data and update flags before final write. */
+
+    cpu->latch_data = ror_value(cpu, cpu->latch_data);
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
