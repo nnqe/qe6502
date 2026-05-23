@@ -339,6 +339,14 @@ static qe6502_tick_t mc_read_pc_inc(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
+/* shared_handler; role=read_pc; action=read_pc_without_incrementing_pc */
+static qe6502_tick_t mc_read_pc(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read(cpu, cpu->PC);
+}
+
 /* shared_handler; role=fetch; action=consume_vector_high_and_fetch_next_opcode_without_interrupt_check */
 static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
 {
@@ -813,14 +821,6 @@ static qe6502_tick_t mc_r_zpy_c2_data(qe6502_t* cpu, uint8_t bus)
     return read(cpu, cpu->latch_addr);
 }
 
-/* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
-static qe6502_tick_t mc_rti_c0_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, cpu->PC);
-}
-
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
 static qe6502_tick_t mc_rti_c1_dummy(qe6502_t* cpu, uint8_t bus)
 {
@@ -859,14 +859,6 @@ static qe6502_tick_t mc_rti_c5_fetch(qe6502_t* cpu, uint8_t bus)
     cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
 
     return mc_fetch(cpu, bus);
-}
-
-/* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
-static qe6502_tick_t mc_rts_c0_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, cpu->PC);
 }
 
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
@@ -1037,14 +1029,6 @@ static inline qe6502_tick_t mc_rw_zpx_c3_wb(qe6502_t* cpu, uint8_t bus)
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
-/* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
-static qe6502_tick_t mc_stack_pull_c0_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, cpu->PC);
-}
-
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
 static qe6502_tick_t mc_stack_pull_c1_dummy(qe6502_t* cpu, uint8_t bus)
 {
@@ -1059,14 +1043,6 @@ static qe6502_tick_t mc_stack_pull_c2_read(qe6502_t* cpu, uint8_t bus)
     (void)bus;
 
     return stack_read(cpu);
-}
-
-/* special_handler; role=dummy; action=dummy_read_pc_before_stack_push */
-static qe6502_tick_t mc_stack_push_c0_dummy(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, cpu->PC);
 }
 
 /* addressing_handler; role=hi; action=read_pc_to_ea_high_and_increment_pc */
@@ -1851,7 +1827,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x07, 7)] = &op_ILL,
 
         /* 0x08 PHP ; class=stack_push */
-        [IDX(qe6502_model_nmos, 0x08, 0)] = &mc_stack_push_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x08, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x08, 1)] = &op_php_stack_push_ready_none_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x08, 2)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x08, 3)] = &mc_dispatch,
@@ -2171,7 +2147,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x27, 7)] = &op_ILL,
 
         /* 0x28 PLP ; class=stack_pull */
-        [IDX(qe6502_model_nmos, 0x28, 0)] = &mc_stack_pull_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x28, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x28, 1)] = &mc_stack_pull_c1_dummy,
         [IDX(qe6502_model_nmos, 0x28, 2)] = &mc_stack_pull_c2_read,
         [IDX(qe6502_model_nmos, 0x28, 3)] = &op_plp_stack_pull_ready_none_pending_data_fetch,
@@ -2411,7 +2387,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x3F, 7)] = &op_ILL,
 
         /* 0x40 RTI ; class=rti */
-        [IDX(qe6502_model_nmos, 0x40, 0)] = &mc_rti_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x40, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x40, 1)] = &mc_rti_c1_dummy,
         [IDX(qe6502_model_nmos, 0x40, 2)] = &mc_rti_c2_pull_p,
         [IDX(qe6502_model_nmos, 0x40, 3)] = &mc_rti_c3_pull_pcl,
@@ -2491,7 +2467,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x47, 7)] = &op_ILL,
 
         /* 0x48 PHA ; class=stack_push */
-        [IDX(qe6502_model_nmos, 0x48, 0)] = &mc_stack_push_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x48, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x48, 1)] = &op_pha_stack_push_ready_none_pending_none_wr,
         [IDX(qe6502_model_nmos, 0x48, 2)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x48, 3)] = &mc_dispatch,
@@ -2731,7 +2707,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x5F, 7)] = &op_ILL,
 
         /* 0x60 RTS ; class=rts */
-        [IDX(qe6502_model_nmos, 0x60, 0)] = &mc_rts_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x60, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x60, 1)] = &mc_rts_c1_dummy,
         [IDX(qe6502_model_nmos, 0x60, 2)] = &mc_rts_c2_pull_pcl,
         [IDX(qe6502_model_nmos, 0x60, 3)] = &mc_rts_c3_pull_pch,
@@ -2811,7 +2787,7 @@ const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =
         [IDX(qe6502_model_nmos, 0x67, 7)] = &op_ILL,
 
         /* 0x68 PLA ; class=stack_pull */
-        [IDX(qe6502_model_nmos, 0x68, 0)] = &mc_stack_pull_c0_dummy,
+        [IDX(qe6502_model_nmos, 0x68, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0x68, 1)] = &mc_stack_pull_c1_dummy,
         [IDX(qe6502_model_nmos, 0x68, 2)] = &mc_stack_pull_c2_read,
         [IDX(qe6502_model_nmos, 0x68, 3)] = &op_pla_stack_pull_ready_none_pending_data_fetch,
