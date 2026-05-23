@@ -97,17 +97,19 @@ static inline qe6502_tick_t stack_read(qe6502_t* cpu)
     return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
-void qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
+qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
 {
     cpu->status = 0;
     cpu->PC = address;
     enter_service_flow(cpu, service_flow_goto);
+    return qe6502_tick(cpu, 0u);
 }
 
-void qe6502_v2_light_reset(qe6502_t* cpu)
+qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu)
 {
     cpu->status = 0;
     enter_service_flow(cpu, service_flow_light_reset);
+    return qe6502_tick(cpu, 0u);
 }
 
 qe6502_tick_t dispatcher(qe6502_t* cpu, uint8_t bus)
