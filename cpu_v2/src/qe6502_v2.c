@@ -906,24 +906,24 @@ static inline qe6502_tick_t mc_rw_zpx_c3_wb(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=dummy; action=dummy_read_pc_before_stack_pull */
 static qe6502_tick_t mc_stack_pull_c0_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; stack pull is a special stack flow. */
-    return stack_read(cpu);
+    (void)bus;
+
+    return read(cpu, cpu->PC);
 }
 
 /* special_handler; role=prepull; action=dummy_stack_read_before_incrementing_s */
 static qe6502_tick_t mc_stack_pull_c1_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; stack pull is a special stack flow. */
-    return stack_read(cpu);
+    (void)bus;
+
+    return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
 /* special_handler; role=read; action=increment_s_and_read_stack_value */
 static qe6502_tick_t mc_stack_pull_c2_read(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: skipped for now; stack pull is a special stack flow. */
+    (void)bus;
+
     return stack_read(cpu);
 }
 
@@ -931,8 +931,8 @@ static qe6502_tick_t mc_stack_pull_c2_read(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t mc_stack_push_c0_dummy(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: skipped for now; stack push is a special stack flow. */
-    return stack_write(cpu, cpu->latch_data);
+
+    return read(cpu, cpu->PC);
 }
 
 /* addressing_handler; role=lo; action=read_pc_to_ea_low_and_increment_pc */
@@ -1142,19 +1142,22 @@ static qe6502_tick_t mc_w_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 /* addressing_handler; role=addr; action=read_pc_to_ea_low_increment_pc_clear_ea_high */
 static qe6502_tick_t mc_w_zpy_c0_addr(qe6502_t* cpu, uint8_t bus)
 {
-    set_latch_addr0(cpu, bus);
-    /* TODO: replace with exact low-byte/address behavior. */
+    (void)bus;
+
     qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC = (uint16_t)(cpu->PC + 1u);
+    cpu->PC++;
     return tick;
 }
 
 /* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_y_wraparound */
 static qe6502_tick_t mc_w_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: generic microcode placeholder. */
-    return read(cpu, cpu->PC);
+    const uint16_t addr = bus;
+
+    qe6502_tick_t tick = read(cpu, addr);
+    cpu->latch_addr = (uint8_t)(bus + cpu->Y);
+
+    return tick;
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
@@ -1189,34 +1192,38 @@ static qe6502_tick_t op_asl_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
     return write(cpu, cpu->latch_addr, cpu->latch_data);
 }
 
+static inline qe6502_tick_t branch_c0_offset(qe6502_t* cpu, bool taken)
+{
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+
+    if (!taken)
+    {
+        cpu->microcode = (uint16_t)(cpu->microcode + 2u);
+    }
+
+    return tick;
+}
+
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bcc_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_C) == 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bcs_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_C) != 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_beq_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_Z) != 0u);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
@@ -1231,50 +1238,35 @@ static qe6502_tick_t op_bit_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_bmi_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_N) != 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bne_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_Z) == 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bpl_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_N) == 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bvc_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_V) == 0u);
 }
 
 /* mnemonic_handler; role=offset; action=read_branch_offset_and_select_not_taken_or_taken_path */
 static qe6502_tick_t op_bvs_branch_c0_offset(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: read signed branch offset, test condition, and adjust microcode. */
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return branch_c0_offset(cpu, (cpu->P & flag_V) != 0u);
 }
 
 /* mnemonic_handler; role=exec_dummy; action=execute_implied_mnemonic_and_emit_dummy_pc_read */
@@ -1449,7 +1441,7 @@ static qe6502_tick_t op_ora_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: verify exact pushed value. */
+
     return stack_write(cpu, cpu->A);
 }
 
@@ -1457,23 +1449,24 @@ static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr(qe6502_t* cpu,
 static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    /* TODO: verify exact pushed value. */
+
     return stack_write(cpu, (uint8_t)(cpu->P | flag_B));
 }
 
 /* mnemonic_handler; role=exec_fetch; action=consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode */
 static qe6502_tick_t op_pla_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: implement stack pull mnemonic semantics before fetching next opcode. */
+    cpu->A = bus;
+    update_flags_nz(cpu, cpu->A);
+
     return mc_fetch(cpu, bus);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode */
 static qe6502_tick_t op_plp_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_data = bus;
-    /* TODO: implement stack pull mnemonic semantics before fetching next opcode. */
+    cpu->P = (uint8_t)((bus | flag_UN) & (uint8_t)(~flag_B));
+
     return mc_fetch(cpu, bus);
 }
 
