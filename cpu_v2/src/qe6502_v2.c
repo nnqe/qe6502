@@ -329,14 +329,20 @@ static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
+static qe6502_tick_t
+read_pc_inc(qe6502_t* cpu)
+{
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+    return tick;
+}
+
 /* shared_handler; role=read_pc_inc; action=read_pc_and_increment_pc */
 static qe6502_tick_t mc_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* shared_handler; role=read_pc; action=read_pc_without_incrementing_pc */
@@ -355,9 +361,7 @@ static qe6502_tick_t mc_clear_latch_addr_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 
     cpu->latch_addr = 0u;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* shared_handler; role=read_latch_addr; action=read_effective_address_from_latch_addr */
@@ -496,9 +500,7 @@ static inline qe6502_tick_t mc_jmp_abs_c1_hi(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* special_handler; role=fetch; action=set_pc_to_effective_address_and_fetch_next_opcode */
@@ -515,9 +517,7 @@ static inline qe6502_tick_t mc_jmp_ind_c1_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* special_handler; role=target_lo; action=read_pointer_to_ea_low_then_increment_pointer_low_with_nmos_wrap */
@@ -592,9 +592,7 @@ static inline qe6502_tick_t mc_r_abs_c1_hi(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=data; action=read_effective_address_to_data */
@@ -613,9 +611,7 @@ static inline qe6502_tick_t mc_r_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=probe; action=read_indexed_probe_address_to_data_and_skip_pgfix_if_no_page_cross */
@@ -651,9 +647,7 @@ static inline qe6502_tick_t mc_r_aby_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=probe; action=read_indexed_probe_address_to_data_and_skip_pgfix_if_no_page_cross */
@@ -688,9 +682,7 @@ static inline qe6502_tick_t mc_r_izx_c0_ptr(qe6502_t* cpu, uint8_t bus)
 
     cpu->latch_addr = 0u;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=idx; action=dummy_read_zp_pointer_then_add_x_wraparound */
@@ -737,9 +729,7 @@ static inline qe6502_tick_t mc_r_izy_c0_ptr(qe6502_t* cpu, uint8_t bus)
 
     cpu->latch_addr = 0u;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=ptrlo; action=read_zp_pointer_to_ea_low */
@@ -840,9 +830,7 @@ static qe6502_tick_t mc_rts_c4_inc_pc_dummy(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* rw_abs c1: capture low byte, request high operand byte */
@@ -850,9 +838,7 @@ static inline qe6502_tick_t mc_rw_abs_c1_hi(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* rw_abs c2: capture high byte, read from effective address */
@@ -879,9 +865,7 @@ static inline qe6502_tick_t mc_rw_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* rw_abx c2: capture high byte, perform indexed dummy/probe read, then fix high byte */
@@ -919,9 +903,7 @@ static inline qe6502_tick_t mc_rw_zp_c0_addr(qe6502_t* cpu, uint8_t bus)
 
     cpu->latch_addr = 0u;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* rw_zp c1: capture zero-page address and read old memory value */
@@ -947,9 +929,7 @@ static inline qe6502_tick_t mc_rw_zpx_c0_addr(qe6502_t* cpu, uint8_t bus)
 
     cpu->latch_addr = 0u;
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* rw_zpx c1: capture base address, dummy-read it, then add X with zero-page wraparound */
@@ -984,9 +964,7 @@ static qe6502_tick_t mc_w_abs_c1_hi(qe6502_t* cpu, uint8_t bus)
 {
     set_latch_addr0(cpu, bus);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* addressing_handler; role=hi; action=read_pc_to_ea_high_increment_pc_add_x_low_and_record_page_cross */
@@ -997,9 +975,7 @@ static qe6502_tick_t mc_w_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* common_handler; role=w_indexed_probe; action=dummy_read_indexed_probe_then_fix_ea_high */
@@ -1022,9 +998,7 @@ static qe6502_tick_t mc_w_aby_c1_hi(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
     cpu->latch_data = (uint8_t)(indexed >> 8u);
 
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
+    return read_pc_inc(cpu);
 }
 
 /* common_handler; role=read_zp_latch_x; action=dummy_read_zero_page_base_then_add_x_wraparound */
