@@ -1,10 +1,4 @@
-        /*
-         * NES model service flows.
-         *
-         * NES currently shares the NMOS service handlers. Opcode rows are
-         * listed in a separate NES section below so model-specific semantic
-         * differences remain visible in the table.
-         */
+        /* NES service flows. */
 
         [SERVICE_IDX(qe6502_model_nes, service_flow_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
         [SERVICE_IDX(qe6502_model_nes, service_flow_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
@@ -24,13 +18,7 @@
         [SERVICE_IDX(qe6502_model_nes, service_flow_goto, 6)] = &op_ILL,
         [SERVICE_IDX(qe6502_model_nes, service_flow_goto, 7)] = &op_ILL,
 
-        /*
-         * NES opcode flows.
-         *
-         * NES is table-compatible with NMOS for the documented opcode set.
-         * The only intentional semantic override currently is ADC/SBC: the
-         * NES CPU ignores decimal arithmetic even when the D flag is set.
-         */
+        /* NES opcode flows; NMOS-compatible except ADC/SBC decimal disable. */
 
         /* 0x00 BRK ; class=brk */
         [IDX(qe6502_model_nes, 0x00, 0)] = &mc_read_pc_inc,

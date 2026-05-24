@@ -2,7 +2,6 @@
 #define QE6502_H
 
 #include <stdint.h>
-#include <stdarg.h>
 
 #ifndef QE6502_STATIC_ASSERT
 # ifdef __cplusplus
@@ -16,6 +15,7 @@
 extern "C" {
 #endif
 
+/* Model identifiers. */
 enum
 {
     qe6502_model_nmos = 0,
@@ -24,31 +24,36 @@ enum
     qe6502_model_rw   = 3,
     qe6502_model_st   = 4,
 
-    qe6502_supported_models_count = 5,
+    qe6502_supported_models_count = 5
+};
 
+/* Microcode control-store layout. */
+enum
+{
     qe6502_microcode_cycle_bits        = 3,
     qe6502_microcode_flow_bits         = 9,
     qe6502_microcode_cycles_per_flow   = 1u << qe6502_microcode_cycle_bits,
     qe6502_microcode_flows_per_model   = 1u << qe6502_microcode_flow_bits,
     qe6502_microcode_entries_per_model = qe6502_microcode_flows_per_model * qe6502_microcode_cycles_per_flow,
-    qe6502_microcode_size        = qe6502_microcode_entries_per_model * qe6502_supported_models_count
+    qe6502_microcode_size              = qe6502_microcode_entries_per_model * qe6502_supported_models_count
 };
 
+/* CPU state. */
 typedef struct qe6502_cpu
 {
-    /* Configuration */
+    /* Configuration. */
     uint8_t model;
 
-    /* Internal execution state */
+    /* Internal execution state. */
     uint8_t  status;
     uint16_t microcode;
     uint16_t latch_addr;
     uint8_t latch_data;
 
-    /* Reserved for future extensions */
+    /* Reserved for future extensions. */
     uint8_t reserved_for_extension;
 
-    /* CPU registers */
+    /* CPU registers. */
     uint16_t PC;
     uint8_t  S;
     uint8_t  A;
@@ -56,11 +61,12 @@ typedef struct qe6502_cpu
     uint8_t  Y;
     uint8_t  P;
 
-    /* Interrupts / control */
+    /* Interrupts / control. */
     uint8_t interrupts;
 } qe6502_t;
 QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 
+/* Single bus-cycle result. */
 typedef struct qe6502_tick_result
 {
     uint16_t address;
@@ -68,27 +74,32 @@ typedef struct qe6502_tick_result
     uint8_t status;
 } qe6502_tick_t;
 
-static const uint8_t qe6502_flag_C  = ( 1 << 0 ); //qe6502_flagpos_C
-static const uint8_t qe6502_flag_Z  = ( 1 << 1 ); //qe6502_flagpos_Z
-static const uint8_t qe6502_flag_I  = ( 1 << 2 ); //qe6502_flagpos_I
-static const uint8_t qe6502_flag_D  = ( 1 << 3 ); //qe6502_flagpos_D
-static const uint8_t qe6502_flag_B  = ( 1 << 4 ); //qe6502_flagpos_B
-static const uint8_t qe6502_flag_UN = ( 1 << 5 ); //qe6502_flagpos_UN
-static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
-static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
+/* Processor status register flags. */
+static const uint8_t qe6502_flag_C  = (1u << 0);
+static const uint8_t qe6502_flag_Z  = (1u << 1);
+static const uint8_t qe6502_flag_I  = (1u << 2);
+static const uint8_t qe6502_flag_D  = (1u << 3);
+static const uint8_t qe6502_flag_B  = (1u << 4);
+static const uint8_t qe6502_flag_UN = (1u << 5);
+static const uint8_t qe6502_flag_V  = (1u << 6);
+static const uint8_t qe6502_flag_N  = (1u << 7);
 
-static const uint8_t qe6502_status_writing     = (1 << 0);
-static const uint8_t qe6502_status_instr_done  = (1 << 1);
-static const uint8_t qe6502_status_nmi_starts  = (1 << 2);
-static const uint8_t qe6502_status_irq_starts  = (1 << 3);
-static const uint8_t qe6502_status_halted      = (1 << 7);
+/* Tick status flags. */
+static const uint8_t qe6502_status_writing     = (1u << 0);
+static const uint8_t qe6502_status_instr_done  = (1u << 1);
+static const uint8_t qe6502_status_nmi_starts  = (1u << 2);
+static const uint8_t qe6502_status_irq_starts  = (1u << 3);
+static const uint8_t qe6502_status_halted      = (1u << 7);
 
+/* Error status flags. */
 static const uint8_t qe6502_error_illegal_op   = (1);
 
+/* Microcode control store. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 
 extern const qe6502_microcode_fn qe6502_microcode[qe6502_microcode_size];
 
+/* Public API. */
 qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu);
 qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address);
 

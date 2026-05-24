@@ -1,9 +1,4 @@
-        /*
-         * NMOS model microcode section.
-         *
-         * Rows 0x000..0x0FF are opcode flows. Rows 0x100..0x1FF are
-         * private service flows for this model.
-         */
+        /* NMOS service flows. */
 
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
         [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
