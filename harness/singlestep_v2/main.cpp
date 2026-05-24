@@ -224,7 +224,7 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
     cpu.go_to(cpu.pc());
 
     std::size_t cycle_index = 0u;
-    while (!cpu.halted()) {
+    while (!cpu.trapped()) {
         if (compare_cycles) {
             if (cycle_index >= cycles.size()) {
                 std::fprintf(stderr, "%s: produced too many cycles\n", name.c_str());
@@ -263,8 +263,8 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
         }
     }
 
-    if (cpu.halted()) {
-        std::fprintf(stderr, "%s: CPU halted\n", name.c_str());
+    if (cpu.trapped()) {
+        std::fprintf(stderr, "%s: CPU trapped\n", name.c_str());
         return false;
     }
     if (compare_cycles && cycle_index != cycles.size()) {

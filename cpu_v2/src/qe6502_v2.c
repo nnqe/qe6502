@@ -304,7 +304,7 @@ static qe6502_tick_t op_ILL(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
     (void)(flag_C | flag_Z | flag_I | flag_D | flag_B | flag_UN | flag_V | flag_N);
-    cpu->status = (uint8_t)(qe6502_error_illegal_op | qe6502_status_halted);
+    cpu->status = (uint8_t)(qe6502_status_trapped);
     cpu->microcode = (uint16_t)(cpu->microcode - 1u);
     return read(cpu, cpu->PC);
 }
@@ -322,7 +322,7 @@ static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
     qe6502_tick_t tick = read(cpu, cpu->PC);
-    tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);
+    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
     return tick;
 }
 
@@ -400,7 +400,7 @@ static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
     cpu->PC = u16_set_byte(cpu->PC, 1, bus);
 
     qe6502_tick_t tick = read(cpu, cpu->PC);
-    tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);
+    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
     return tick;
 }
 

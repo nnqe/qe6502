@@ -59,15 +59,15 @@ static void print_hex16(uint16_t value) {
 }
 
 static uint8_t tick_is_ok(qe6502_tick_t tick) {
-    return (uint8_t)((tick.status & qe6502_status_halted) == 0u);
+    return (uint8_t)((tick.status & qe6502_status_trapped) == 0u);
 }
 
 static uint8_t tick_is_write(qe6502_tick_t tick) {
     return (uint8_t)((tick.status & qe6502_status_writing) != 0u);
 }
 
-static uint8_t tick_is_instr_done(qe6502_tick_t tick) {
-    return (uint8_t)((tick.status & qe6502_status_instr_done) != 0u);
+static uint8_t tick_is_opcode_fetch(qe6502_tick_t tick) {
+    return (uint8_t)((tick.status & qe6502_status_opcode_fetch) != 0u);
 }
 
 static uint8_t tick_bus_data(qe6502_tick_t tick, const uint8_t* memory) {
@@ -167,13 +167,13 @@ static int run_nes_decimal_smoke_test(void) {
         tick_fast(&cpu, memory, &tick);
         ticks++;
 
-        if (tick_is_instr_done(tick)) {
+        if (tick_is_opcode_fetch(tick)) {
             instructions++;
         }
     }
 
     if (!tick_is_ok(tick)) {
-        fprintf(stderr, "NES decimal smoke test halted with status: %u\n", (unsigned)tick.status);
+        fprintf(stderr, "NES decimal smoke test trapped with status: %u\n", (unsigned)tick.status);
         return 0;
     }
 
@@ -238,7 +238,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
 
     tick = qe6502_v2_light_reset(&cpu);
 
-    while (!tick_is_instr_done(tick) && tick_is_ok(tick)) {
+    while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick)) {
         tick_fast(&cpu, memory, &tick);
         ticks++;
     }
@@ -289,7 +289,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
         tick_fast(&cpu, memory, &tick);
         ticks++;
 
-        if (tick_is_instr_done(tick)) {
+        if (tick_is_opcode_fetch(tick)) {
             instructions++;
 
             if (instructions > test->expected_instructions * 2u) {
@@ -304,7 +304,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
         }
     }
 
-    fprintf(stderr, "CPU halted with status: %u\n", (unsigned)tick.status);
+    fprintf(stderr, "CPU trapped with status: %u\n", (unsigned)tick.status);
 
     free(memory);
     return 0;

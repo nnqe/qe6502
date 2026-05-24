@@ -66,12 +66,12 @@ public:
 
     bool fetching() const noexcept
     {
-        return (tick_.status & qe6502_status_instr_done) != 0u;
+        return (tick_.status & qe6502_status_opcode_fetch) != 0u;
     }
 
-    bool halted() const noexcept
+    bool trapped() const noexcept
     {
-        return (tick_.status & qe6502_status_halted) != 0u;
+        return (tick_.status & qe6502_status_trapped) != 0u;
     }
 
     model active_model() const noexcept

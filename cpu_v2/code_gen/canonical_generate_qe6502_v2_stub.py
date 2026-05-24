@@ -251,7 +251,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
     if symbol == "op_ILL":
         lines.append("    (void)bus;")
         lines.append("    (void)(flag_C | flag_Z | flag_I | flag_D | flag_B | flag_UN | flag_V | flag_N);")
-        lines.append("    cpu->status = (uint8_t)(qe6502_error_illegal_op | qe6502_status_halted);")
+        lines.append("    cpu->status = (uint8_t)(qe6502_status_trapped);")
         lines.append("    cpu->microcode = (uint16_t)(cpu->microcode - 1u);")
         lines.append("    return read(cpu, cpu->PC);")
 
@@ -263,7 +263,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
     elif symbol in {"mc_fetch", "mc_fetch_no_interrupts"}:
         lines.append("    (void)bus;")
         lines.append("    qe6502_tick_t tick = read(cpu, cpu->PC);")
-        lines.append("    tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);")
+        lines.append("    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);")
         lines.append("    return tick;")
 
     elif symbol.startswith("op_"):

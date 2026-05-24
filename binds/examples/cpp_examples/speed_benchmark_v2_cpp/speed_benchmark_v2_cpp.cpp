@@ -126,19 +126,19 @@ bool run_test(const test_case& test, test_result& out_result)
 
     cpu.light_reset();
 
-    while (!cpu.fetching() && !cpu.halted()) {
+    while (!cpu.fetching() && !cpu.trapped()) {
         tick_fast(cpu, memory.data());
         ticks++;
     }
 
-    if (cpu.halted()) {
+    if (cpu.trapped()) {
         std::fprintf(stderr, "CPU boot error\n");
         return false;
     }
 
     const double started_at = now_seconds();
 
-    while (!cpu.halted()) {
+    while (!cpu.trapped()) {
         if (cpu.address() == test.success_address) {
             const double elapsed = now_seconds() - started_at;
 
@@ -184,7 +184,7 @@ bool run_test(const test_case& test, test_result& out_result)
         }
     }
 
-    std::fprintf(stderr, "CPU halted with status: %u\n", static_cast<unsigned>(cpu.status()));
+    std::fprintf(stderr, "CPU trapped with status: %u\n", static_cast<unsigned>(cpu.status()));
     return false;
 }
 

@@ -39,28 +39,39 @@ enum
  */
 enum
 {
-    qe6502_cycle_bits          = 3,
-    qe6502_slot_bits           = 9,
-    qe6502_cycles_per_slot     = 1u << qe6502_cycle_bits,
-    qe6502_slots_per_model     = 1u << qe6502_slot_bits,
-    qe6502_entries_per_model   = qe6502_slots_per_model * qe6502_cycles_per_slot,
-    qe6502_control_store_size  = qe6502_entries_per_model * qe6502_supported_models_count
+    /* Number of low index bits used to select one microcode entry inside a slot. */
+    qe6502_microcode_index_bits = 3,
+
+    /* Number of index bits used to select an opcode or private service slot inside one model block. */
+    qe6502_slot_index_bits = 9,
+
+    /* Number of microcode entries stored in each opcode/service slot. */
+    qe6502_microcode_per_slot = 1u << qe6502_microcode_index_bits,
+
+    /* Number of opcode/service slots stored in one model block. */
+    qe6502_slots_per_model = 1u << qe6502_slot_index_bits,
+
+    /* Number of microcode entries stored in one complete model block. */
+    qe6502_microcode_per_model = qe6502_slots_per_model * qe6502_microcode_per_slot,
+
+    /* Total number of microcode entries stored in the complete control store. */
+    qe6502_control_store_size = qe6502_microcode_per_model * qe6502_supported_models_count
 };
 
 /* CPU state. */
 typedef struct qe6502_cpu
 {
     /* Configuration. */
-    uint8_t model;
+    uint8_t  model;
 
     /* Internal execution state. */
     uint8_t  status;
     uint16_t microcode;
     uint16_t latch_addr;
-    uint8_t latch_data;
+    uint8_t  latch_data;
 
     /* Reserved for future extensions. */
-    uint8_t reserved_for_extension;
+    uint8_t  reserved_for_extension;
 
     /* CPU registers. */
     uint16_t PC;
@@ -71,7 +82,7 @@ typedef struct qe6502_cpu
     uint8_t  P;
 
     /* Interrupts / control. */
-    uint8_t interrupts;
+    uint8_t  interrupts;
 } qe6502_t;
 QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 
@@ -79,8 +90,8 @@ QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 typedef struct qe6502_tick_result
 {
     uint16_t address;
-    uint8_t bus;
-    uint8_t status;
+    uint8_t  bus;
+    uint8_t  status;
 } qe6502_tick_t;
 
 /* Processor status register flags. */
@@ -94,14 +105,21 @@ static const uint8_t qe6502_flag_V  = (1u << 6);
 static const uint8_t qe6502_flag_N  = (1u << 7);
 
 /* Tick status flags. */
-static const uint8_t qe6502_status_writing     = (1u << 0);
-static const uint8_t qe6502_status_instr_done  = (1u << 1);
-static const uint8_t qe6502_status_nmi_starts  = (1u << 2);
-static const uint8_t qe6502_status_irq_starts  = (1u << 3);
-static const uint8_t qe6502_status_halted      = (1u << 7);
 
-/* Error status flags. */
-static const uint8_t qe6502_error_illegal_op   = (1);
+/* Tick requests a memory write; clear means memory read. */
+static const uint8_t qe6502_status_writing = (1u << 0);
+
+/* Tick is an opcode fetch boundary. */
+static const uint8_t qe6502_status_opcode_fetch = (1u << 1);
+
+/* NMI is acknowledged by the core on this tick. */
+static const uint8_t qe6502_status_nmi_ack = (1u << 2);
+
+/* IRQ is acknowledged by the core on this tick. */
+static const uint8_t qe6502_status_irq_ack = (1u << 3);
+
+/* CPU trapped on an unsupported or invalid execution path. */
+static const uint8_t qe6502_status_trapped = (1u << 7);
 
 /* Microcode entry. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
@@ -110,10 +128,16 @@ typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size];
 
 /* Public API. */
-qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu);
-qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address);
 
-static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
+/* Enter reset-vector service and return the first bus request. */
+qe6502_tick_t qe6502_v2_light_reset(qe6502_t *cpu);
+
+/* Enter execution at address and return the first bus request. */
+qe6502_tick_t qe6502_v2_goto(qe6502_t *cpu, uint16_t address);
+
+/* Execute one microcode entry using the supplied bus value. */
+static inline qe6502_tick_t
+qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
     cpu->microcode++;
@@ -124,4 +148,4 @@ static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
 }
 #endif
 
-#endif // QE6502_H
+#endif /* QE6502_H */

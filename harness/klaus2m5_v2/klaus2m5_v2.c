@@ -4,7 +4,7 @@
 
 static uint8_t tick_is_ok(qe6502_tick_t tick)
 {
-    return (uint8_t)((tick.status & qe6502_status_halted) == 0u);
+    return (uint8_t)((tick.status & qe6502_status_trapped) == 0u);
 }
 
 static uint8_t tick_is_write(qe6502_tick_t tick)
@@ -12,9 +12,9 @@ static uint8_t tick_is_write(qe6502_tick_t tick)
     return (uint8_t)((tick.status & qe6502_status_writing) != 0u);
 }
 
-static uint8_t tick_is_instr_done(qe6502_tick_t tick)
+static uint8_t tick_is_opcode_fetch(qe6502_tick_t tick)
 {
-    return (uint8_t)((tick.status & qe6502_status_instr_done) != 0u);
+    return (uint8_t)((tick.status & qe6502_status_opcode_fetch) != 0u);
 }
 
 static uint8_t tick_bus_data(qe6502_tick_t tick, uint8_t* memory)
@@ -45,7 +45,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
 
     qe6502_tick_t tick = qe6502_v2_light_reset(cpu_ptr);
 
-    while (!tick_is_instr_done(tick) && tick_is_ok(tick))
+    while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick))
     {
         const uint8_t data = tick_bus_data(tick, memory);
         if (tick_is_write(tick))
@@ -91,7 +91,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
 
         tick = qe6502_tick(cpu_ptr, data);
 
-        if (tick_is_instr_done(tick))
+        if (tick_is_opcode_fetch(tick))
         {
             cycles++;
             if (cycles > 2u * expected_cycles)
