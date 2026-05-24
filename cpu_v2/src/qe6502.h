@@ -4,18 +4,11 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#ifndef __cplusplus
-#include <qe/impl_utils.h>
-#else
-# ifndef QE_STATIC_ASSERT
-#  define QE_STATIC_ASSERT(condition, message) static_assert((condition), message)
-# endif
-# ifndef QE_MAYBE_UNUSED
-#  if defined(__GNUC__) || defined(__clang__)
-#   define QE_MAYBE_UNUSED __attribute__((unused))
-#  else
-#   define QE_MAYBE_UNUSED
-#  endif
+#ifndef QE6502_STATIC_ASSERT
+# ifdef __cplusplus
+#  define QE6502_STATIC_ASSERT(condition, message) static_assert((condition), message)
+# else
+#  define QE6502_STATIC_ASSERT(condition, message) _Static_assert((condition), message)
 # endif
 #endif
 
@@ -66,7 +59,7 @@ typedef struct qe6502_cpu
     /* Interrupts / control */
     uint8_t interrupts;
 } qe6502_t;
-QE_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
+QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 
 typedef struct qe6502_tick_result
 {
@@ -84,13 +77,13 @@ static const uint8_t qe6502_flag_UN = ( 1 << 5 ); //qe6502_flagpos_UN
 static const uint8_t qe6502_flag_V  = ( 1 << 6 ); //qe6502_flagpos_V
 static const uint8_t qe6502_flag_N  = ( 1 << 7 ); //qe6502_flagpos_N
 
-QE_MAYBE_UNUSED static const uint8_t qe6502_status_writing     = (1 << 0);
-QE_MAYBE_UNUSED static const uint8_t qe6502_status_instr_done  = (1 << 1);
-QE_MAYBE_UNUSED static const uint8_t qe6502_status_nmi_starts  = (1 << 2);
-QE_MAYBE_UNUSED static const uint8_t qe6502_status_irq_starts  = (1 << 3);
-QE_MAYBE_UNUSED static const uint8_t qe6502_status_halted      = (1 << 7);
+static const uint8_t qe6502_status_writing     = (1 << 0);
+static const uint8_t qe6502_status_instr_done  = (1 << 1);
+static const uint8_t qe6502_status_nmi_starts  = (1 << 2);
+static const uint8_t qe6502_status_irq_starts  = (1 << 3);
+static const uint8_t qe6502_status_halted      = (1 << 7);
 
-QE_MAYBE_UNUSED static const uint8_t qe6502_error_illegal_op   = (1);
+static const uint8_t qe6502_error_illegal_op   = (1);
 
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 

@@ -11,20 +11,9 @@ static const uint8_t flag_UN = qe6502_flag_UN;
 static const uint8_t flag_V  = qe6502_flag_V ;
 static const uint8_t flag_N  = qe6502_flag_N ;
 
-QE_MAYBE_UNUSED static inline uint8_t flag_C_if(bool cond)  {return cond ? flag_C : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_Z_if(bool cond)  {return cond ? flag_Z : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_I_if(bool cond)  {return cond ? flag_I : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_D_if(bool cond)  {return cond ? flag_D : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_B_if(bool cond)  {return cond ? flag_B : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_UN_if(bool cond) {return cond ? flag_UN : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_V_if(bool cond)  {return cond ? flag_V : 0;}
-QE_MAYBE_UNUSED static inline uint8_t flag_N_if(bool cond)  {return cond ? flag_N : 0;}
-
-QE_MAYBE_UNUSED static const uint8_t writing        = qe6502_status_writing;
-QE_MAYBE_UNUSED static const uint8_t instr_done     = qe6502_status_instr_done;
-QE_MAYBE_UNUSED static const uint8_t nmi_starts     = qe6502_status_nmi_starts;
-QE_MAYBE_UNUSED static const uint8_t irq_starts     = qe6502_status_irq_starts;
-QE_MAYBE_UNUSED static const uint8_t halted         = qe6502_status_halted;
+static inline uint8_t flag_C_if(bool cond) { return cond ? flag_C : 0; }
+static inline uint8_t flag_Z_if(bool cond) { return cond ? flag_Z : 0; }
+static inline uint8_t flag_V_if(bool cond) { return cond ? flag_V : 0; }
 
 enum
 {
@@ -44,7 +33,7 @@ typedef enum service_flow
     service_flow_count_used
 } service_flow_t;
 
-QE_STATIC_ASSERT((unsigned int)service_flow_count_used <= service_flow_count,
+QE6502_STATIC_ASSERT((unsigned int)service_flow_count_used <= service_flow_count,
                  "service flow index space overflow");
 
 #define IDX(model, flow, cycle) ((((model) & 0x0Fu) << 12u) + (((flow) & 0x1FFu) << 3u) + (cycle))
@@ -55,7 +44,6 @@ static inline void enter_service_flow(qe6502_t* cpu, service_flow_t flow)
     cpu->microcode = (uint16_t)SERVICE_IDX(cpu->model, flow, 0u);
 }
 
-QE_MAYBE_UNUSED
 static inline void set_latch_addr0(qe6502_t* cpu, uint8_t value)
 {
     cpu->latch_addr = qe_u16_set_byte(cpu->latch_addr, 0, value);
@@ -90,7 +78,6 @@ static inline qe6502_tick_t stack_write(qe6502_t* cpu, uint8_t data)
     return write(cpu, address, data);
 }
 
-QE_MAYBE_UNUSED
 static inline qe6502_tick_t stack_read(qe6502_t* cpu)
 {
     cpu->S++;
@@ -119,7 +106,6 @@ qe6502_tick_t dispatcher(qe6502_t* cpu, uint8_t bus)
     return qe6502_microcode_table[cpu->microcode](cpu, bus);
 }
 
-QE_MAYBE_UNUSED
 static inline void update_flags_nz(qe6502_t* cpu, uint8_t value)
 {
     const uint8_t mask = (uint8_t)(flag_Z | flag_N);
@@ -128,7 +114,6 @@ static inline void update_flags_nz(qe6502_t* cpu, uint8_t value)
     cpu->P = (uint8_t)((cpu->P & (uint8_t)(~mask)) | flags);
 }
 
-QE_MAYBE_UNUSED
 static inline void update_flags_nzc(qe6502_t* cpu, uint8_t value, uint8_t carry)
 {
     const uint8_t mask = (uint8_t)(flag_C | flag_Z | flag_N);
