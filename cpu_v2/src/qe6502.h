@@ -1,8 +1,27 @@
 #ifndef QE6502_H
 #define QE6502_H
 
+#include <stdint.h>
 #include <stdarg.h>
+
+#ifndef __cplusplus
 #include <qe/impl_utils.h>
+#else
+# ifndef QE_STATIC_ASSERT
+#  define QE_STATIC_ASSERT(condition, message) static_assert((condition), message)
+# endif
+# ifndef QE_MAYBE_UNUSED
+#  if defined(__GNUC__) || defined(__clang__)
+#   define QE_MAYBE_UNUSED __attribute__((unused))
+#  else
+#   define QE_MAYBE_UNUSED
+#  endif
+# endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum
 {
@@ -22,7 +41,7 @@ enum
     qe6502_microcode_table_size        = qe6502_microcode_entries_per_model * qe6502_supported_models_count
 };
 
-typedef struct qe6502
+typedef struct qe6502_cpu
 {
     /* Configuration */
     uint8_t model;
@@ -49,7 +68,7 @@ typedef struct qe6502
 } qe6502_t;
 QE_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 
-typedef struct qe6502_tick
+typedef struct qe6502_tick_result
 {
     uint16_t address;
     uint8_t bus;
@@ -86,5 +105,9 @@ static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
     cpu->microcode++;
     return tick;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // QE6502_H

@@ -1,6 +1,6 @@
 # /CMakeLists.txt
 cmake_minimum_required(VERSION 3.15)
-project(qe6502 LANGUAGES C)
+project(qe6502 LANGUAGES C CXX)
 
 include(CTest)
 
@@ -29,6 +29,7 @@ message(STATUS "  QE6502_BUILD_EXAMPLES     = ${QE6502_BUILD_EXAMPLES}")
 add_subdirectory(qe)
 add_subdirectory(cpu)
 add_subdirectory(cpu_v2)
+add_subdirectory(cpu_v2_cpp)
 add_subdirectory(binds)
 
 if(QE6502_BUILD_EXAMPLES)
