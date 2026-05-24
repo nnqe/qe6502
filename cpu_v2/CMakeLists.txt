@@ -22,8 +22,6 @@ function(qe6502_v2_configure_core_target target)
     )
 
 
-    target_link_libraries(${target} PUBLIC qe_static)
-
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /WX /we4505)
     else()
@@ -49,7 +47,7 @@ add_library(qe6502_v2_static STATIC
     ${QE6502_V2_PRIVATE_SOURCE}
 )
 
-qe6502_configure_core_target(qe6502_v2_static)
+qe6502_v2_configure_core_target(qe6502_v2_static)
 
 target_compile_definitions(qe6502_v2_static
     PRIVATE
