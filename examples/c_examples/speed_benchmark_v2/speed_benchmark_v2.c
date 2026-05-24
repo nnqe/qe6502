@@ -122,6 +122,86 @@ static void prepare_memory(uint8_t memory[0x10000], const uint8_t* rom) {
     memory[0xFFFD] = 0x04;
 }
 
+static int run_nes_decimal_smoke_test(void) {
+    enum {
+        start_address = 0x0200u,
+        result_adc_address = 0x0300u,
+        result_sbc_address = 0x0301u,
+        expected_instructions = 8u
+    };
+
+    uint8_t memory[0x10000] = {0};
+    qe6502_t cpu;
+    qe6502_tick_t tick;
+    uint32_t instructions = 0;
+    uint64_t ticks = 0;
+
+    printf("========================================================================\n");
+    printf("NES decimal semantics smoke test\n");
+    printf("========================================================================\n");
+    printf("ROM:                   embedded decimal-mode smoke program\n");
+    printf("Expected behavior:     ADC/SBC ignore decimal mode on NES\n\n");
+
+    memory[start_address + 0u] = 0xF8u; /* SED */
+    memory[start_address + 1u] = 0xA9u; /* LDA #$15 */
+    memory[start_address + 2u] = 0x15u;
+    memory[start_address + 3u] = 0x18u; /* CLC */
+    memory[start_address + 4u] = 0x69u; /* ADC #$27: NES binary result is $3C, NMOS decimal would be $42. */
+    memory[start_address + 5u] = 0x27u;
+    memory[start_address + 6u] = 0x8Du; /* STA $0300 */
+    memory[start_address + 7u] = (uint8_t)(result_adc_address & 0xffu);
+    memory[start_address + 8u] = (uint8_t)(result_adc_address >> 8u);
+    memory[start_address + 9u] = 0x38u; /* SEC */
+    memory[start_address + 10u] = 0xE9u; /* SBC #$05: NES binary result is $37. */
+    memory[start_address + 11u] = 0x05u;
+    memory[start_address + 12u] = 0x8Du; /* STA $0301 */
+    memory[start_address + 13u] = (uint8_t)(result_sbc_address & 0xffu);
+    memory[start_address + 14u] = (uint8_t)(result_sbc_address >> 8u);
+
+    memset(&cpu, 0, sizeof(cpu));
+    cpu.model = qe6502_model_nes;
+
+    tick = qe6502_v2_goto(&cpu, (uint16_t)start_address);
+
+    while (tick_is_ok(tick) && instructions < expected_instructions) {
+        tick_fast(&cpu, memory, &tick);
+        ticks++;
+
+        if (tick_is_instr_done(tick)) {
+            instructions++;
+        }
+    }
+
+    if (!tick_is_ok(tick)) {
+        fprintf(stderr, "NES decimal smoke test halted with status: %u\n", (unsigned)tick.status);
+        return 0;
+    }
+
+    if (instructions != expected_instructions) {
+        fprintf(stderr, "NES decimal smoke test instruction count mismatch: %u\n", (unsigned)instructions);
+        return 0;
+    }
+
+    if (memory[result_adc_address] != 0x3Cu || memory[result_sbc_address] != 0x37u) {
+        fprintf(
+            stderr,
+            "NES decimal smoke test failed: ADC result=0x%02X, SBC result=0x%02X\n",
+            (unsigned)memory[result_adc_address],
+            (unsigned)memory[result_sbc_address]
+            );
+        return 0;
+    }
+
+    printf("PASS\n\n");
+    printf("Instructions:          %u\n", (unsigned)instructions);
+    printf("Ticks:                 %" PRIu64 "\n", ticks);
+    printf("ADC result:            0x%02X\n", (unsigned)memory[result_adc_address]);
+    printf("SBC result:            0x%02X\n", (unsigned)memory[result_sbc_address]);
+    printf("\n");
+
+    return 1;
+}
+
 static int run_test(const test_case_t* test, test_result_t* out_result) {
     uint8_t* memory;
     qe6502_t cpu;
@@ -237,6 +317,7 @@ int main(int argc, char** argv) {
     test_result_t results[sizeof(TESTS) / sizeof(TESTS[0])];
     const test_case_t* result_tests[sizeof(TESTS) / sizeof(TESTS[0])];
     size_t result_count = 0;
+    uint8_t extra_test_ran = 0;
     size_t i;
 
     for (i = 1; i < (size_t)argc; i++) {
@@ -249,6 +330,14 @@ int main(int argc, char** argv) {
     }
 
     all_started_at = now_seconds();
+
+    if (!only || strstr("NES decimal semantics smoke test", only)) {
+        if (!run_nes_decimal_smoke_test()) {
+            return 1;
+        }
+
+        extra_test_ran = 1u;
+    }
 
     for (i = 0; i < sizeof(TESTS) / sizeof(TESTS[0]); i++) {
         if (only && !strstr(TESTS[i].name, only)) {
@@ -263,7 +352,7 @@ int main(int argc, char** argv) {
         result_count++;
     }
 
-    if (result_count == 0) {
+    if (result_count == 0 && extra_test_ran == 0u) {
         fprintf(stderr, "No tests matched\n");
         return 1;
     }
@@ -276,6 +365,10 @@ int main(int argc, char** argv) {
     printf("========================================================================\n\n");
 
     printf("Summary:\n");
+
+    if (extra_test_ran != 0u) {
+        printf("NES decimal semantics smoke test: passed\n");
+    }
 
     for (i = 0; i < result_count; i++) {
         printf(
