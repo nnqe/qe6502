@@ -7,7 +7,7 @@
       "instruction_reference": "https://www.nesdev.org/obelisk-6502-guide/reference.html"
     },
     "field_notes": {
-      "class": "Opcode execution class. This is the key that should select a microcode flow template.",
+      "class": "Opcode execution class. This is the key that should select a microcode slot template.",
       "cycles": "[min, max]. Branches and indexed read modes may vary by condition/page crossing.",
       "flags": "Optional short behavioral notes useful for generation or validation."
     },
@@ -255,22 +255,22 @@
         "summary": "Conditional relative branch; cycles depend on branch taken and page crossing."
       },
       "brk": {
-        "summary": "BRK interrupt-entry flow."
+        "summary": "BRK interrupt-entry slot template."
       },
       "jmp_abs": {
-        "summary": "Absolute jump flow."
+        "summary": "Absolute jump slot template."
       },
       "jmp_ind": {
-        "summary": "Indirect jump flow."
+        "summary": "Indirect jump slot template."
       },
       "jsr_abs": {
-        "summary": "JSR absolute subroutine-call flow."
+        "summary": "JSR absolute subroutine-call slot template."
       },
       "rts": {
-        "summary": "Return-from-subroutine flow."
+        "summary": "Return-from-subroutine slot template."
       },
       "rti": {
-        "summary": "Return-from-interrupt flow."
+        "summary": "Return-from-interrupt slot template."
       },
       "stack_push": {
         "summary": "Push register/status value to stack."

@@ -15,7 +15,7 @@ Expected inputs:
   --classes canonical_nmos6502_class_codegen.json
 
 Output:
-  a C block suitable for copy-paste into cpu_v2/src/qe6502.c after helpers.
+  a C block suitable for review against cpu_v2/src/qe6502_v2.c.
 """
 
 from __future__ import annotations
@@ -26,11 +26,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-OPCODE_ROWS = 256
+OPCODE_SLOTS = 256
 MODEL_COUNT = 5
-FLOWS_PER_MODEL = 512
-CYCLES_PER_ROW = 8
-TABLE_SIZE = MODEL_COUNT * FLOWS_PER_MODEL * CYCLES_PER_ROW
+SLOTS_PER_MODEL = 512
+CYCLES_PER_SLOT = 8
+CONTROL_STORE_SIZE = MODEL_COUNT * SLOTS_PER_MODEL * CYCLES_PER_SLOT
 
 ALLOWED_READY = {"none", "addr", "addrlo", "addr_data", "custom"}
 ALLOWED_PENDING = {"none", "data", "addrlo", "addrhi", "custom"}
@@ -41,7 +41,7 @@ NORMAL_CLASSES_REQUIRING_TERMINAL_SYMBOLS = (
 EXPLICIT_TERMINAL_CLASSES = {"acc", "imp", "stack_push", "stack_pull"}
 
 # These are the legacy names that caused the current mismatch. The generated
-# output must not contain definitions or table references to them.
+# output must not contain definitions or control-store references to them.
 LEGACY_OP_SYMBOL_RE = re.compile(
     r"^op_[a-z0-9]+_(?:"
     r"r_fetch|"
@@ -158,8 +158,8 @@ def validate(opcodes: dict[str, Any], classes: dict[str, Any]) -> None:
             raise ValueError(f"{code}: class '{cls}' is not defined")
 
         cycles = resolve_opcode_cycles(opcode, classes)
-        if len(cycles) > CYCLES_PER_ROW:
-            raise ValueError(f"{code}: class '{cls}' uses {len(cycles)} cycles, max is {CYCLES_PER_ROW}")
+        if len(cycles) > CYCLES_PER_SLOT:
+            raise ValueError(f"{code}: class '{cls}' uses {len(cycles)} cycles, max is {CYCLES_PER_SLOT}")
         if cycles[-1]["symbol"] != "mc_dispatch":
             raise ValueError(f"{code}: class '{cls}' does not end with mc_dispatch")
 
@@ -258,7 +258,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
     elif symbol == "mc_dispatch":
         lines.append("    cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));")
         lines.append("    cpu->PC = (uint16_t)(cpu->PC + 1u);")
-        lines.append("    return qe6502_microcode_table[cpu->microcode](cpu, bus);")
+        lines.append("    return qe6502_control_store[cpu->microcode](cpu, bus);")
 
     elif symbol in {"mc_fetch", "mc_fetch_no_interrupts"}:
         lines.append("    (void)bus;")
@@ -362,29 +362,29 @@ def sort_key(symbol: str) -> tuple[int, str]:
     return (3, symbol)
 
 
-def table_symbols_for_opcode(opcode: dict[str, Any], classes: dict[str, Any]) -> list[str]:
+def control_store_symbols_for_opcode(opcode: dict[str, Any], classes: dict[str, Any]) -> list[str]:
     symbols = [cycle["symbol"] for cycle in resolve_opcode_cycles(opcode, classes)]
-    while len(symbols) < CYCLES_PER_ROW:
+    while len(symbols) < CYCLES_PER_SLOT:
         symbols.append("op_ILL")
     return symbols
 
 
-def emit_table(opcodes: dict[str, Any], classes: dict[str, Any]) -> str:
+def emit_control_store(opcodes: dict[str, Any], classes: dict[str, Any]) -> str:
     lines: list[str] = []
     lines.append("#define IDX(model, opcode, cycle) ((((model) & 0x0Fu) << 12u) + (((opcode) & 0x1FFu) << 3u) + (cycle))")
     lines.append("")
-    lines.append("const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size] =")
+    lines.append("const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =")
     lines.append("    {")
 
-    for opcode_value in range(OPCODE_ROWS):
+    for opcode_value in range(OPCODE_SLOTS):
         code = f"0x{opcode_value:02X}"
         opcode = opcodes[code]
         if opcode:
             title = f"{code} {opcode['syntax']} ; class={opcode['class']}"
-            symbols = table_symbols_for_opcode(opcode, classes)
+            symbols = control_store_symbols_for_opcode(opcode, classes)
         else:
             title = f"{code} undocumented/illegal"
-            symbols = ["op_ILL"] * CYCLES_PER_ROW
+            symbols = ["op_ILL"] * CYCLES_PER_SLOT
 
         lines.append(f"        /* {title} */")
         for cycle, symbol in enumerate(symbols):
@@ -411,14 +411,14 @@ def generate(opcodes_path: Path, classes_path: Path) -> str:
     lines.append("/*")
     lines.append(" * Generated QE6502 v2 NMOS skeleton.")
     lines.append(" * Terminal-contract codegen version.")
-    lines.append(" * Paste into cpu_v2/src/qe6502.c after low-level helpers.")
+    lines.append(" * Review against cpu_v2/src/qe6502_v2.c and control-store blocks.")
     lines.append(" */")
     lines.append("")
 
     for symbol in sorted(symbols, key=sort_key):
         lines.append(emit_function(symbol, symbols[symbol]))
 
-    lines.append(emit_table(opcodes, classes))
+    lines.append(emit_control_store(opcodes, classes))
     c_text = "\n".join(lines)
 
     legacy_in_output = sorted(set(LEGACY_OP_SYMBOL_RE.findall(c_text)))
@@ -429,15 +429,15 @@ def generate(opcodes_path: Path, classes_path: Path) -> str:
 
 def write_report(c_text: str, report_path: Path) -> None:
     function_defs = re.findall(r"^static\s+qe6502_tick_t\s+(\w+)\(", c_text, re.M)
-    table_refs = re.findall(r"= &(\w+),", c_text)
-    legacy_refs = sorted({s for s in function_defs + table_refs if LEGACY_OP_SYMBOL_RE.match(s)})
-    missing_defs = sorted({s for s in table_refs if s not in function_defs and s != "op_ILL"})
+    control_store_refs = re.findall(r"= &(\w+),", c_text)
+    legacy_refs = sorted({s for s in function_defs + control_store_refs if LEGACY_OP_SYMBOL_RE.match(s)})
+    missing_defs = sorted({s for s in control_store_refs if s not in function_defs and s != "op_ILL"})
 
     report = {
         "function_count": len(function_defs),
-        "table_ref_count": len(table_refs),
+        "control_store_ref_count": len(control_store_refs),
         "legacy_op_symbols": legacy_refs,
-        "missing_table_definitions": missing_defs,
+        "missing_control_store_definitions": missing_defs,
         "ok": not legacy_refs and not missing_defs,
     }
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
