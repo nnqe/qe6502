@@ -57,6 +57,13 @@ enum
     /* Total number of microcode entries stored in the complete control store. */
     qe6502_control_store_size = qe6502_microcode_per_model * qe6502_supported_models_count
 };
+QE6502_STATIC_ASSERT((qe6502_microcode_per_slot & (qe6502_microcode_per_slot - 1u)) == 0u,
+                     "qe6502_microcode_per_slot must be a power of two");
+QE6502_STATIC_ASSERT((qe6502_slots_per_model & (qe6502_slots_per_model - 1u)) == 0u,
+                     "qe6502_slots_per_model must be a power of two");
+QE6502_STATIC_ASSERT(qe6502_control_store_size ==
+                     (qe6502_microcode_per_model * qe6502_supported_models_count),
+                     "qe6502 control-store size mismatch");
 
 /* CPU state. */
 typedef struct qe6502_cpu
@@ -130,12 +137,12 @@ extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size]
 /* Public API. */
 
 /* Enter reset-vector service and return the first bus request. */
-qe6502_tick_t qe6502_v2_light_reset(qe6502_t *cpu);
+qe6502_tick_t qe6502_reset(qe6502_t *cpu);
 
 /* Enter execution at address and return the first bus request. */
-qe6502_tick_t qe6502_v2_goto(qe6502_t *cpu, uint16_t address);
+qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address);
 
-/* Execute one microcode entry using the supplied bus value. */
+/* Execute one CPU bus phase and return the next bus request. */
 static inline qe6502_tick_t
 qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {

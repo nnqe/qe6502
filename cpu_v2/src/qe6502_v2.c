@@ -1,5 +1,4 @@
 #include "qe6502.h"
-#include <stdarg.h>
 #include <stdbool.h>
 
 static const uint8_t flag_C  = qe6502_flag_C ;
@@ -33,6 +32,14 @@ enum
     service_slot_base = opcode_slot_count,
     service_slot_count = qe6502_slots_per_model - opcode_slot_count
 };
+QE6502_STATIC_ASSERT((opcode_slot_count & (opcode_slot_count - 1u)) == 0u,
+                     "opcode_slot_count must be a power of two");
+QE6502_STATIC_ASSERT(opcode_slot_count == 256u,
+                     "opcode slots must cover the 8-bit opcode space");
+QE6502_STATIC_ASSERT(service_slot_base == opcode_slot_count,
+                     "service slots must follow opcode slots");
+QE6502_STATIC_ASSERT((service_slot_count + opcode_slot_count) == qe6502_slots_per_model,
+                     "opcode and service slot ranges must cover one model block");
 
 typedef enum service_slot
 {
@@ -96,7 +103,7 @@ static inline qe6502_tick_t stack_read(qe6502_t* cpu)
     return read(cpu, (uint16_t)(0x0100u | cpu->S));
 }
 
-qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
+qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address)
 {
     cpu->status = 0;
     cpu->PC = address;
@@ -104,7 +111,7 @@ qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
     return qe6502_tick(cpu, 0u);
 }
 
-qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu)
+qe6502_tick_t qe6502_reset(qe6502_t *cpu)
 {
     cpu->status = 0;
     enter_service_slot(cpu, service_slot_light_reset);
@@ -292,14 +299,9 @@ static inline void sbc_value(qe6502_t* cpu, uint8_t value)
 }
 
 
-/*
- * Generated QE6502 v2 NMOS skeleton.
- * Paste into cpu_v2/src/qe6502.c after the low-level helpers.
- * Replace the old experimental dispatcher/fetch/op/table block.
- * Handler bodies are placeholders; table symbols come from JSON.
- */
+/* Microcode handlers. */
 
-/* illegal_handler; role=illegal; action=placeholder illegal opcode handler */
+/* illegal_handler; role=illegal; action=trap_on_unsupported_opcode */
 static qe6502_tick_t op_ILL(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
@@ -651,7 +653,7 @@ static inline qe6502_tick_t mc_r_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
     return read(cpu, ptr_hi_addr);
 }
 
-/* addressing_handler; role=data; action=read_effective_address_to_data */
+/* addressing_handler; role=data; action=read_zero_page_address_to_data */
 static qe6502_tick_t mc_r_zp_c1_data(qe6502_t* cpu, uint8_t bus)
 {
     return read(cpu, bus);
@@ -668,7 +670,7 @@ static qe6502_tick_t mc_r_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
-/* addressing_handler; role=idx; action=clear_ea_high_dummy_read_zero_page_base_then_add_y_wraparound */
+/* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_y_wraparound */
 static qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);

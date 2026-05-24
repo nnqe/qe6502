@@ -161,7 +161,7 @@ static int run_nes_decimal_smoke_test(void) {
     memset(&cpu, 0, sizeof(cpu));
     cpu.model = qe6502_model_nes;
 
-    tick = qe6502_v2_goto(&cpu, (uint16_t)start_address);
+    tick = qe6502_goto(&cpu, (uint16_t)start_address);
 
     while (tick_is_ok(tick) && instructions < expected_instructions) {
         tick_fast(&cpu, memory, &tick);
@@ -236,7 +236,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result) {
     memset(&cpu, 0, sizeof(cpu));
     cpu.model = test->model;
 
-    tick = qe6502_v2_light_reset(&cpu);
+    tick = qe6502_reset(&cpu);
 
     while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick)) {
         tick_fast(&cpu, memory, &tick);

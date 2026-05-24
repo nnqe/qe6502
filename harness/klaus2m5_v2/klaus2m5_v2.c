@@ -43,7 +43,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
     memory[0xFFFC] = 0x00;
     memory[0xFFFD] = 0x04;
 
-    qe6502_tick_t tick = qe6502_v2_light_reset(cpu_ptr);
+    qe6502_tick_t tick = qe6502_reset(cpu_ptr);
 
     while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick))
     {

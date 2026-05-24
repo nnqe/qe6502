@@ -37,12 +37,12 @@ public:
 
     void light_reset() noexcept
     {
-        tick_ = qe6502_v2_light_reset(&cpu_);
+        tick_ = qe6502_reset(&cpu_);
     }
 
     void go_to(std::uint16_t address) noexcept
     {
-        tick_ = qe6502_v2_goto(&cpu_, address);
+        tick_ = qe6502_goto(&cpu_, address);
     }
 
     void step(std::uint8_t bus) noexcept

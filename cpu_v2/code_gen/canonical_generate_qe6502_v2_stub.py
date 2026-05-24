@@ -409,7 +409,7 @@ def generate(opcodes_path: Path, classes_path: Path) -> str:
 
     lines: list[str] = []
     lines.append("/*")
-    lines.append(" * Generated QE6502 v2 NMOS skeleton.")
+    lines.append(" * Generated QE6502 NMOS control-store stub.")
     lines.append(" * Terminal-contract codegen version.")
     lines.append(" * Review against cpu_v2/src/qe6502_v2.c and control-store blocks.")
     lines.append(" */")
