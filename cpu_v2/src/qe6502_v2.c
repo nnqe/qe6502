@@ -1,6 +1,6 @@
 #include "qe6502.h"
 #include <stdarg.h>
-#include <qe/impl_utils.h>
+#include <stdbool.h>
 
 static const uint8_t flag_C  = qe6502_flag_C ;
 static const uint8_t flag_Z  = qe6502_flag_Z ;
@@ -14,6 +14,18 @@ static const uint8_t flag_N  = qe6502_flag_N ;
 static inline uint8_t flag_C_if(bool cond) { return cond ? flag_C : 0; }
 static inline uint8_t flag_Z_if(bool cond) { return cond ? flag_Z : 0; }
 static inline uint8_t flag_V_if(bool cond) { return cond ? flag_V : 0; }
+
+static inline uint8_t u16_get_byte(uint16_t x, unsigned byte_index)
+{
+    return (uint8_t)(x >> (byte_index * 8));
+}
+
+static inline uint16_t u16_set_byte(uint16_t x, unsigned byte_index, uint8_t value)
+{
+    unsigned shift = byte_index * 8;
+    uint16_t mask = (uint16_t)((uint16_t)0xFFu << shift);
+    return (uint16_t)((x & (uint16_t)~mask) | ((uint16_t)value << shift));
+}
 
 enum
 {
@@ -46,12 +58,12 @@ static inline void enter_service_flow(qe6502_t* cpu, service_flow_t flow)
 
 static inline void set_latch_addr0(qe6502_t* cpu, uint8_t value)
 {
-    cpu->latch_addr = qe_u16_set_byte(cpu->latch_addr, 0, value);
+    cpu->latch_addr = u16_set_byte(cpu->latch_addr, 0, value);
 }
 
 static inline void set_latch_addr1(qe6502_t* cpu, uint8_t value)
 {
-    cpu->latch_addr = qe_u16_set_byte(cpu->latch_addr, 1, value);
+    cpu->latch_addr = u16_set_byte(cpu->latch_addr, 1, value);
 }
 
 static inline qe6502_tick_t read(const qe6502_t* cpu, uint16_t address)
@@ -385,7 +397,7 @@ static qe6502_tick_t mc_stack_pull_read(qe6502_t* cpu, uint8_t bus)
 /* shared_handler; role=fetch; action=consume_vector_high_and_fetch_next_opcode_without_interrupt_check */
 static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
 
     qe6502_tick_t tick = read(cpu, cpu->PC);
     tick.status = (uint8_t)(tick.status | qe6502_status_instr_done);
@@ -403,7 +415,7 @@ static qe6502_tick_t mc_light_reset_c0_vec_lo(qe6502_t* cpu, uint8_t bus)
 /* service_handler; role=vec_hi; action=consume_reset_vector_low_and_read_reset_vector_high */
 static qe6502_tick_t mc_light_reset_c1_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
 
     return read(cpu, 0xfffdu);
 }
@@ -411,7 +423,7 @@ static qe6502_tick_t mc_light_reset_c1_vec_hi(qe6502_t* cpu, uint8_t bus)
 /* common_handler; role=latch_pch_fetch; action=consume_pc_high_and_fetch_opcode */
 static qe6502_tick_t mc_latch_pch_fetch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
 
     return mc_fetch(cpu, bus);
 }
@@ -424,9 +436,9 @@ static inline qe6502_tick_t mc_branch_rel_c1_apply(qe6502_t* cpu, uint8_t bus)
     const uint16_t target = (uint16_t)(old_pc + offset);
 
     qe6502_tick_t tick = read(cpu, old_pc);
-    cpu->PC = qe_u16_set_byte(cpu->PC, 0, qe_u16_byte(target, 0));
+    cpu->PC = u16_set_byte(cpu->PC, 0, u16_get_byte(target, 0));
 
-    if (qe_u16_byte(old_pc, 1) == qe_u16_byte(target, 1))
+    if (u16_get_byte(old_pc, 1) == u16_get_byte(target, 1))
     {
         cpu->microcode++;
     }
@@ -453,7 +465,7 @@ static qe6502_tick_t mc_stack_push_pc_high(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return stack_write(cpu, qe_u16_byte(cpu->PC, 1));
+    return stack_write(cpu, u16_get_byte(cpu->PC, 1));
 }
 
 /* common_handler; role=push_pc_low; action=push_pc_low_to_stack */
@@ -461,7 +473,7 @@ static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return stack_write(cpu, qe_u16_byte(cpu->PC, 0));
+    return stack_write(cpu, u16_get_byte(cpu->PC, 0));
 }
 
 /* special_handler; role=push_p; action=push_status_to_stack */
@@ -483,7 +495,7 @@ static qe6502_tick_t mc_brk_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=vec_hi; action=read_brk_vector_high_to_pc_high_and_set_interrupt_disable */
 static qe6502_tick_t mc_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
 
     return read(cpu, 0xffffu);
@@ -511,7 +523,7 @@ static inline qe6502_tick_t mc_jmp_ind_c2_target_lo(qe6502_t* cpu, uint8_t bus)
     set_latch_addr1(cpu, bus);
 
     qe6502_tick_t tick = read(cpu, cpu->latch_addr);
-    set_latch_addr0(cpu, (uint8_t)(qe_u16_byte(cpu->latch_addr, 0) + 1u));
+    set_latch_addr0(cpu, (uint8_t)(u16_get_byte(cpu->latch_addr, 0) + 1u));
     return tick;
 }
 
@@ -526,7 +538,7 @@ static inline qe6502_tick_t mc_latch_data_read_latch_addr(qe6502_t* cpu, uint8_t
 /* special_handler; role=fetch; action=set_pc_to_effective_address_and_fetch_next_opcode */
 static inline qe6502_tick_t mc_jmp_ind_c4_fetch(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->latch_data, 1, bus);
+    cpu->PC = u16_set_byte(cpu->latch_data, 1, bus);
 
     return mc_fetch(cpu, bus);
 }
@@ -562,7 +574,7 @@ static inline qe6502_tick_t mc_latch_abx_base_read_pc_inc(qe6502_t* cpu, uint8_t
 static inline qe6502_tick_t mc_r_indexed_probe(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t page_cross = cpu->latch_data;
-    const uint16_t addr = qe_u16_set_byte(cpu->latch_addr, 1, bus);
+    const uint16_t addr = u16_set_byte(cpu->latch_addr, 1, bus);
 
     qe6502_tick_t tick = read(cpu, addr);
     set_latch_addr1(cpu, (uint8_t)(bus + page_cross));
@@ -603,14 +615,14 @@ static inline qe6502_tick_t mc_izx_read_ptrlo_inc_ptr(qe6502_t* cpu, uint8_t bus
 
     const uint16_t addr = cpu->latch_addr;
     qe6502_tick_t tick = read(cpu, addr);
-    set_latch_addr0(cpu, (uint8_t)(qe_u16_byte(addr, 0) + 1u));
+    set_latch_addr0(cpu, (uint8_t)(u16_get_byte(addr, 0) + 1u));
     return tick;
 }
 
 /* addressing_handler; role=data; action=read_effective_address_to_data */
 static inline qe6502_tick_t mc_r_izx_c4_data(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->latch_addr = qe_u16_set_byte(cpu->latch_data, 1, bus);
+    cpu->latch_addr = u16_set_byte(cpu->latch_data, 1, bus);
 
     return read(cpu, cpu->latch_addr);
 }
@@ -627,10 +639,10 @@ static inline qe6502_tick_t mc_latch_addr0_read_latch_addr(qe6502_t* cpu, uint8_
 static inline qe6502_tick_t mc_r_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t indexed = (uint16_t)(bus + cpu->Y);
-    const uint16_t ptr_hi_addr = qe_u16_set_byte(
+    const uint16_t ptr_hi_addr = u16_set_byte(
         cpu->latch_addr,
         0,
-        (uint8_t)(qe_u16_byte(cpu->latch_addr, 0) + 1u)
+        (uint8_t)(u16_get_byte(cpu->latch_addr, 0) + 1u)
         );
 
     cpu->latch_addr = (uint16_t)(indexed & 0x00FFu);
@@ -648,7 +660,7 @@ static qe6502_tick_t mc_r_zp_c1_data(qe6502_t* cpu, uint8_t bus)
 /* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_x_wraparound */
 static qe6502_tick_t mc_r_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
-    const uint16_t addr = qe_u16_set_byte(cpu->latch_addr, 0, bus);
+    const uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);
 
     qe6502_tick_t tick = read(cpu, addr);
     set_latch_addr0(cpu, (uint8_t)(bus + cpu->X));
@@ -659,7 +671,7 @@ static qe6502_tick_t mc_r_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 /* addressing_handler; role=idx; action=clear_ea_high_dummy_read_zero_page_base_then_add_y_wraparound */
 static qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
-    const uint16_t addr = qe_u16_set_byte(cpu->latch_addr, 0, bus);
+    const uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);
 
     qe6502_tick_t tick = read(cpu, addr);
     set_latch_addr0(cpu, (uint8_t)(bus + cpu->Y));
@@ -678,7 +690,7 @@ static qe6502_tick_t mc_rti_c3_pull_pcl(qe6502_t* cpu, uint8_t bus)
 /* common_handler; role=latch_pcl_stack_read; action=consume_pc_low_increment_s_and_read_pc_high */
 static qe6502_tick_t mc_latch_pcl_stack_read(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 0, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
 
     return stack_read(cpu);
 }
@@ -686,7 +698,7 @@ static qe6502_tick_t mc_latch_pcl_stack_read(qe6502_t* cpu, uint8_t bus)
 /* special_handler; role=inc_pc_dummy; action=dummy_read_return_address_then_increment_pc */
 static qe6502_tick_t mc_rts_c4_inc_pc_dummy(qe6502_t* cpu, uint8_t bus)
 {
-    cpu->PC = qe_u16_set_byte(cpu->PC, 1, bus);
+    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
 
     return read_pc_inc(cpu);
 }
@@ -705,7 +717,7 @@ static inline qe6502_tick_t mc_rw_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
 /* rw_zpx c1: capture base address, dummy-read it, then add X with zero-page wraparound */
 static inline qe6502_tick_t mc_rw_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
-    uint16_t addr = qe_u16_set_byte(cpu->latch_addr, 0, bus);
+    uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);
 
     qe6502_tick_t tick = read(cpu, addr);
     set_latch_addr0(cpu, (uint8_t)(bus + cpu->X));
@@ -718,7 +730,7 @@ static qe6502_tick_t mc_w_indexed_probe(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t page_cross = cpu->latch_data;
 
-    const uint16_t addr = qe_u16_set_byte(cpu->latch_addr, 1, bus);
+    const uint16_t addr = u16_set_byte(cpu->latch_addr, 1, bus);
     qe6502_tick_t tick = read(cpu, addr);
     set_latch_addr1(cpu, (uint8_t)(bus + page_cross));
 
@@ -756,7 +768,7 @@ static qe6502_tick_t mc_w_izy_c1_ptrlo(qe6502_t* cpu, uint8_t bus)
 /* addressing_handler; role=ptrhi; action=read_zp_pointer_to_ea_high_add_y_low_and_record_page_cross */
 static qe6502_tick_t mc_w_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
-    const uint8_t ptr = qe_u16_byte(cpu->latch_addr, 0);
+    const uint8_t ptr = u16_get_byte(cpu->latch_addr, 0);
     const uint16_t ptr_hi_addr = (uint8_t)(ptr + 1u);
     const uint16_t indexed = (uint16_t)(bus + cpu->Y);
 
