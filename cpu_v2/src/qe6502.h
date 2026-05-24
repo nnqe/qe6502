@@ -27,15 +27,24 @@ enum
     qe6502_supported_models_count = 5
 };
 
-/* Microcode control-store layout. */
+/* Control-store layout.
+ *
+ * The control store is split into fixed-size model blocks. Each model block
+ * contains 512 slots: opcode slots 0x000..0x0FF and private service slots
+ * 0x100..0x1FF. Each slot contains 8 microcode entries.
+ *
+ * Addressing form:
+ *
+ *     model block + slot + cycle -> microcode entry
+ */
 enum
 {
-    qe6502_microcode_cycle_bits        = 3,
-    qe6502_microcode_flow_bits         = 9,
-    qe6502_microcode_cycles_per_flow   = 1u << qe6502_microcode_cycle_bits,
-    qe6502_microcode_flows_per_model   = 1u << qe6502_microcode_flow_bits,
-    qe6502_microcode_entries_per_model = qe6502_microcode_flows_per_model * qe6502_microcode_cycles_per_flow,
-    qe6502_microcode_size              = qe6502_microcode_entries_per_model * qe6502_supported_models_count
+    qe6502_cycle_bits          = 3,
+    qe6502_slot_bits           = 9,
+    qe6502_cycles_per_slot     = 1u << qe6502_cycle_bits,
+    qe6502_slots_per_model     = 1u << qe6502_slot_bits,
+    qe6502_entries_per_model   = qe6502_slots_per_model * qe6502_cycles_per_slot,
+    qe6502_control_store_size  = qe6502_entries_per_model * qe6502_supported_models_count
 };
 
 /* CPU state. */
@@ -94,10 +103,11 @@ static const uint8_t qe6502_status_halted      = (1u << 7);
 /* Error status flags. */
 static const uint8_t qe6502_error_illegal_op   = (1);
 
-/* Microcode control store. */
+/* Microcode entry. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 
-extern const qe6502_microcode_fn qe6502_microcode[qe6502_microcode_size];
+/* Control store. */
+extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size];
 
 /* Public API. */
 qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu);
@@ -105,7 +115,7 @@ qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address);
 
 static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
 {
-    qe6502_tick_t tick = qe6502_microcode[cpu->microcode](cpu, bus);
+    qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
     cpu->microcode++;
     return tick;
 }

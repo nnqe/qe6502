@@ -29,31 +29,31 @@ static inline uint16_t u16_set_byte(uint16_t x, unsigned byte_index, uint8_t val
 
 enum
 {
-    opcode_flow_count = 256u,
-    service_flow_base = opcode_flow_count,
-    service_flow_count = qe6502_microcode_flows_per_model - opcode_flow_count
+    opcode_slot_count = 256u,
+    service_slot_base = opcode_slot_count,
+    service_slot_count = qe6502_slots_per_model - opcode_slot_count
 };
 
-typedef enum service_flow
+typedef enum service_slot
 {
-    service_flow_reset = 0,
-    service_flow_light_reset = 1,
-    service_flow_goto = 2,
-    service_flow_nmi = 3,
-    service_flow_irq = 4,
+    service_slot_reset = 0,
+    service_slot_light_reset = 1,
+    service_slot_goto = 2,
+    service_slot_nmi = 3,
+    service_slot_irq = 4,
 
-    service_flow_count_used
-} service_flow_t;
+    service_slot_count_used
+} service_slot_t;
 
-QE6502_STATIC_ASSERT((unsigned int)service_flow_count_used <= service_flow_count,
-                 "service flow index space overflow");
+QE6502_STATIC_ASSERT((unsigned int)service_slot_count_used <= service_slot_count,
+                 "service slot index space overflow");
 
-#define IDX(model, flow, cycle) ((((model) & 0x0Fu) << 12u) + (((flow) & 0x1FFu) << 3u) + (cycle))
-#define SERVICE_IDX(model, service, cycle) IDX((model), (service_flow_base + (service)), (cycle))
+#define IDX(model, slot, cycle) ((((model) & 0x0Fu) << 12u) + (((slot) & 0x1FFu) << 3u) + (cycle))
+#define SERVICE_SLOT_IDX(model, service, cycle) IDX((model), (service_slot_base + (service)), (cycle))
 
-static inline void enter_service_flow(qe6502_t* cpu, service_flow_t flow)
+static inline void enter_service_slot(qe6502_t* cpu, service_slot_t slot)
 {
-    cpu->microcode = (uint16_t)SERVICE_IDX(cpu->model, flow, 0u);
+    cpu->microcode = (uint16_t)SERVICE_SLOT_IDX(cpu->model, slot, 0u);
 }
 
 static inline void set_latch_addr0(qe6502_t* cpu, uint8_t value)
@@ -100,14 +100,14 @@ qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address)
 {
     cpu->status = 0;
     cpu->PC = address;
-    enter_service_flow(cpu, service_flow_goto);
+    enter_service_slot(cpu, service_slot_goto);
     return qe6502_tick(cpu, 0u);
 }
 
 qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu)
 {
     cpu->status = 0;
-    enter_service_flow(cpu, service_flow_light_reset);
+    enter_service_slot(cpu, service_slot_light_reset);
     return qe6502_tick(cpu, 0u);
 }
 
@@ -115,7 +115,7 @@ qe6502_tick_t dispatcher(qe6502_t* cpu, uint8_t bus)
 {
     cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
     cpu->PC++;
-    return qe6502_microcode[cpu->microcode](cpu, bus);
+    return qe6502_control_store[cpu->microcode](cpu, bus);
 }
 
 static inline void update_flags_nz(qe6502_t* cpu, uint8_t value)
@@ -314,7 +314,7 @@ static qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
     cpu->PC = (uint16_t)(cpu->PC + 1u);
-    return qe6502_microcode[cpu->microcode](cpu, bus);
+    return qe6502_control_store[cpu->microcode](cpu, bus);
 }
 
 /* shared_handler; role=fetch; action=consume_previous_bus_cycle_and_fetch_next_opcode */
@@ -1344,11 +1344,11 @@ static qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
     return read(cpu, cpu->PC);
 }
 
-const qe6502_microcode_fn qe6502_microcode[qe6502_microcode_size] =
+const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
 {
-#include "control_store/nmos.inc"
+#include "control_store/nmos_block.inc"
 ,
-#include "control_store/nes.inc"
+#include "control_store/nes_block.inc"
 };
 
 #undef IDX

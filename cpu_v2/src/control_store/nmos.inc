@@ -1,24 +1,26 @@
-        /* NMOS service flows. */
+        /* NMOS control-store block. */
 
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 2)] = &mc_latch_pch_fetch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 3)] = &mc_dispatch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 4)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 5)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 6)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_light_reset, 7)] = &op_ILL,
+        /* NMOS service slots. */
 
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 0)] = &mc_fetch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 1)] = &mc_dispatch,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 2)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 3)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 4)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 5)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 6)] = &op_ILL,
-        [SERVICE_IDX(qe6502_model_nmos, service_flow_goto, 7)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 2)] = &mc_latch_pch_fetch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 3)] = &mc_dispatch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 4)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 5)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 6)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_light_reset, 7)] = &op_ILL,
 
-        /* NMOS opcode flows. */
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 0)] = &mc_fetch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 1)] = &mc_dispatch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 2)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 3)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 4)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 5)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 6)] = &op_ILL,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 7)] = &op_ILL,
+
+        /* NMOS opcode slots. */
 
         /* 0x00 BRK ; class=brk */
         [IDX(qe6502_model_nmos, 0x00, 0)] = &mc_read_pc_inc,
