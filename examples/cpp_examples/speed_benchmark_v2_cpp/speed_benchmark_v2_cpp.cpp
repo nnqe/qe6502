@@ -55,39 +55,16 @@ void print_hex16(std::uint16_t value)
     std::printf("0x%04X", static_cast<unsigned>(value));
 }
 
-bool tick_is_ok(qe6502::tick tick)
+void tick_fast(qe6502::cpu& cpu, std::uint8_t memory[0x10000])
 {
-    return (tick.status & qe6502_status_halted) == 0u;
-}
+    const std::uint16_t address = cpu.address();
+    const std::uint8_t data = cpu.writing() ? cpu.data() : memory[address];
 
-bool tick_is_write(qe6502::tick tick)
-{
-    return (tick.status & qe6502_status_writing) != 0u;
-}
-
-bool tick_is_instr_done(qe6502::tick tick)
-{
-    return (tick.status & qe6502_status_instr_done) != 0u;
-}
-
-std::uint8_t tick_bus_data(qe6502::tick tick, const std::uint8_t* memory)
-{
-    if (tick_is_write(tick)) {
-        return tick.bus;
+    if (cpu.writing()) {
+        memory[address] = data;
     }
 
-    return memory[tick.address];
-}
-
-void tick_fast(qe6502::cpu& cpu, std::uint8_t memory[0x10000], qe6502::tick& tick)
-{
-    const std::uint8_t data = tick_bus_data(tick, memory);
-
-    if (tick_is_write(tick)) {
-        memory[tick.address] = data;
-    }
-
-    tick = cpu.step(data);
+    cpu.step(data);
 }
 
 void print_regs(const qe6502::cpu& cpu)
@@ -147,22 +124,22 @@ bool run_test(const test_case& test, test_result& out_result)
 
     prepare_memory(memory.data(), test.rom);
 
-    qe6502::tick tick = cpu.light_reset();
+    cpu.light_reset();
 
-    while (!tick_is_instr_done(tick) && tick_is_ok(tick)) {
-        tick_fast(cpu, memory.data(), tick);
+    while (!cpu.instruction_done() && !cpu.halted()) {
+        tick_fast(cpu, memory.data());
         ticks++;
     }
 
-    if (!tick_is_ok(tick)) {
+    if (cpu.halted()) {
         std::fprintf(stderr, "CPU boot error\n");
         return false;
     }
 
     const double started_at = now_seconds();
 
-    while (tick_is_ok(tick)) {
-        if (tick.address == test.success_address) {
+    while (!cpu.halted()) {
+        if (cpu.address() == test.success_address) {
             const double elapsed = now_seconds() - started_at;
 
             if (instructions != test.expected_instructions) {
@@ -194,10 +171,10 @@ bool run_test(const test_case& test, test_result& out_result)
             return true;
         }
 
-        tick_fast(cpu, memory.data(), tick);
+        tick_fast(cpu, memory.data());
         ticks++;
 
-        if (tick_is_instr_done(tick)) {
+        if (cpu.instruction_done()) {
             instructions++;
 
             if (instructions > test.expected_instructions * 2u) {
@@ -207,7 +184,7 @@ bool run_test(const test_case& test, test_result& out_result)
         }
     }
 
-    std::fprintf(stderr, "CPU halted with status: %u\n", static_cast<unsigned>(tick.status));
+    std::fprintf(stderr, "CPU halted with status: %u\n", static_cast<unsigned>(cpu.status()));
     return false;
 }
 
