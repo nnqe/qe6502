@@ -31,10 +31,6 @@ add_subdirectory(cpu)
 add_subdirectory(cpu_v2)
 add_subdirectory(binds)
 
-if(QE6502_BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
-
 if(BUILD_TESTING)
-    add_subdirectory(tests)
+    add_subdirectory(harness)
 endif()

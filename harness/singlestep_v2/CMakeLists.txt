@@ -10,7 +10,7 @@ target_link_libraries(${target}
 
 target_include_directories(${target}
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/tests/third_party
+        ${PROJECT_SOURCE_DIR}/harness/third_party
 )
 
 if(MSVC)
