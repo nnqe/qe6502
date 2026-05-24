@@ -301,11 +301,10 @@ static inline void sbc_value(qe6502_t* cpu, uint8_t value)
 
 /* Microcode handlers. */
 
-/* illegal_handler; role=illegal; action=trap_on_unsupported_opcode */
-static qe6502_tick_t op_ILL(qe6502_t* cpu, uint8_t bus)
+/* illegal_handler; role=illegal; action=trap_on_cpu_error */
+static qe6502_tick_t op_error_trap(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    (void)(flag_C | flag_Z | flag_I | flag_D | flag_B | flag_UN | flag_V | flag_N);
     cpu->status = (uint8_t)(qe6502_status_trapped);
     cpu->microcode = (uint16_t)(cpu->microcode - 1u);
     return read(cpu, cpu->PC);
