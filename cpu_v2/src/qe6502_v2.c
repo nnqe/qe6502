@@ -306,7 +306,7 @@ static qe6502_tick_t op_error_trap(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
     cpu->status = (uint8_t)(qe6502_status_trapped);
-    cpu->microcode = (uint16_t)(cpu->microcode - 1u);
+    cpu->microcode--;
     return read(cpu, cpu->PC);
 }
 
@@ -314,7 +314,7 @@ static qe6502_tick_t op_error_trap(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
-    cpu->PC = (uint16_t)(cpu->PC + 1u);
+    cpu->PC++;
     return qe6502_control_store[cpu->microcode](cpu, bus);
 }
 
