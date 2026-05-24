@@ -31,7 +31,7 @@ enum
     qe6502_microcode_cycles_per_flow   = 1u << qe6502_microcode_cycle_bits,
     qe6502_microcode_flows_per_model   = 1u << qe6502_microcode_flow_bits,
     qe6502_microcode_entries_per_model = qe6502_microcode_flows_per_model * qe6502_microcode_cycles_per_flow,
-    qe6502_microcode_table_size        = qe6502_microcode_entries_per_model * qe6502_supported_models_count
+    qe6502_microcode_size        = qe6502_microcode_entries_per_model * qe6502_supported_models_count
 };
 
 typedef struct qe6502_cpu
@@ -87,14 +87,14 @@ static const uint8_t qe6502_error_illegal_op   = (1);
 
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 
-extern const qe6502_microcode_fn qe6502_microcode_table[qe6502_microcode_table_size];
+extern const qe6502_microcode_fn qe6502_microcode[qe6502_microcode_size];
 
 qe6502_tick_t qe6502_v2_light_reset(qe6502_t* cpu);
 qe6502_tick_t qe6502_v2_goto(qe6502_t* cpu, uint16_t address);
 
 static inline qe6502_tick_t qe6502_tick(qe6502_t* cpu, uint8_t bus)
 {
-    qe6502_tick_t tick = qe6502_microcode_table[cpu->microcode](cpu, bus);
+    qe6502_tick_t tick = qe6502_microcode[cpu->microcode](cpu, bus);
     cpu->microcode++;
     return tick;
 }
