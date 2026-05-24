@@ -64,7 +64,7 @@ public:
         return (tick_.status & qe6502_status_writing) != 0u;
     }
 
-    bool instruction_done() const noexcept
+    bool fetching() const noexcept
     {
         return (tick_.status & qe6502_status_instr_done) != 0u;
     }
@@ -74,12 +74,12 @@ public:
         return (tick_.status & qe6502_status_halted) != 0u;
     }
 
-    model cpu_model() const noexcept
+    model active_model() const noexcept
     {
         return static_cast<model>(cpu_.model);
     }
 
-    void cpu_model(model value) noexcept
+    void active_model(model value) noexcept
     {
         cpu_.model = static_cast<std::uint8_t>(value);
     }

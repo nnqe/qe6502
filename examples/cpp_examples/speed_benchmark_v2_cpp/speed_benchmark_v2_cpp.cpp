@@ -126,7 +126,7 @@ bool run_test(const test_case& test, test_result& out_result)
 
     cpu.light_reset();
 
-    while (!cpu.instruction_done() && !cpu.halted()) {
+    while (!cpu.fetching() && !cpu.halted()) {
         tick_fast(cpu, memory.data());
         ticks++;
     }
@@ -174,7 +174,7 @@ bool run_test(const test_case& test, test_result& out_result)
         tick_fast(cpu, memory.data());
         ticks++;
 
-        if (cpu.instruction_done()) {
+        if (cpu.fetching()) {
             instructions++;
 
             if (instructions > test.expected_instructions * 2u) {
