@@ -185,7 +185,7 @@
         /* 0x10 BPL rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0x10, 0)] = &op_bpl_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0x10, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0x10, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0x10, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0x10, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x10, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x10, 5)] = &op_error_trap,
@@ -234,7 +234,7 @@
 
         /* 0x15 ORA zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0x15, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x15, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x15, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x15, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x15, 3)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x15, 4)] = &mc_dispatch,
@@ -244,7 +244,7 @@
 
         /* 0x16 ASL zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0x16, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x16, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x16, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x16, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x16, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x16, 4)] = &op_asl_rw_ready_addr_data_pending_none_wr,
@@ -505,7 +505,7 @@
         /* 0x30 BMI rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0x30, 0)] = &op_bmi_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0x30, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0x30, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0x30, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0x30, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x30, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x30, 5)] = &op_error_trap,
@@ -554,7 +554,7 @@
 
         /* 0x35 AND zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0x35, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x35, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x35, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x35, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x35, 3)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x35, 4)] = &mc_dispatch,
@@ -564,7 +564,7 @@
 
         /* 0x36 ROL zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0x36, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x36, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x36, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x36, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x36, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x36, 4)] = &op_rol_rw_ready_addr_data_pending_none_wr,
@@ -825,7 +825,7 @@
         /* 0x50 BVC rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0x50, 0)] = &op_bvc_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0x50, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0x50, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0x50, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0x50, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x50, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x50, 5)] = &op_error_trap,
@@ -874,7 +874,7 @@
 
         /* 0x55 EOR zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0x55, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x55, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x55, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x55, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x55, 3)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x55, 4)] = &mc_dispatch,
@@ -884,7 +884,7 @@
 
         /* 0x56 LSR zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0x56, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x56, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x56, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x56, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x56, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x56, 4)] = &op_lsr_rw_ready_addr_data_pending_none_wr,
@@ -1145,7 +1145,7 @@
         /* 0x70 BVS rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0x70, 0)] = &op_bvs_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0x70, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0x70, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0x70, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0x70, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x70, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x70, 5)] = &op_error_trap,
@@ -1194,7 +1194,7 @@
 
         /* 0x75 ADC zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0x75, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x75, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x75, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x75, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x75, 3)] = &op_adc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0x75, 4)] = &mc_dispatch,
@@ -1204,7 +1204,7 @@
 
         /* 0x76 ROR zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0x76, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x76, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x76, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0x76, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x76, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0x76, 4)] = &op_ror_rw_ready_addr_data_pending_none_wr,
@@ -1465,7 +1465,7 @@
         /* 0x90 BCC rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0x90, 0)] = &op_bcc_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0x90, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0x90, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0x90, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0x90, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x90, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x90, 5)] = &op_error_trap,
@@ -1474,7 +1474,7 @@
 
         /* 0x91 STA (zp),Y ; class=w_izy */
         [IDX(qe6502_model_nmos, 0x91, 0)] = &mc_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0x91, 1)] = &mc_w_izy_c1_ptrlo,
+        [IDX(qe6502_model_nmos, 0x91, 1)] = &mc_latch_zp_addr_read_latch_addr,
         [IDX(qe6502_model_nmos, 0x91, 2)] = &mc_w_izy_c2_ptrhi,
         [IDX(qe6502_model_nmos, 0x91, 3)] = &mc_w_indexed_probe,
         [IDX(qe6502_model_nmos, 0x91, 4)] = &op_sta_w_ready_addr_pending_none_wr,
@@ -1785,7 +1785,7 @@
         /* 0xB0 BCS rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0xB0, 0)] = &op_bcs_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0xB0, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0xB0, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0xB0, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0xB0, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xB0, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xB0, 5)] = &op_error_trap,
@@ -1824,7 +1824,7 @@
 
         /* 0xB4 LDY zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0xB4, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xB4, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xB4, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xB4, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xB4, 3)] = &op_ldy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xB4, 4)] = &mc_dispatch,
@@ -1834,7 +1834,7 @@
 
         /* 0xB5 LDA zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0xB5, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xB5, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xB5, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xB5, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xB5, 3)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xB5, 4)] = &mc_dispatch,
@@ -2105,7 +2105,7 @@
         /* 0xD0 BNE rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0xD0, 0)] = &op_bne_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0xD0, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0xD0, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0xD0, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0xD0, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xD0, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xD0, 5)] = &op_error_trap,
@@ -2154,7 +2154,7 @@
 
         /* 0xD5 CMP zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0xD5, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xD5, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xD5, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xD5, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xD5, 3)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xD5, 4)] = &mc_dispatch,
@@ -2164,7 +2164,7 @@
 
         /* 0xD6 DEC zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0xD6, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xD6, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xD6, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xD6, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xD6, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xD6, 4)] = &op_dec_rw_ready_addr_data_pending_none_wr,
@@ -2363,7 +2363,7 @@
         [IDX(qe6502_model_nmos, 0xE9, 7)] = &op_error_trap,
 
         /* 0xEA NOP ; class=imp */
-        [IDX(qe6502_model_nmos, 0xEA, 0)] = &op_nop_imp_ready_none_pending_none_dummy,
+        [IDX(qe6502_model_nmos, 0xEA, 0)] = &mc_read_pc,
         [IDX(qe6502_model_nmos, 0xEA, 1)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xEA, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xEA, 3)] = &op_error_trap,
@@ -2425,7 +2425,7 @@
         /* 0xF0 BEQ rel ; class=branch_rel */
         [IDX(qe6502_model_nmos, 0xF0, 0)] = &op_beq_branch_c0_offset,
         [IDX(qe6502_model_nmos, 0xF0, 1)] = &mc_branch_rel_c1_apply,
-        [IDX(qe6502_model_nmos, 0xF0, 2)] = &mc_branch_rel_c2_pgfix,
+        [IDX(qe6502_model_nmos, 0xF0, 2)] = &mc_branch_pgfix,
         [IDX(qe6502_model_nmos, 0xF0, 3)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xF0, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xF0, 5)] = &op_error_trap,
@@ -2474,7 +2474,7 @@
 
         /* 0xF5 SBC zp,X ; class=r_zpx */
         [IDX(qe6502_model_nmos, 0xF5, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xF5, 1)] = &mc_r_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xF5, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xF5, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xF5, 3)] = &op_sbc_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_nmos, 0xF5, 4)] = &mc_dispatch,
@@ -2484,7 +2484,7 @@
 
         /* 0xF6 INC zp,X ; class=rw_zpx */
         [IDX(qe6502_model_nmos, 0xF6, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_nmos, 0xF6, 1)] = &mc_rw_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xF6, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nmos, 0xF6, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nmos, 0xF6, 3)] = &mc_latch_data_write_latch_addr,
         [IDX(qe6502_model_nmos, 0xF6, 4)] = &op_inc_rw_ready_addr_data_pending_none_wr,
