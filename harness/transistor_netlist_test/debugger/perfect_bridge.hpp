@@ -18,6 +18,29 @@ struct CpuRegisters
     std::uint8_t ir = 0u;
 };
 
+class PerfectSnapshot
+{
+public:
+    PerfectSnapshot() = default;
+    ~PerfectSnapshot();
+
+    PerfectSnapshot(const PerfectSnapshot&) = delete;
+    PerfectSnapshot& operator=(const PerfectSnapshot&) = delete;
+
+    PerfectSnapshot(PerfectSnapshot&& other) noexcept;
+    PerfectSnapshot& operator=(PerfectSnapshot&& other) noexcept;
+
+    bool is_valid() const;
+    void destroy();
+
+private:
+    explicit PerfectSnapshot(void* snapshot);
+
+    void* snapshot_ = nullptr;
+
+    friend class PerfectMachine;
+};
+
 class PerfectMachine
 {
 public:
@@ -31,6 +54,9 @@ public:
     void destroy();
 
     bool is_valid() const;
+
+    PerfectSnapshot create_snapshot(std::string& error) const;
+    bool restore_snapshot(const PerfectSnapshot& snapshot, std::string& error);
 
     void step_half_cycle();
     void step_full_cycle();

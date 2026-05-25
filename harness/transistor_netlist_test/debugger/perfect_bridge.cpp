@@ -7,12 +7,55 @@ extern "C"
 
 #include <algorithm>
 #include <cstddef>
+#include <utility>
 
 namespace perfect6502_debug
 {
 namespace
 {
 constexpr std::size_t MemorySize = 65536u;
+}
+
+PerfectSnapshot::PerfectSnapshot(void* snapshot) :
+    snapshot_(snapshot)
+{
+}
+
+PerfectSnapshot::~PerfectSnapshot()
+{
+    destroy();
+}
+
+PerfectSnapshot::PerfectSnapshot(PerfectSnapshot&& other) noexcept :
+    snapshot_(other.snapshot_)
+{
+    other.snapshot_ = nullptr;
+}
+
+PerfectSnapshot& PerfectSnapshot::operator=(PerfectSnapshot&& other) noexcept
+{
+    if (this != &other)
+    {
+        destroy();
+        snapshot_ = other.snapshot_;
+        other.snapshot_ = nullptr;
+    }
+
+    return *this;
+}
+
+bool PerfectSnapshot::is_valid() const
+{
+    return snapshot_ != nullptr;
+}
+
+void PerfectSnapshot::destroy()
+{
+    if (snapshot_ != nullptr)
+    {
+        perfect6502_snapshot_destroy(static_cast<perfect6502_snapshot_t*>(snapshot_));
+        snapshot_ = nullptr;
+    }
 }
 
 PerfectMachine::~PerfectMachine()
@@ -46,6 +89,47 @@ void PerfectMachine::destroy()
 bool PerfectMachine::is_valid() const
 {
     return cpu_ != nullptr;
+}
+
+PerfectSnapshot PerfectMachine::create_snapshot(std::string& error) const
+{
+    if (cpu_ == nullptr)
+    {
+        error = "cannot snapshot an uninitialized perfect6502 machine";
+        return PerfectSnapshot();
+    }
+
+    perfect6502_snapshot_t* snapshot = perfect6502_snapshot_create(cpu_);
+    if (snapshot == nullptr)
+    {
+        error = "perfect6502_snapshot_create failed";
+        return PerfectSnapshot();
+    }
+
+    return PerfectSnapshot(snapshot);
+}
+
+bool PerfectMachine::restore_snapshot(const PerfectSnapshot& snapshot, std::string& error)
+{
+    if (cpu_ == nullptr)
+    {
+        error = "cannot restore into an uninitialized perfect6502 machine";
+        return false;
+    }
+
+    if (!snapshot.is_valid())
+    {
+        error = "cannot restore from an empty perfect6502 snapshot";
+        return false;
+    }
+
+    if (!perfect6502_snapshot_restore(cpu_, static_cast<const perfect6502_snapshot_t*>(snapshot.snapshot_)))
+    {
+        error = "perfect6502_snapshot_restore failed";
+        return false;
+    }
+
+    return true;
 }
 
 void PerfectMachine::step_half_cycle()

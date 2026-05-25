@@ -724,6 +724,7 @@ setupNodesAndTransistors(netlist_transdefs *transdefs, BOOL *node_is_pullup, nod
 	return state;
 }
 
+
 void
 destroyNodesAndTransistors(state_t *state)
 {
@@ -739,6 +740,207 @@ destroyNodesAndTransistors(state_t *state)
     free(state->group);
     free(state->groupbitmap);
     free(state);
+}
+
+struct netlist_sim_snapshot {
+    nodenum_t nodes;
+    nodenum_t transistors;
+    nodenum_t vss;
+    nodenum_t vcc;
+
+    count_t listin_count;
+    count_t listout_count;
+    BOOL listin_uses_list1;
+
+    count_t groupcount;
+
+    bitmap_t *nodes_pullup;
+    bitmap_t *nodes_pulldown;
+    bitmap_t *nodes_value;
+    c1c2_t *nodes_c1c2s;
+    count_t *nodes_c1c2offset;
+    nodenum_t *nodes_dependant;
+    nodenum_t *nodes_left_dependant;
+    nodenum_t *dependent_block;
+
+    nodenum_t *list1;
+    nodenum_t *list2;
+    bitmap_t *listout_bitmap;
+
+    nodenum_t *group;
+    bitmap_t *groupbitmap;
+};
+
+static size_t
+bitmap_words_for_nodes(nodenum_t nodes)
+{
+    return (size_t)WORDS_FOR_BITS(nodes);
+}
+
+static void *
+copy_block(const void *source, size_t size)
+{
+    void *copy = malloc(size);
+    if (copy == NULL)
+        return NULL;
+
+    memcpy(copy, source, size);
+    return copy;
+}
+
+static BOOL
+copy_netlist_snapshot_arrays(netlist_sim_snapshot_t *snapshot, state_t *state)
+{
+    const size_t bitmap_words = bitmap_words_for_nodes(state->nodes);
+    const size_t c1c2_count = (size_t)state->nodes_c1c2offset[state->nodes];
+    const size_t dependent_count = (size_t)state->nodes_left_dependant[state->nodes];
+    const size_t nodes_count = (size_t)state->nodes;
+    const size_t nodes_with_end_count = nodes_count + 1u;
+
+    snapshot->nodes_pullup = copy_block(state->nodes_pullup, bitmap_words * sizeof(*state->nodes_pullup));
+    snapshot->nodes_pulldown = copy_block(state->nodes_pulldown, bitmap_words * sizeof(*state->nodes_pulldown));
+    snapshot->nodes_value = copy_block(state->nodes_value, bitmap_words * sizeof(*state->nodes_value));
+    snapshot->nodes_c1c2s = copy_block(state->nodes_c1c2s, c1c2_count * sizeof(*state->nodes_c1c2s));
+    snapshot->nodes_c1c2offset = copy_block(state->nodes_c1c2offset, nodes_with_end_count * sizeof(*state->nodes_c1c2offset));
+    snapshot->nodes_dependant = copy_block(state->nodes_dependant, nodes_with_end_count * sizeof(*state->nodes_dependant));
+    snapshot->nodes_left_dependant = copy_block(state->nodes_left_dependant, nodes_with_end_count * sizeof(*state->nodes_left_dependant));
+    snapshot->dependent_block = copy_block(state->dependent_block, dependent_count * sizeof(*state->dependent_block));
+    snapshot->list1 = copy_block(state->list1, nodes_count * sizeof(*state->list1));
+    snapshot->list2 = copy_block(state->list2, nodes_count * sizeof(*state->list2));
+    snapshot->listout_bitmap = copy_block(state->listout_bitmap, bitmap_words * sizeof(*state->listout_bitmap));
+    snapshot->group = copy_block(state->group, nodes_count * sizeof(*state->group));
+    snapshot->groupbitmap = copy_block(state->groupbitmap, bitmap_words * sizeof(*state->groupbitmap));
+
+    if ((snapshot->nodes_pullup == NULL) ||
+        (snapshot->nodes_pulldown == NULL) ||
+        (snapshot->nodes_value == NULL) ||
+        (snapshot->nodes_c1c2s == NULL) ||
+        (snapshot->nodes_c1c2offset == NULL) ||
+        (snapshot->nodes_dependant == NULL) ||
+        (snapshot->nodes_left_dependant == NULL) ||
+        (snapshot->dependent_block == NULL) ||
+        (snapshot->list1 == NULL) ||
+        (snapshot->list2 == NULL) ||
+        (snapshot->listout_bitmap == NULL) ||
+        (snapshot->group == NULL) ||
+        (snapshot->groupbitmap == NULL)) {
+        return NO;
+    }
+
+    return YES;
+}
+
+netlist_sim_snapshot_t *
+createNetlistSnapshot(state_t *state)
+{
+    netlist_sim_snapshot_t *snapshot;
+
+    if (state == NULL)
+        return NULL;
+
+    snapshot = malloc(sizeof(*snapshot));
+    if (snapshot == NULL)
+        return NULL;
+
+    memset(snapshot, 0, sizeof(*snapshot));
+
+    snapshot->nodes = state->nodes;
+    snapshot->transistors = state->transistors;
+    snapshot->vss = state->vss;
+    snapshot->vcc = state->vcc;
+    snapshot->listin_count = state->listin.count;
+    snapshot->listout_count = state->listout.count;
+    snapshot->groupcount = state->groupcount;
+
+    if (state->listin.list == state->list1) {
+        snapshot->listin_uses_list1 = YES;
+    } else if (state->listin.list == state->list2) {
+        snapshot->listin_uses_list1 = NO;
+    } else {
+        destroyNetlistSnapshot(snapshot);
+        return NULL;
+    }
+
+    if (!copy_netlist_snapshot_arrays(snapshot, state)) {
+        destroyNetlistSnapshot(snapshot);
+        return NULL;
+    }
+
+    return snapshot;
+}
+
+static BOOL
+netlist_snapshot_matches_state(const state_t *state, const netlist_sim_snapshot_t *snapshot)
+{
+    return (state != NULL) &&
+           (snapshot != NULL) &&
+           (state->nodes == snapshot->nodes) &&
+           (state->transistors == snapshot->transistors) &&
+           (state->vss == snapshot->vss) &&
+           (state->vcc == snapshot->vcc);
+}
+
+int
+restoreNetlistSnapshot(state_t *state, const netlist_sim_snapshot_t *snapshot)
+{
+    if (!netlist_snapshot_matches_state(state, snapshot))
+        return 0;
+
+    const size_t bitmap_words = bitmap_words_for_nodes(snapshot->nodes);
+    const size_t c1c2_count = (size_t)snapshot->nodes_c1c2offset[snapshot->nodes];
+    const size_t dependent_count = (size_t)snapshot->nodes_left_dependant[snapshot->nodes];
+    const size_t nodes_count = (size_t)snapshot->nodes;
+    const size_t nodes_with_end_count = nodes_count + 1u;
+
+    memcpy(state->nodes_pullup, snapshot->nodes_pullup, bitmap_words * sizeof(*state->nodes_pullup));
+    memcpy(state->nodes_pulldown, snapshot->nodes_pulldown, bitmap_words * sizeof(*state->nodes_pulldown));
+    memcpy(state->nodes_value, snapshot->nodes_value, bitmap_words * sizeof(*state->nodes_value));
+    memcpy(state->nodes_c1c2s, snapshot->nodes_c1c2s, c1c2_count * sizeof(*state->nodes_c1c2s));
+    memcpy(state->nodes_c1c2offset, snapshot->nodes_c1c2offset, nodes_with_end_count * sizeof(*state->nodes_c1c2offset));
+    memcpy(state->nodes_dependant, snapshot->nodes_dependant, nodes_with_end_count * sizeof(*state->nodes_dependant));
+    memcpy(state->nodes_left_dependant, snapshot->nodes_left_dependant, nodes_with_end_count * sizeof(*state->nodes_left_dependant));
+    memcpy(state->dependent_block, snapshot->dependent_block, dependent_count * sizeof(*state->dependent_block));
+    memcpy(state->list1, snapshot->list1, nodes_count * sizeof(*state->list1));
+    memcpy(state->list2, snapshot->list2, nodes_count * sizeof(*state->list2));
+    memcpy(state->listout_bitmap, snapshot->listout_bitmap, bitmap_words * sizeof(*state->listout_bitmap));
+    memcpy(state->group, snapshot->group, nodes_count * sizeof(*state->group));
+    memcpy(state->groupbitmap, snapshot->groupbitmap, bitmap_words * sizeof(*state->groupbitmap));
+
+    state->listin.count = snapshot->listin_count;
+    state->listout.count = snapshot->listout_count;
+    state->groupcount = snapshot->groupcount;
+
+    if (snapshot->listin_uses_list1) {
+        state->listin.list = state->list1;
+        state->listout.list = state->list2;
+    } else {
+        state->listin.list = state->list2;
+        state->listout.list = state->list1;
+    }
+
+    return 1;
+}
+
+void
+destroyNetlistSnapshot(netlist_sim_snapshot_t *snapshot)
+{
+    if (snapshot == NULL)
+        return;
+
+    free(snapshot->nodes_pullup);
+    free(snapshot->nodes_pulldown);
+    free(snapshot->nodes_value);
+    free(snapshot->nodes_c1c2s);
+    free(snapshot->nodes_c1c2offset);
+    free(snapshot->nodes_dependant);
+    free(snapshot->nodes_left_dependant);
+    free(snapshot->dependent_block);
+    free(snapshot->list1);
+    free(snapshot->list2);
+    free(snapshot->listout_bitmap);
+    free(snapshot->group);
+    free(snapshot->groupbitmap);
+    free(snapshot);
 }
 
 void

@@ -21,6 +21,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "types.h"
 #include "netlist_sim.h"
 /* nodes & transistors */
@@ -202,6 +204,58 @@ void
 destroyChip(void *state)
 {
     destroyNodesAndTransistors(state);
+}
+
+typedef struct perfect6502_snapshot perfect6502_snapshot_t;
+
+struct perfect6502_snapshot {
+    netlist_sim_snapshot_t *netlist;
+    uint8_t memory[65536];
+    unsigned long cycle;
+};
+
+perfect6502_snapshot_t *
+perfect6502_snapshot_create(void *state)
+{
+    perfect6502_snapshot_t *snapshot = malloc(sizeof(*snapshot));
+    if (snapshot == NULL)
+        return NULL;
+
+    snapshot->netlist = createNetlistSnapshot(state);
+    if (snapshot->netlist == NULL) {
+        free(snapshot);
+        return NULL;
+    }
+
+    memcpy(snapshot->memory, memory, sizeof(memory));
+    snapshot->cycle = cycle;
+
+    return snapshot;
+}
+
+int
+perfect6502_snapshot_restore(void *state, const perfect6502_snapshot_t *snapshot)
+{
+    if (snapshot == NULL)
+        return 0;
+
+    if (!restoreNetlistSnapshot(state, snapshot->netlist))
+        return 0;
+
+    memcpy(memory, snapshot->memory, sizeof(memory));
+    cycle = snapshot->cycle;
+
+    return 1;
+}
+
+void
+perfect6502_snapshot_destroy(perfect6502_snapshot_t *snapshot)
+{
+    if (snapshot == NULL)
+        return;
+
+    destroyNetlistSnapshot(snapshot->netlist);
+    free(snapshot);
 }
 
 /************************************************************

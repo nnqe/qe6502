@@ -2,6 +2,7 @@ set(target perfect6502_debug)
 
 add_executable(${target}
     main.cpp
+    temporary_tests.cpp
     perfect_bridge.cpp
     bootstrap.cpp
     ../third_party/perfect6502/netlist_sim.c
