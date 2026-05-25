@@ -58,6 +58,24 @@ constexpr test_case test_wdc_standard{
     30646176ull,
 };
 
+constexpr test_case test_rw_extended{
+    "RW",
+    qe6502::model::rw,
+    ROM_65C02_EXTENDED_OPCODES_TEST,
+    "Klaus extended 65C02",
+    0x24F1u,
+    21986985ull,
+};
+
+constexpr test_case test_st_standard{
+    "ST",
+    qe6502::model::st,
+    ROM_6502_FUNCTIONAL_TEST,
+    "Klaus standard 6502",
+    0x3469u,
+    30646176ull,
+};
+
 double now_seconds()
 {
     using clock = std::chrono::steady_clock;
@@ -220,6 +238,11 @@ int main()
         &test_wdc_standard,
     };
 
+    static constexpr const test_case* final_tests[] = {
+        &test_rw_extended,
+        &test_st_standard,
+    };
+
     test_result cold_result{};
 
     if (!run_test(test_nmos, cold_result, false)) {
@@ -231,6 +254,10 @@ int main()
     }
 
     if (!run_stage("Stage 2: grouped model benchmarks", stage2_tests, sizeof(stage2_tests) / sizeof(stage2_tests[0]))) {
+        return 1;
+    }
+
+    if (!run_stage("Final: additional CMOS model benchmarks", final_tests, sizeof(final_tests) / sizeof(final_tests[0]))) {
         return 1;
     }
 

@@ -58,6 +58,24 @@ static const test_case_t TEST_WDC_STANDARD = {
     30646176ull,
 };
 
+static const test_case_t TEST_RW_EXTENDED = {
+    "RW",
+    qe6502_model_rw,
+    ROM_65C02_EXTENDED_OPCODES_TEST,
+    "Klaus extended 65C02",
+    0x24F1u,
+    21986985ull,
+};
+
+static const test_case_t TEST_ST_STANDARD = {
+    "ST",
+    qe6502_model_st,
+    ROM_6502_FUNCTIONAL_TEST,
+    "Klaus standard 6502",
+    0x3469u,
+    30646176ull,
+};
+
 static double now_seconds(void) {
 #if defined(CLOCK_MONOTONIC)
     struct timespec ts;
@@ -248,6 +266,11 @@ int main(void) {
         &TEST_WDC_STANDARD,
     };
 
+    static const test_case_t* const final_tests[] = {
+        &TEST_RW_EXTENDED,
+        &TEST_ST_STANDARD,
+    };
+
     memset(&cold_result, 0, sizeof(cold_result));
 
     if (!run_test(&TEST_NMOS, &cold_result, 0u)) {
@@ -259,6 +282,10 @@ int main(void) {
     }
 
     if (!run_stage("Stage 2: grouped model benchmarks", stage2_tests, sizeof(stage2_tests) / sizeof(stage2_tests[0]))) {
+        return 1;
+    }
+
+    if (!run_stage("Final: additional CMOS model benchmarks", final_tests, sizeof(final_tests) / sizeof(final_tests[0]))) {
         return 1;
     }
 
