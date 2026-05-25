@@ -2,6 +2,7 @@
 
 #include "bootstrap.hpp"
 #include "perfect_bridge.hpp"
+#include "setup_input.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -18,38 +19,55 @@ constexpr std::uint8_t ExpectedA = static_cast<std::uint8_t>(InitialA + 1u);
 constexpr std::uint8_t OriginalProbeValue = 0x5au;
 constexpr std::uint8_t MutatedProbeValue = 0xa5u;
 
-void write_increment_a_program(PerfectMachine& machine)
+const char* increment_a_setup_text()
 {
-    machine.write_memory(ProgramAddress, 0x18u);                                    /* CLC */
-    machine.write_memory(static_cast<std::uint16_t>(ProgramAddress + 1u), 0x69u);    /* ADC #$01 */
-    machine.write_memory(static_cast<std::uint16_t>(ProgramAddress + 2u), 0x01u);
-    machine.write_memory(static_cast<std::uint16_t>(ProgramAddress + 3u), 0xeau);    /* NOP */
+    return
+        "// setup parser smoke coverage\n"
+        "pc = 0x0200; a = 0x41; x = 4; x = 0x12; y = 52; s = 0xfd; "
+        "p = b00100100;\n"
+        "mem[0x0200] = { 0xff, 0xff, 0xff, 0xff };\n"
+        "mem[0x0200] = { 0x18, 0x69, 0x01, 0xea }; // CLC; ADC #$01; NOP\n";
 }
 
-CpuRegisters make_initial_registers()
+bool parse_increment_setup(SetupInput& setup, std::string& error)
 {
-    CpuRegisters regs;
+    if (!parse_setup_input(increment_a_setup_text(), setup, error))
+    {
+        return false;
+    }
 
-    regs.pc = ProgramAddress;
-    regs.a = InitialA;
-    regs.x = 0x12u;
-    regs.y = 0x34u;
-    regs.s = 0xfdu;
-    regs.p = 0x24u;
+    if ((setup.registers.pc != ProgramAddress) ||
+        (setup.registers.a != InitialA) ||
+        (setup.registers.x != 0x12u) ||
+        (setup.registers.y != 0x34u) ||
+        (setup.registers.s != 0xfdu) ||
+        (setup.registers.p != 0x24u) ||
+        (setup.memory_writes.size() != 2u))
+    {
+        error = "parsed setup state does not match the expected smoke-test setup";
+        return false;
+    }
 
-    return regs;
+    return true;
 }
 
 bool prepare_bootstrapped_increment_program(PerfectMachine& machine, std::string& error)
 {
-    machine.fill_memory(0xeau);
-    write_increment_a_program(machine);
+    SetupInput setup;
+    if (!parse_increment_setup(setup, error))
+    {
+        return false;
+    }
 
-    const CpuRegisters initial_registers = make_initial_registers();
+    if (!apply_setup_memory(machine, setup, error))
+    {
+        return false;
+    }
+
     return bootstrap_to_registers(machine,
                                   SetupCodeAddress,
                                   SetupDataAddress,
-                                  initial_registers,
+                                  setup.registers,
                                   error);
 }
 
