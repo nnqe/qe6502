@@ -16,6 +16,12 @@ static void print_usage(const char* exe)
 {
     fprintf(stderr,
         "Usage: %s <model> <test> <cycle_reset>\n"
+        "       %s\n"
+        "\n"
+        "With no arguments, runs the default v2 Klaus suite:\n"
+        "  nmos standard off\n"
+        "  wdc standard off\n"
+        "  wdc extended off\n"
         "\n"
         "Models:\n"
         "  nmos      NMOS 6502 v2\n"
@@ -27,6 +33,7 @@ static void print_usage(const char* exe)
         "\n"
         "Cycle Reset:\n"
         "  off       only supported mode for v2\n",
+        exe,
         exe
     );
 }
@@ -149,7 +156,13 @@ int main(int argc, char** argv)
 
     if (argc == 1)
     {
-        return test_model(exec_name, "nmos", "standard", "off");
+        int failed = 0;
+
+        failed += test_model(exec_name, "nmos", "standard", "off");
+        failed += test_model(exec_name, "wdc", "standard", "off");
+        failed += test_model(exec_name, "wdc", "extended", "off");
+
+        return failed;
     }
 
     if (argc != 4)
