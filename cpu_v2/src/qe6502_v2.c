@@ -1350,6 +1350,8 @@ const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
 #include "control_store/nmos_block.inc"
 ,
 #include "control_store/nes_block.inc"
+,
+#include "control_store/wdc_block.inc"
 };
 
 #undef IDX

@@ -10,6 +10,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
                              uint8_t* result);
 
 void copy_klaus2m5_image(uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles);
+void copy_klaus2m5_extended_image(uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles);
 
 static void print_usage(const char* exe)
 {
@@ -18,9 +19,11 @@ static void print_usage(const char* exe)
         "\n"
         "Models:\n"
         "  nmos      NMOS 6502 v2\n"
+        "  wdc       WDC 65C02 v2\n"
         "\n"
         "Tests:\n"
         "  standard\n"
+        "  extended\n"
         "\n"
         "Cycle Reset:\n"
         "  off       only supported mode for v2\n",
@@ -36,7 +39,28 @@ static int parse_model(const char* model, uint8_t* out_model)
         return 1;
     }
 
+    if (strcmp(model, "wdc") == 0)
+    {
+        *out_model = qe6502_model_wdc;
+        return 1;
+    }
+
     return 0;
+}
+
+static const char* model_display_name(const char* model)
+{
+    if (strcmp(model, "nmos") == 0 || strcmp(model, "mos") == 0)
+    {
+        return "NMOS 6502 v2";
+    }
+
+    if (strcmp(model, "wdc") == 0)
+    {
+        return "WDC 65C02 v2";
+    }
+
+    return "Unknown v2";
 }
 
 static int test_model(const char* exec_name,
@@ -58,10 +82,20 @@ static int test_model(const char* exec_name,
         return 1;
     }
 
-    if (strcmp(test_arg, "standard") != 0)
+    if (strcmp(test_arg, "standard") != 0 &&
+        strcmp(test_arg, "extended") != 0)
     {
         fprintf(stderr, "Unknown test: %s\n\n", test_arg);
         print_usage(exec_name);
+        return 1;
+    }
+
+    if (strcmp(test_arg, "extended") == 0 && parsed_model != qe6502_model_wdc)
+    {
+        fprintf(stderr,
+            "Extended test is only valid for WDC 65C02 v2, not %s.\n",
+            model_display_name(model_arg)
+        );
         return 1;
     }
 
@@ -72,11 +106,22 @@ static int test_model(const char* exec_name,
         return 1;
     }
 
-    copy_klaus2m5_image(
-        memory,
-        &success_address,
-        &expected_cycles
-    );
+    if (strcmp(test_arg, "standard") == 0)
+    {
+        copy_klaus2m5_image(
+            memory,
+            &success_address,
+            &expected_cycles
+        );
+    }
+    else
+    {
+        copy_klaus2m5_extended_image(
+            memory,
+            &success_address,
+            &expected_cycles
+        );
+    }
 
     msg = test_klaus2m5_v2(
         parsed_model,
@@ -87,7 +132,8 @@ static int test_model(const char* exec_name,
     );
 
     printf(
-        "NMOS 6502 v2 CPU %s test, reset: %s %s : normal %s\n",
+        "%s CPU %s test, reset: %s %s : normal %s\n",
+        model_display_name(model_arg),
         test_arg,
         reset_cycle,
         result ? "[PASS]" : "[FAIL]",

@@ -44,3 +44,18 @@ if(QE6502_ENABLE_NMOS_6502)
     )
 
 endif()
+
+if(QE6502_ENABLE_CMOS_65C02)
+
+    add_test(NAME qe6502.v2.klaus2m5.wdc.standard
+        COMMAND ${target} wdc standard off
+    )
+
+    set_tests_properties(
+        qe6502.v2.klaus2m5.wdc.standard
+        PROPERTIES
+            LABELS "cpu;v2;klaus;functional"
+            TIMEOUT 30
+    )
+
+endif()

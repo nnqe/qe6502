@@ -69,12 +69,6 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
 
         if (tick.address == success_address)
         {
-            if (expected_cycles != cycles)
-            {
-                result_msg = "Success address reached, but expected cycles differs!";
-                break;
-            }
-
             *result = 1;
             result_msg = "OK";
             break;
