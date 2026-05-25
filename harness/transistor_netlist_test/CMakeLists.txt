@@ -72,3 +72,5 @@ if(QE6502_ENABLE_NMOS_6502)
             DISABLED TRUE
     )
 endif()
+
+add_subdirectory(debugger)
