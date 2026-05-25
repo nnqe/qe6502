@@ -779,6 +779,14 @@ static inline qe6502_tick_t mc_latch_addr1_read_latch_addr(qe6502_t* cpu, uint8_
     return read(cpu, cpu->latch_addr);
 }
 
+/* common_handler; role=read_addr_with_bus_hi; action=read_effective_address_with_latched_low_and_bus_high_without_preserving_high */
+static inline qe6502_tick_t mc_read_addr_with_bus_hi(qe6502_t* cpu, uint8_t bus)
+{
+    const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
+
+    return read(cpu, address);
+}
+
 /* common_handler; role=latch_abx_base_read_pc_inc; action=read_pc_to_ea_high_increment_pc_add_x_low_and_record_page_cross */
 static inline qe6502_tick_t mc_latch_abx_base_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 {
@@ -801,18 +809,38 @@ static inline qe6502_tick_t mc_wdc_latch_abx_base_read_pc(qe6502_t* cpu, uint8_t
     return read(cpu, cpu->PC);
 }
 
-/* common_handler; role=r_indexed_probe; action=read_indexed_probe_address_to_data_and_skip_pgfix_if_no_page_cross */
-static inline qe6502_tick_t mc_r_indexed_probe(qe6502_t* cpu, uint8_t bus)
+// /* common_handler; role=r_indexed_probe; action=read_indexed_probe_address_to_data_and_skip_pgfix_if_no_page_cross */
+// static inline qe6502_tick_t mc_r_indexed_probe(qe6502_t* cpu, uint8_t bus)
+// {
+//     const uint8_t page_cross = cpu->latch_data;
+//     const uint16_t addr = u16_set_byte(cpu->latch_addr, 1, bus);
+
+//     qe6502_tick_t tick = read(cpu, addr);
+//     set_latch_addr1(cpu, (uint8_t)(bus + page_cross));
+
+//     if (page_cross == 0u)
+//     {
+//         cpu->microcode++;
+//     }
+
+//     return tick;
+// }
+
+/* common_handler; role=r_indexed_probe_no_latch; action=read_indexed_probe_address_and_preserve_corrected_address_only_on_page_cross */
+static inline qe6502_tick_t mc_r_indexed_probe_no_latch(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t page_cross = cpu->latch_data;
     const uint16_t addr = u16_set_byte(cpu->latch_addr, 1, bus);
 
     qe6502_tick_t tick = read(cpu, addr);
-    set_latch_addr1(cpu, (uint8_t)(bus + page_cross));
 
     if (page_cross == 0u)
     {
         cpu->microcode++;
+    }
+    else
+    {
+        set_latch_addr1(cpu, (uint8_t)(bus + page_cross));
     }
 
     return tick;
@@ -853,6 +881,27 @@ static inline qe6502_tick_t mc_wdc_r_indexed_probe(qe6502_t* cpu, uint8_t bus)
         return read(cpu, cpu->latch_addr);
     }
 
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+    return tick;
+}
+
+/* addressing_handler; model=wdc; role=r_indexed_probe_no_latch; action=read_cmos_indexed_data_or_pc_dummy_preserving_address_only_when_needed */
+static inline qe6502_tick_t mc_wdc_r_indexed_probe_no_latch(qe6502_t* cpu, uint8_t bus)
+{
+    const uint8_t page_cross = cpu->latch_data;
+    const uint8_t high = (uint8_t)(bus + page_cross);
+
+    if (page_cross == 0u)
+    {
+        const uint16_t address = u16_set_byte(cpu->latch_addr, 1, high);
+
+        cpu->PC++;
+        cpu->microcode++;
+        return read(cpu, address);
+    }
+
+    set_latch_addr1(cpu, high);
     qe6502_tick_t tick = read(cpu, cpu->PC);
     cpu->PC++;
     return tick;
@@ -915,6 +964,14 @@ static inline qe6502_tick_t mc_r_izx_c4_data(qe6502_t* cpu, uint8_t bus)
     cpu->latch_addr = u16_set_byte(cpu->latch_data, 1, bus);
 
     return read(cpu, cpu->latch_addr);
+}
+
+/* addressing_handler; role=data_no_latch; action=read_indirect_x_effective_address_without_preserving_address */
+static inline qe6502_tick_t mc_r_izx_c4_data_no_latch(qe6502_t* cpu, uint8_t bus)
+{
+    const uint16_t address = u16_set_byte(cpu->latch_data, 1, bus);
+
+    return read(cpu, address);
 }
 
 /* common_handler; action=latch_bus_as_addr_low_read_latch_addr */

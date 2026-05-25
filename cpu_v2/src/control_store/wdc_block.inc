@@ -37,7 +37,7 @@
         [IDX(qe6502_model_wdc, 0x01, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_wdc, 0x01, 2)] = &mc_izx_read_ptrlo_inc_ptr,
         [IDX(qe6502_model_wdc, 0x01, 3)] = &mc_latch_data_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x01, 4)] = &mc_r_izx_c4_data,
+        [IDX(qe6502_model_wdc, 0x01, 4)] = &mc_r_izx_c4_data_no_latch,
         [IDX(qe6502_model_wdc, 0x01, 5)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x01, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x01, 7)] = &op_error_trap,
@@ -155,7 +155,7 @@
         /* 0x0D ORA abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0x0D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x0D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x0D, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x0D, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x0D, 3)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x0D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x0D, 5)] = &op_error_trap,
@@ -173,9 +173,9 @@
         [IDX(qe6502_model_wdc, 0x0E, 7)] = &op_error_trap,
 
         /* 0x0F BBR0 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x0F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x0F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x0F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x0F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x0F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x0F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x0F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x0F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x0F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -195,17 +195,17 @@
         [IDX(qe6502_model_wdc, 0x11, 0)] = &mc_clear_latch_addr_read_pc,
         [IDX(qe6502_model_wdc, 0x11, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x11, 2)] = &mc_r_izy_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x11, 3)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x11, 3)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x11, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x11, 5)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x11, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x11, 7)] = &op_error_trap,
 
         /* 0x12 ORA (zp) ; class=r_izp */
-        [IDX(qe6502_model_wdc, 0x12, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x12, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x12, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x12, 2)] = &mc_izp_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x12, 3)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x12, 3)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x12, 4)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x12, 5)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x12, 6)] = &op_error_trap,
@@ -274,7 +274,7 @@
         /* 0x19 ORA abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0x19, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x19, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x19, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x19, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x19, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x19, 4)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x19, 5)] = &mc_dispatch,
@@ -314,7 +314,7 @@
         /* 0x1D ORA abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0x1D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x1D, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x1D, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x1D, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x1D, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x1D, 4)] = &op_ora_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x1D, 5)] = &mc_dispatch,
@@ -332,9 +332,9 @@
         [IDX(qe6502_model_wdc, 0x1E, 7)] = &mc_dispatch,
 
         /* 0x1F BBR1 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x1F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x1F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x1F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x1F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x1F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x1F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x1F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x1F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x1F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -355,7 +355,7 @@
         [IDX(qe6502_model_wdc, 0x21, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_wdc, 0x21, 2)] = &mc_izx_read_ptrlo_inc_ptr,
         [IDX(qe6502_model_wdc, 0x21, 3)] = &mc_latch_data_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x21, 4)] = &mc_r_izx_c4_data,
+        [IDX(qe6502_model_wdc, 0x21, 4)] = &mc_r_izx_c4_data_no_latch,
         [IDX(qe6502_model_wdc, 0x21, 5)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x21, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x21, 7)] = &op_error_trap,
@@ -463,7 +463,7 @@
         /* 0x2C BIT abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0x2C, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x2C, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x2C, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x2C, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x2C, 3)] = &op_bit_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x2C, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x2C, 5)] = &op_error_trap,
@@ -473,7 +473,7 @@
         /* 0x2D AND abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0x2D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x2D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x2D, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x2D, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x2D, 3)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x2D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x2D, 5)] = &op_error_trap,
@@ -491,9 +491,9 @@
         [IDX(qe6502_model_wdc, 0x2E, 7)] = &op_error_trap,
 
         /* 0x2F BBR2 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x2F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x2F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x2F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x2F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x2F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x2F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x2F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x2F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x2F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -513,17 +513,17 @@
         [IDX(qe6502_model_wdc, 0x31, 0)] = &mc_clear_latch_addr_read_pc,
         [IDX(qe6502_model_wdc, 0x31, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x31, 2)] = &mc_r_izy_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x31, 3)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x31, 3)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x31, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x31, 5)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x31, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x31, 7)] = &op_error_trap,
 
         /* 0x32 AND (zp) ; class=r_izp */
-        [IDX(qe6502_model_wdc, 0x32, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x32, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x32, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x32, 2)] = &mc_izp_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x32, 3)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x32, 3)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x32, 4)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x32, 5)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x32, 6)] = &op_error_trap,
@@ -592,7 +592,7 @@
         /* 0x39 AND abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0x39, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x39, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x39, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x39, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x39, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x39, 4)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x39, 5)] = &mc_dispatch,
@@ -622,7 +622,7 @@
         /* 0x3C BIT abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0x3C, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x3C, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x3C, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x3C, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x3C, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x3C, 4)] = &op_bit_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x3C, 5)] = &mc_dispatch,
@@ -632,7 +632,7 @@
         /* 0x3D AND abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0x3D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x3D, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x3D, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x3D, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x3D, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x3D, 4)] = &op_and_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x3D, 5)] = &mc_dispatch,
@@ -650,9 +650,9 @@
         [IDX(qe6502_model_wdc, 0x3E, 7)] = &mc_dispatch,
 
         /* 0x3F BBR3 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x3F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x3F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x3F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x3F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x3F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x3F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x3F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x3F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x3F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -673,7 +673,7 @@
         [IDX(qe6502_model_wdc, 0x41, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_wdc, 0x41, 2)] = &mc_izx_read_ptrlo_inc_ptr,
         [IDX(qe6502_model_wdc, 0x41, 3)] = &mc_latch_data_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x41, 4)] = &mc_r_izx_c4_data,
+        [IDX(qe6502_model_wdc, 0x41, 4)] = &mc_r_izx_c4_data_no_latch,
         [IDX(qe6502_model_wdc, 0x41, 5)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x41, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x41, 7)] = &op_error_trap,
@@ -791,7 +791,7 @@
         /* 0x4D EOR abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0x4D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x4D, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x4D, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x4D, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x4D, 3)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x4D, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x4D, 5)] = &op_error_trap,
@@ -809,9 +809,9 @@
         [IDX(qe6502_model_wdc, 0x4E, 7)] = &op_error_trap,
 
         /* 0x4F BBR4 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x4F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x4F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x4F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x4F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x4F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x4F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x4F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x4F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x4F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -831,17 +831,17 @@
         [IDX(qe6502_model_wdc, 0x51, 0)] = &mc_clear_latch_addr_read_pc,
         [IDX(qe6502_model_wdc, 0x51, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x51, 2)] = &mc_r_izy_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x51, 3)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x51, 3)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x51, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x51, 5)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x51, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x51, 7)] = &op_error_trap,
 
         /* 0x52 EOR (zp) ; class=r_izp */
-        [IDX(qe6502_model_wdc, 0x52, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x52, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x52, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x52, 2)] = &mc_izp_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0x52, 3)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x52, 3)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0x52, 4)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x52, 5)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0x52, 6)] = &op_error_trap,
@@ -910,7 +910,7 @@
         /* 0x59 EOR abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0x59, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x59, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x59, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x59, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x59, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x59, 4)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x59, 5)] = &mc_dispatch,
@@ -950,7 +950,7 @@
         /* 0x5D EOR abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0x5D, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x5D, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0x5D, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0x5D, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0x5D, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x5D, 4)] = &op_eor_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0x5D, 5)] = &mc_dispatch,
@@ -968,9 +968,9 @@
         [IDX(qe6502_model_wdc, 0x5E, 7)] = &mc_dispatch,
 
         /* 0x5F BBR5 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x5F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x5F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x5F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x5F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x5F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x5F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x5F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x5F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x5F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1127,9 +1127,9 @@
         [IDX(qe6502_model_wdc, 0x6E, 7)] = &op_error_trap,
 
         /* 0x6F BBR6 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x6F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x6F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x6F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x6F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x6F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x6F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x6F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x6F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x6F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1156,7 +1156,7 @@
         [IDX(qe6502_model_wdc, 0x71, 7)] = &mc_dispatch,
 
         /* 0x72 ADC (zp) ; class=r_izp_wdc_decimal */
-        [IDX(qe6502_model_wdc, 0x72, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x72, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x72, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x72, 2)] = &mc_izp_c2_ptrhi,
         [IDX(qe6502_model_wdc, 0x72, 3)] = &mc_latch_addr1_read_latch_addr,
@@ -1286,9 +1286,9 @@
         [IDX(qe6502_model_wdc, 0x7E, 7)] = &mc_dispatch,
 
         /* 0x7F BBR7 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x7F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x7F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x7F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x7F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x7F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x7F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x7F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x7F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x7F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1445,9 +1445,9 @@
         [IDX(qe6502_model_wdc, 0x8E, 7)] = &op_error_trap,
 
         /* 0x8F BBS0 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x8F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x8F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x8F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x8F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x8F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x8F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x8F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x8F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x8F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1464,7 +1464,7 @@
         [IDX(qe6502_model_wdc, 0x90, 7)] = &op_error_trap,
 
         /* 0x91 STA (zp),Y ; class=w_izy */
-        [IDX(qe6502_model_wdc, 0x91, 0)] = &mc_clear_latch_addr_read_pc,
+        [IDX(qe6502_model_wdc, 0x91, 0)] = &mc_read_pc,
         [IDX(qe6502_model_wdc, 0x91, 1)] = &mc_w_izy_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x91, 2)] = &mc_w_izy_c2_ptrhi,
         [IDX(qe6502_model_wdc, 0x91, 3)] = &mc_wdc_w_indexed_probe,
@@ -1474,7 +1474,7 @@
         [IDX(qe6502_model_wdc, 0x91, 7)] = &op_error_trap,
 
         /* 0x92 STA (zp) ; class=w_izp */
-        [IDX(qe6502_model_wdc, 0x92, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x92, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0x92, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0x92, 2)] = &mc_izp_c2_ptrhi,
         [IDX(qe6502_model_wdc, 0x92, 3)] = &op_sta_w_ready_addrlo_pending_addrhi_wr,
@@ -1604,9 +1604,9 @@
         [IDX(qe6502_model_wdc, 0x9E, 7)] = &op_error_trap,
 
         /* 0x9F BBS1 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0x9F, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0x9F, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0x9F, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x9F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0x9F, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0x9F, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0x9F, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0x9F, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0x9F, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1627,7 +1627,7 @@
         [IDX(qe6502_model_wdc, 0xA1, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_wdc, 0xA1, 2)] = &mc_izx_read_ptrlo_inc_ptr,
         [IDX(qe6502_model_wdc, 0xA1, 3)] = &mc_latch_data_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xA1, 4)] = &mc_r_izx_c4_data,
+        [IDX(qe6502_model_wdc, 0xA1, 4)] = &mc_r_izx_c4_data_no_latch,
         [IDX(qe6502_model_wdc, 0xA1, 5)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xA1, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xA1, 7)] = &op_error_trap,
@@ -1735,7 +1735,7 @@
         /* 0xAC LDY abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xAC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xAC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xAC, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xAC, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xAC, 3)] = &op_ldy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xAC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xAC, 5)] = &op_error_trap,
@@ -1745,7 +1745,7 @@
         /* 0xAD LDA abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xAD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xAD, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xAD, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xAD, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xAD, 3)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xAD, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xAD, 5)] = &op_error_trap,
@@ -1755,7 +1755,7 @@
         /* 0xAE LDX abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xAE, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xAE, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xAE, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xAE, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xAE, 3)] = &op_ldx_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xAE, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xAE, 5)] = &op_error_trap,
@@ -1763,9 +1763,9 @@
         [IDX(qe6502_model_wdc, 0xAE, 7)] = &op_error_trap,
 
         /* 0xAF BBS2 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xAF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xAF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xAF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xAF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xAF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xAF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xAF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xAF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xAF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1785,17 +1785,17 @@
         [IDX(qe6502_model_wdc, 0xB1, 0)] = &mc_clear_latch_addr_read_pc,
         [IDX(qe6502_model_wdc, 0xB1, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xB1, 2)] = &mc_r_izy_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0xB1, 3)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xB1, 3)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xB1, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xB1, 5)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xB1, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xB1, 7)] = &op_error_trap,
 
         /* 0xB2 LDA (zp) ; class=r_izp */
-        [IDX(qe6502_model_wdc, 0xB2, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xB2, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xB2, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0xB2, 2)] = &mc_izp_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0xB2, 3)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xB2, 3)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xB2, 4)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xB2, 5)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xB2, 6)] = &op_error_trap,
@@ -1864,7 +1864,7 @@
         /* 0xB9 LDA abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0xB9, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xB9, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xB9, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xB9, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xB9, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xB9, 4)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xB9, 5)] = &mc_dispatch,
@@ -1894,7 +1894,7 @@
         /* 0xBC LDY abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0xBC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xBC, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xBC, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xBC, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xBC, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xBC, 4)] = &op_ldy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xBC, 5)] = &mc_dispatch,
@@ -1904,7 +1904,7 @@
         /* 0xBD LDA abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0xBD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xBD, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xBD, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xBD, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xBD, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xBD, 4)] = &op_lda_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xBD, 5)] = &mc_dispatch,
@@ -1914,7 +1914,7 @@
         /* 0xBE LDX abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0xBE, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xBE, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xBE, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xBE, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xBE, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xBE, 4)] = &op_ldx_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xBE, 5)] = &mc_dispatch,
@@ -1922,9 +1922,9 @@
         [IDX(qe6502_model_wdc, 0xBE, 7)] = &op_error_trap,
 
         /* 0xBF BBS3 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xBF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xBF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xBF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xBF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xBF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xBF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xBF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xBF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xBF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -1945,7 +1945,7 @@
         [IDX(qe6502_model_wdc, 0xC1, 1)] = &mc_r_izx_c1_idx,
         [IDX(qe6502_model_wdc, 0xC1, 2)] = &mc_izx_read_ptrlo_inc_ptr,
         [IDX(qe6502_model_wdc, 0xC1, 3)] = &mc_latch_data_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xC1, 4)] = &mc_r_izx_c4_data,
+        [IDX(qe6502_model_wdc, 0xC1, 4)] = &mc_r_izx_c4_data_no_latch,
         [IDX(qe6502_model_wdc, 0xC1, 5)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xC1, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xC1, 7)] = &op_error_trap,
@@ -2053,7 +2053,7 @@
         /* 0xCC CPY abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xCC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xCC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xCC, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xCC, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xCC, 3)] = &op_cpy_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xCC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xCC, 5)] = &op_error_trap,
@@ -2063,7 +2063,7 @@
         /* 0xCD CMP abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xCD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xCD, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xCD, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xCD, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xCD, 3)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xCD, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xCD, 5)] = &op_error_trap,
@@ -2081,9 +2081,9 @@
         [IDX(qe6502_model_wdc, 0xCE, 7)] = &op_error_trap,
 
         /* 0xCF BBS4 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xCF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xCF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xCF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xCF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xCF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xCF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xCF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xCF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xCF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -2103,17 +2103,17 @@
         [IDX(qe6502_model_wdc, 0xD1, 0)] = &mc_clear_latch_addr_read_pc,
         [IDX(qe6502_model_wdc, 0xD1, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xD1, 2)] = &mc_r_izy_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0xD1, 3)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xD1, 3)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xD1, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xD1, 5)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xD1, 6)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xD1, 7)] = &op_error_trap,
 
         /* 0xD2 CMP (zp) ; class=r_izp */
-        [IDX(qe6502_model_wdc, 0xD2, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xD2, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xD2, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0xD2, 2)] = &mc_izp_c2_ptrhi,
-        [IDX(qe6502_model_wdc, 0xD2, 3)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xD2, 3)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xD2, 4)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xD2, 5)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xD2, 6)] = &op_error_trap,
@@ -2182,7 +2182,7 @@
         /* 0xD9 CMP abs,Y ; class=r_aby */
         [IDX(qe6502_model_wdc, 0xD9, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xD9, 1)] = &mc_wdc_latch_aby_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xD9, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xD9, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xD9, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xD9, 4)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xD9, 5)] = &mc_dispatch,
@@ -2222,7 +2222,7 @@
         /* 0xDD CMP abs,X ; class=r_abx */
         [IDX(qe6502_model_wdc, 0xDD, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xDD, 1)] = &mc_wdc_latch_abx_base_read_pc,
-        [IDX(qe6502_model_wdc, 0xDD, 2)] = &mc_wdc_r_indexed_probe,
+        [IDX(qe6502_model_wdc, 0xDD, 2)] = &mc_wdc_r_indexed_probe_no_latch,
         [IDX(qe6502_model_wdc, 0xDD, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xDD, 4)] = &op_cmp_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xDD, 5)] = &mc_dispatch,
@@ -2240,9 +2240,9 @@
         [IDX(qe6502_model_wdc, 0xDE, 7)] = &mc_dispatch,
 
         /* 0xDF BBS5 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xDF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xDF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xDF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xDF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xDF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xDF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xDF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xDF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xDF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -2371,7 +2371,7 @@
         /* 0xEC CPX abs ; class=r_abs */
         [IDX(qe6502_model_wdc, 0xEC, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xEC, 1)] = &mc_latch_addr0_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xEC, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xEC, 2)] = &mc_read_addr_with_bus_hi,
         [IDX(qe6502_model_wdc, 0xEC, 3)] = &op_cpx_r_ready_none_pending_data_fetch,
         [IDX(qe6502_model_wdc, 0xEC, 4)] = &mc_dispatch,
         [IDX(qe6502_model_wdc, 0xEC, 5)] = &op_error_trap,
@@ -2399,9 +2399,9 @@
         [IDX(qe6502_model_wdc, 0xEE, 7)] = &op_error_trap,
 
         /* 0xEF BBS6 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xEF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xEF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xEF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xEF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xEF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xEF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xEF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xEF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xEF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
@@ -2428,7 +2428,7 @@
         [IDX(qe6502_model_wdc, 0xF1, 7)] = &mc_dispatch,
 
         /* 0xF2 SBC (zp) ; class=r_izp_wdc_decimal */
-        [IDX(qe6502_model_wdc, 0xF2, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xF2, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_wdc, 0xF2, 1)] = &mc_izp_c1_ptrlo,
         [IDX(qe6502_model_wdc, 0xF2, 2)] = &mc_izp_c2_ptrhi,
         [IDX(qe6502_model_wdc, 0xF2, 3)] = &mc_latch_addr1_read_latch_addr,
@@ -2558,9 +2558,9 @@
         [IDX(qe6502_model_wdc, 0xFE, 7)] = &mc_dispatch,
 
         /* 0xFF BBS7 zp,rel ; class=bbr_bbs_zp_rel */
-        [IDX(qe6502_model_wdc, 0xFF, 0)] = &mc_clear_latch_addr_read_pc_inc,
-        [IDX(qe6502_model_wdc, 0xFF, 1)] = &mc_latch_addr0_read_latch_addr,
-        [IDX(qe6502_model_wdc, 0xFF, 2)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xFF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_wdc, 0xFF, 1)] = &mc_latch_zp_addr_read_latch_addr,
+        [IDX(qe6502_model_wdc, 0xFF, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_wdc, 0xFF, 3)] = &mc_wdc_bbr_bbs_c3_offset_or_skip,
         [IDX(qe6502_model_wdc, 0xFF, 4)] = &mc_wdc_bbr_bbs_c4_apply,
         [IDX(qe6502_model_wdc, 0xFF, 5)] = &mc_wdc_bbr_bbs_c5_pgfix,
