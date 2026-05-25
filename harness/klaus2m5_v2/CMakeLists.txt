@@ -63,11 +63,16 @@ if(QE6502_ENABLE_CMOS_65C02)
         COMMAND ${target} rw extended off
     )
 
+    add_test(NAME qe6502.v2.klaus2m5.st.standard
+        COMMAND ${target} st standard off
+    )
+
     set_tests_properties(
         qe6502.v2.klaus2m5.wdc.standard
         qe6502.v2.klaus2m5.wdc.extended
         qe6502.v2.klaus2m5.rw.standard
         qe6502.v2.klaus2m5.rw.extended
+        qe6502.v2.klaus2m5.st.standard
         PROPERTIES
             LABELS "cpu;v2;klaus;functional"
             TIMEOUT 30

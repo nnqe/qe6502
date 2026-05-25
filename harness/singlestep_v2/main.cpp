@@ -31,7 +31,7 @@ struct counters {
 void print_usage(const char* argv0)
 {
     std::fprintf(stderr,
-        "usage: %s --model nmos|nes|wdc|rw --path <ProcessorTests dir> (--opcode xx|--all) [--max-cases n] [--no-cycles]\n",
+        "usage: %s --model nmos|nes|wdc|rw|st --path <ProcessorTests dir> (--opcode xx|--all) [--max-cases n] [--no-cycles]\n",
         argv0);
 }
 
@@ -63,6 +63,8 @@ bool parse_args(int argc, char** argv, options& out)
                 out.model = qe6502::model::wdc;
             } else if (value == "rw" || value == "rockwell" || value == "rockwell65c02") {
                 out.model = qe6502::model::rw;
+            } else if (value == "st" || value == "synertek" || value == "synertek65c02") {
+                out.model = qe6502::model::st;
             } else {
                 std::fprintf(stderr, "unknown model: %s\n", value.c_str());
                 return false;
@@ -181,6 +183,11 @@ bool is_rockwell65c02_opcode(std::uint8_t opcode)
     }
 }
 
+bool is_synertek65c02_opcode(std::uint8_t opcode)
+{
+    return is_rockwell65c02_opcode(opcode);
+}
+
 bool is_testable_opcode(qe6502::model model, std::uint8_t opcode)
 {
     switch (model) {
@@ -192,7 +199,7 @@ bool is_testable_opcode(qe6502::model model, std::uint8_t opcode)
     case qe6502::model::rw:
         return is_rockwell65c02_opcode(opcode);
     case qe6502::model::st:
-        return false;
+        return is_synertek65c02_opcode(opcode);
     }
     return false;
 }

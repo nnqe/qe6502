@@ -427,6 +427,14 @@ static qe6502_tick_t mc_read_pc(qe6502_t* cpu, uint8_t bus)
 }
 
 
+/* shared_handler; role=read_pc_minus_one; action=read_previous_pc_address_without_modifying_pc */
+static qe6502_tick_t mc_read_pc_minus_one(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read(cpu, (uint16_t)(cpu->PC - 1u));
+}
+
 /* shared_handler; role=clear_latch_addr_read_pc_inc; action=clear_effective_address_then_read_pc_and_increment_pc */
 static qe6502_tick_t mc_clear_latch_addr_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 {
@@ -1138,6 +1146,21 @@ static qe6502_tick_t op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dumm
     }
 
     return read(cpu, 0x0059u);
+}
+
+/* mnemonic_handler; model=st; role=exec_fetch_or_decimal_dummy; action=execute_binary_adc_or_latch_decimal_immediate_and_read_synertek_decimal_dummy */
+static qe6502_tick_t op_st_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->latch_data = bus;
+
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, bus);
+        cpu->microcode++;
+        return mc_fetch(cpu, bus);
+    }
+
+    return read(cpu, 0x0056u);
 }
 
 /* mnemonic_handler; model=wdc; role=exec_fetch; action=execute_cmos_decimal_adc_and_fetch_next_opcode */
@@ -1873,6 +1896,8 @@ const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
 #include "control_store/wdc_block.inc"
 ,
 #include "control_store/rw_block.inc"
+,
+#include "control_store/st_block.inc"
 };
 
 #undef IDX

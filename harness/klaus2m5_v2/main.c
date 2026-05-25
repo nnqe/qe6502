@@ -61,6 +61,12 @@ static int parse_model(const char* model, uint8_t* out_model)
         return 1;
     }
 
+    if (strcmp(model, "st") == 0 || strcmp(model, "synertek") == 0)
+    {
+        *out_model = qe6502_model_st;
+        return 1;
+    }
+
     return 0;
 }
 
@@ -79,6 +85,11 @@ static const char* model_display_name(const char* model)
     if (strcmp(model, "rw") == 0 || strcmp(model, "rockwell") == 0)
     {
         return "Rockwell 65C02 v2";
+    }
+
+    if (strcmp(model, "st") == 0 || strcmp(model, "synertek") == 0)
+    {
+        return "Synertek 65C02 v2";
     }
 
     return "Unknown v2";
@@ -116,7 +127,7 @@ static int test_model(const char* exec_name,
         parsed_model != qe6502_model_rw)
     {
         fprintf(stderr,
-            "Extended test is only valid for CMOS 65C02 v2 models, not %s.\n",
+            "Extended test is only valid for WDC/Rockwell 65C02 v2 models, not %s.\n",
             model_display_name(model_arg)
         );
         return 1;
@@ -179,6 +190,7 @@ int main(int argc, char** argv)
         failed += test_model(exec_name, "wdc", "extended", "off");
         failed += test_model(exec_name, "rw", "standard", "off");
         failed += test_model(exec_name, "rw", "extended", "off");
+        failed += test_model(exec_name, "st", "standard", "off");
 
         return failed;
     }
