@@ -22,10 +22,13 @@ static void print_usage(const char* exe)
         "  nmos standard off\n"
         "  wdc standard off\n"
         "  wdc extended off\n"
+        "  rw standard off\n"
+        "  rw extended off\n"
         "\n"
         "Models:\n"
         "  nmos      NMOS 6502 v2\n"
         "  wdc       WDC 65C02 v2\n"
+        "  rw        Rockwell 65C02 v2\n"
         "\n"
         "Tests:\n"
         "  standard\n"
@@ -52,6 +55,12 @@ static int parse_model(const char* model, uint8_t* out_model)
         return 1;
     }
 
+    if (strcmp(model, "rw") == 0 || strcmp(model, "rockwell") == 0)
+    {
+        *out_model = qe6502_model_rw;
+        return 1;
+    }
+
     return 0;
 }
 
@@ -65,6 +74,11 @@ static const char* model_display_name(const char* model)
     if (strcmp(model, "wdc") == 0)
     {
         return "WDC 65C02 v2";
+    }
+
+    if (strcmp(model, "rw") == 0 || strcmp(model, "rockwell") == 0)
+    {
+        return "Rockwell 65C02 v2";
     }
 
     return "Unknown v2";
@@ -97,10 +111,12 @@ static int test_model(const char* exec_name,
         return 1;
     }
 
-    if (strcmp(test_arg, "extended") == 0 && parsed_model != qe6502_model_wdc)
+    if (strcmp(test_arg, "extended") == 0 &&
+        parsed_model != qe6502_model_wdc &&
+        parsed_model != qe6502_model_rw)
     {
         fprintf(stderr,
-            "Extended test is only valid for WDC 65C02 v2, not %s.\n",
+            "Extended test is only valid for CMOS 65C02 v2 models, not %s.\n",
             model_display_name(model_arg)
         );
         return 1;
@@ -161,6 +177,8 @@ int main(int argc, char** argv)
         failed += test_model(exec_name, "nmos", "standard", "off");
         failed += test_model(exec_name, "wdc", "standard", "off");
         failed += test_model(exec_name, "wdc", "extended", "off");
+        failed += test_model(exec_name, "rw", "standard", "off");
+        failed += test_model(exec_name, "rw", "extended", "off");
 
         return failed;
     }

@@ -1125,6 +1125,21 @@ static qe6502_tick_t op_wdc_adc_imm_ready_none_pending_data_fetch_or_decimal_dum
     return read(cpu, 0x007fu);
 }
 
+/* mnemonic_handler; model=rw; role=exec_fetch_or_decimal_dummy; action=execute_binary_adc_or_latch_decimal_immediate_and_read_rockwell_decimal_dummy */
+static qe6502_tick_t op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->latch_data = bus;
+
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, bus);
+        cpu->microcode++;
+        return mc_fetch(cpu, bus);
+    }
+
+    return read(cpu, 0x0059u);
+}
+
 /* mnemonic_handler; model=wdc; role=exec_fetch; action=execute_cmos_decimal_adc_and_fetch_next_opcode */
 static qe6502_tick_t op_wdc_adc_dec_ready_none_pending_dummy_fetch(qe6502_t* cpu, uint8_t bus)
 {
@@ -1856,6 +1871,8 @@ const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
 #include "control_store/nes_block.inc"
 ,
 #include "control_store/wdc_block.inc"
+,
+#include "control_store/rw_block.inc"
 };
 
 #undef IDX
