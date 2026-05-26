@@ -43,8 +43,8 @@ QE6502_STATIC_ASSERT((service_slot_count + opcode_slot_count) == qe6502_slots_pe
 
 typedef enum service_slot
 {
-    service_slot_reset = 0,
-    service_slot_light_reset = 1,
+    service_slot_illegal_ext = 0,
+    service_slot_reset = 1,
     service_slot_goto = 2,
     service_slot_nmi = 3,
     service_slot_irq = 4,
@@ -124,7 +124,7 @@ qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address)
 qe6502_tick_t qe6502_reset(qe6502_t *cpu)
 {
     cpu->status = 0;
-    enter_service_slot(cpu, service_slot_light_reset);
+    enter_service_slot(cpu, service_slot_reset);
     return qe6502_tick(cpu, 0u);
 }
 
@@ -400,6 +400,13 @@ static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
+/* shared_handler; role=fetch_illegal_ext; action=fetch_next_opcode_then_continue_at_illegal_extension_service_dispatch */
+static qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_illegal_ext, 0u) - 1u);
+    return mc_fetch(cpu, bus);
+}
+
 static qe6502_tick_t
 read_pc_inc(qe6502_t* cpu)
 {
@@ -497,7 +504,7 @@ static qe6502_tick_t mc_fetch_no_interrupts(qe6502_t* cpu, uint8_t bus)
 }
 
 /* service_handler; role=vec_lo; action=read_reset_vector_low */
-static qe6502_tick_t mc_light_reset_c0_vec_lo(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_reset_c0_vec_lo(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -505,7 +512,7 @@ static qe6502_tick_t mc_light_reset_c0_vec_lo(qe6502_t* cpu, uint8_t bus)
 }
 
 /* service_handler; role=vec_hi; action=consume_reset_vector_low_and_read_reset_vector_high */
-static qe6502_tick_t mc_light_reset_c1_vec_hi(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_reset_c1_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
 

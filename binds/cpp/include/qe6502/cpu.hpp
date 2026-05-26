@@ -35,7 +35,7 @@ public:
         cpu_.model = static_cast<std::uint8_t>(cpu_model);
     }
 
-    void light_reset() noexcept
+    void reset() noexcept
     {
         tick_ = qe6502_reset(&cpu_);
     }

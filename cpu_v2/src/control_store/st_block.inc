@@ -2,14 +2,23 @@
 
         /* Synertek service slots. */
 
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 0)] = &mc_light_reset_c0_vec_lo,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 1)] = &mc_light_reset_c1_vec_hi,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 2)] = &mc_latch_pch_fetch,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 3)] = &mc_dispatch,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 4)] = &op_error_trap,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 5)] = &op_error_trap,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 6)] = &op_error_trap,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_light_reset, 7)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 0)] = &mc_dispatch,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 1)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 2)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 3)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 4)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 5)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 6)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_illegal_ext, 7)] = &op_error_trap,
+
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 0)] = &mc_reset_c0_vec_lo,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 1)] = &mc_reset_c1_vec_hi,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 2)] = &mc_latch_pch_fetch,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 3)] = &mc_dispatch,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 4)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 5)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 6)] = &op_error_trap,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_reset, 7)] = &op_error_trap,
 
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_goto, 0)] = &mc_fetch,
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_goto, 1)] = &mc_dispatch,
