@@ -62,11 +62,11 @@
         [IDX(qe6502_model_nes, 0x03, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x03, 7)] = &op_error_trap,
 
-        /* 0x04 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x04, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x04, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x04, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x04, 3)] = &op_error_trap,
+        /* 0x04 NOP zp ; class=nop_zp_read */
+        [IDX(qe6502_model_nes, 0x04, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x04, 1)] = &mc_r_zp_c1_data,
+        [IDX(qe6502_model_nes, 0x04, 2)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x04, 3)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x04, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x04, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x04, 6)] = &op_error_trap,
@@ -142,12 +142,12 @@
         [IDX(qe6502_model_nes, 0x0B, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x0B, 7)] = &op_error_trap,
 
-        /* 0x0C undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x0C, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x0C, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x0C, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x0C, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x0C, 4)] = &op_error_trap,
+        /* 0x0C NOP abs ; class=nop_abs_read */
+        [IDX(qe6502_model_nes, 0x0C, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x0C, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x0C, 2)] = &mc_read_addr_with_bus_hi,
+        [IDX(qe6502_model_nes, 0x0C, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x0C, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x0C, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x0C, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x0C, 7)] = &op_error_trap,
@@ -222,12 +222,12 @@
         [IDX(qe6502_model_nes, 0x13, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x13, 7)] = &op_error_trap,
 
-        /* 0x14 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x14, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x14, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x14, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x14, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x14, 4)] = &op_error_trap,
+        /* 0x14 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0x14, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x14, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0x14, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0x14, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x14, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x14, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x14, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x14, 7)] = &op_error_trap,
@@ -282,10 +282,10 @@
         [IDX(qe6502_model_nes, 0x19, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x19, 7)] = &op_error_trap,
 
-        /* 0x1A undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x1A, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x1A, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x1A, 2)] = &op_error_trap,
+        /* 0x1A NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0x1A, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0x1A, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x1A, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x1A, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x1A, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x1A, 5)] = &op_error_trap,
@@ -542,12 +542,12 @@
         [IDX(qe6502_model_nes, 0x33, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x33, 7)] = &op_error_trap,
 
-        /* 0x34 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x34, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x34, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x34, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x34, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x34, 4)] = &op_error_trap,
+        /* 0x34 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0x34, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x34, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0x34, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0x34, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x34, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x34, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x34, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x34, 7)] = &op_error_trap,
@@ -602,10 +602,10 @@
         [IDX(qe6502_model_nes, 0x39, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x39, 7)] = &op_error_trap,
 
-        /* 0x3A undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x3A, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x3A, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x3A, 2)] = &op_error_trap,
+        /* 0x3A NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0x3A, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0x3A, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x3A, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x3A, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x3A, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x3A, 5)] = &op_error_trap,
@@ -702,11 +702,11 @@
         [IDX(qe6502_model_nes, 0x43, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x43, 7)] = &op_error_trap,
 
-        /* 0x44 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x44, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x44, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x44, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x44, 3)] = &op_error_trap,
+        /* 0x44 NOP zp ; class=nop_zp_read */
+        [IDX(qe6502_model_nes, 0x44, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x44, 1)] = &mc_r_zp_c1_data,
+        [IDX(qe6502_model_nes, 0x44, 2)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x44, 3)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x44, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x44, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x44, 6)] = &op_error_trap,
@@ -862,12 +862,12 @@
         [IDX(qe6502_model_nes, 0x53, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x53, 7)] = &op_error_trap,
 
-        /* 0x54 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x54, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x54, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x54, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x54, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x54, 4)] = &op_error_trap,
+        /* 0x54 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0x54, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x54, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0x54, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0x54, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x54, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x54, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x54, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x54, 7)] = &op_error_trap,
@@ -922,10 +922,10 @@
         [IDX(qe6502_model_nes, 0x59, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x59, 7)] = &op_error_trap,
 
-        /* 0x5A undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x5A, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x5A, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x5A, 2)] = &op_error_trap,
+        /* 0x5A NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0x5A, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0x5A, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x5A, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x5A, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x5A, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x5A, 5)] = &op_error_trap,
@@ -1022,11 +1022,11 @@
         [IDX(qe6502_model_nes, 0x63, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x63, 7)] = &op_error_trap,
 
-        /* 0x64 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x64, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x64, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x64, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x64, 3)] = &op_error_trap,
+        /* 0x64 NOP zp ; class=nop_zp_read */
+        [IDX(qe6502_model_nes, 0x64, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x64, 1)] = &mc_r_zp_c1_data,
+        [IDX(qe6502_model_nes, 0x64, 2)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x64, 3)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x64, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x64, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x64, 6)] = &op_error_trap,
@@ -1182,12 +1182,12 @@
         [IDX(qe6502_model_nes, 0x73, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x73, 7)] = &op_error_trap,
 
-        /* 0x74 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x74, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x74, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x74, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x74, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x74, 4)] = &op_error_trap,
+        /* 0x74 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0x74, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0x74, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0x74, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0x74, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x74, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x74, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x74, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x74, 7)] = &op_error_trap,
@@ -1242,10 +1242,10 @@
         [IDX(qe6502_model_nes, 0x79, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x79, 7)] = &op_error_trap,
 
-        /* 0x7A undocumented/illegal */
-        [IDX(qe6502_model_nes, 0x7A, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x7A, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0x7A, 2)] = &op_error_trap,
+        /* 0x7A NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0x7A, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0x7A, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0x7A, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0x7A, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x7A, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0x7A, 5)] = &op_error_trap,
@@ -1652,14 +1652,14 @@
         [IDX(qe6502_model_nes, 0xA2, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xA2, 7)] = &op_error_trap,
 
-        /* 0xA3 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xA3, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA3, 6)] = &op_error_trap,
+        /* 0xA3 LAX (zp,X) ; class=r_izx */
+        [IDX(qe6502_model_nes, 0xA3, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xA3, 1)] = &mc_r_izx_c1_idx,
+        [IDX(qe6502_model_nes, 0xA3, 2)] = &mc_izx_read_ptrlo_inc_ptr,
+        [IDX(qe6502_model_nes, 0xA3, 3)] = &mc_latch_data_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xA3, 4)] = &mc_r_izx_c4_data_no_latch,
+        [IDX(qe6502_model_nes, 0xA3, 5)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xA3, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xA3, 7)] = &op_error_trap,
 
         /* 0xA4 LDY zp ; class=r_zp */
@@ -1692,11 +1692,11 @@
         [IDX(qe6502_model_nes, 0xA6, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xA6, 7)] = &op_error_trap,
 
-        /* 0xA7 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xA7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xA7, 3)] = &op_error_trap,
+        /* 0xA7 LAX zp ; class=r_zp */
+        [IDX(qe6502_model_nes, 0xA7, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xA7, 1)] = &mc_r_zp_c1_data,
+        [IDX(qe6502_model_nes, 0xA7, 2)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xA7, 3)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xA7, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xA7, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xA7, 6)] = &op_error_trap,
@@ -1772,12 +1772,12 @@
         [IDX(qe6502_model_nes, 0xAE, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xAE, 7)] = &op_error_trap,
 
-        /* 0xAF undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xAF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xAF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xAF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xAF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xAF, 4)] = &op_error_trap,
+        /* 0xAF LAX abs ; class=r_abs */
+        [IDX(qe6502_model_nes, 0xAF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xAF, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xAF, 2)] = &mc_read_addr_with_bus_hi,
+        [IDX(qe6502_model_nes, 0xAF, 3)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xAF, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xAF, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xAF, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xAF, 7)] = &op_error_trap,
@@ -1812,14 +1812,14 @@
         [IDX(qe6502_model_nes, 0xB2, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xB2, 7)] = &op_error_trap,
 
-        /* 0xB3 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xB3, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB3, 6)] = &op_error_trap,
+        /* 0xB3 LAX (zp),Y ; class=r_izy */
+        [IDX(qe6502_model_nes, 0xB3, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xB3, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xB3, 2)] = &mc_r_izy_c2_ptrhi,
+        [IDX(qe6502_model_nes, 0xB3, 3)] = &mc_r_indexed_probe_no_latch,
+        [IDX(qe6502_model_nes, 0xB3, 4)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xB3, 5)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xB3, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xB3, 7)] = &op_error_trap,
 
         /* 0xB4 LDY zp,X ; class=r_zpx */
@@ -1852,12 +1852,12 @@
         [IDX(qe6502_model_nes, 0xB6, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xB6, 7)] = &op_error_trap,
 
-        /* 0xB7 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xB7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB7, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xB7, 4)] = &op_error_trap,
+        /* 0xB7 LAX zp,Y ; class=r_zpy */
+        [IDX(qe6502_model_nes, 0xB7, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xB7, 1)] = &mc_r_zpy_c1_idx,
+        [IDX(qe6502_model_nes, 0xB7, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xB7, 3)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xB7, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xB7, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xB7, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xB7, 7)] = &op_error_trap,
@@ -1932,13 +1932,13 @@
         [IDX(qe6502_model_nes, 0xBE, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xBE, 7)] = &op_error_trap,
 
-        /* 0xBF undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xBF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xBF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xBF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xBF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xBF, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xBF, 5)] = &op_error_trap,
+        /* 0xBF LAX abs,Y ; class=r_aby */
+        [IDX(qe6502_model_nes, 0xBF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xBF, 1)] = &mc_latch_aby_base_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xBF, 2)] = &mc_r_indexed_probe_no_latch,
+        [IDX(qe6502_model_nes, 0xBF, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xBF, 4)] = &op_lax_r_ready_none_pending_data_fetch,
+        [IDX(qe6502_model_nes, 0xBF, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xBF, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xBF, 7)] = &op_error_trap,
 
@@ -2142,12 +2142,12 @@
         [IDX(qe6502_model_nes, 0xD3, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xD3, 7)] = &op_error_trap,
 
-        /* 0xD4 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xD4, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xD4, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xD4, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xD4, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xD4, 4)] = &op_error_trap,
+        /* 0xD4 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0xD4, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xD4, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0xD4, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xD4, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0xD4, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xD4, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xD4, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xD4, 7)] = &op_error_trap,
@@ -2202,10 +2202,10 @@
         [IDX(qe6502_model_nes, 0xD9, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xD9, 7)] = &op_error_trap,
 
-        /* 0xDA undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xDA, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xDA, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xDA, 2)] = &op_error_trap,
+        /* 0xDA NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0xDA, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0xDA, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0xDA, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xDA, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xDA, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xDA, 5)] = &op_error_trap,
@@ -2462,12 +2462,12 @@
         [IDX(qe6502_model_nes, 0xF3, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xF3, 7)] = &op_error_trap,
 
-        /* 0xF4 undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xF4, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xF4, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xF4, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xF4, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xF4, 4)] = &op_error_trap,
+        /* 0xF4 NOP zp,X ; class=nop_zpx_read */
+        [IDX(qe6502_model_nes, 0xF4, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nes, 0xF4, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nes, 0xF4, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nes, 0xF4, 3)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0xF4, 4)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xF4, 5)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xF4, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xF4, 7)] = &op_error_trap,
@@ -2522,10 +2522,10 @@
         [IDX(qe6502_model_nes, 0xF9, 6)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xF9, 7)] = &op_error_trap,
 
-        /* 0xFA undocumented/illegal */
-        [IDX(qe6502_model_nes, 0xFA, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xFA, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nes, 0xFA, 2)] = &op_error_trap,
+        /* 0xFA NOP ; class=nop_imp */
+        [IDX(qe6502_model_nes, 0xFA, 0)] = &mc_read_pc,
+        [IDX(qe6502_model_nes, 0xFA, 1)] = &mc_fetch,
+        [IDX(qe6502_model_nes, 0xFA, 2)] = &mc_dispatch,
         [IDX(qe6502_model_nes, 0xFA, 3)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xFA, 4)] = &op_error_trap,
         [IDX(qe6502_model_nes, 0xFA, 5)] = &op_error_trap,

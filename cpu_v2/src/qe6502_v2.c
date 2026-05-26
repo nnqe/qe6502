@@ -1423,6 +1423,15 @@ static qe6502_tick_t op_lda_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
+static qe6502_tick_t op_lax_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->A = bus;
+    cpu->X = bus;
+    update_flags_nz(cpu, bus);
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
 static qe6502_tick_t op_ldx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->X = bus;
