@@ -434,13 +434,6 @@ static inline void sbc_decimal_cmos(qe6502_t* cpu, uint8_t value)
 
 /* Microcode handlers. */
 
-/* mnemonic_handler; role=kil_jam; action=read_next_byte_before_jammed_cpu_state */
-static qe6502_tick_t op_kil_jam_r_pc_pending_jam(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-    return read(cpu, cpu->PC);
-}
-
 static inline qe6502_tick_t read_cpu_jammed(qe6502_t* cpu)
 {
     return (qe6502_tick_t){
@@ -1589,6 +1582,18 @@ static qe6502_tick_t op_lax_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
     cpu->A = bus;
     cpu->X = bus;
     update_flags_nz(cpu, bus);
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
+static qe6502_tick_t op_las_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    const uint8_t value = (uint8_t)(bus & cpu->S);
+
+    cpu->A = value;
+    cpu->X = value;
+    cpu->S = value;
+    update_flags_nz(cpu, value);
     return mc_fetch(cpu, bus);
 }
 
