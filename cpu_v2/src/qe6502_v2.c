@@ -1576,6 +1576,89 @@ static qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, ui
     return write(cpu, cpu->latch_addr, value);
 }
 
+/* mnemonic_handler; role=exec_write; action=execute_illegal_slo_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_slo_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = asl_value(cpu, cpu->latch_data);
+    cpu->A = (uint8_t)(cpu->A | value);
+    update_flags_nz(cpu, cpu->A);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_rla_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_rla_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = rol_value(cpu, cpu->latch_data);
+    cpu->A = (uint8_t)(cpu->A & value);
+    update_flags_nz(cpu, cpu->A);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_sre_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_sre_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = lsr_value(cpu, cpu->latch_data);
+    cpu->A = (uint8_t)(cpu->A ^ value);
+    update_flags_nz(cpu, cpu->A);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_rra_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_rra_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = ror_value(cpu, cpu->latch_data);
+    adc_value(cpu, value);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; model=nes; role=exec_write; action=execute_illegal_binary_rra_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_nes_rra_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = ror_value(cpu, cpu->latch_data);
+    adc_binary(cpu, value);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_dcp_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_dcp_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->latch_data - 1u);
+    compare_register_with_value(cpu, cpu->A, value);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_isc_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_isc_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->latch_data + 1u);
+    sbc_value(cpu, value);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; model=nes; role=exec_write; action=execute_illegal_binary_isc_read_modify_write_and_emit_final_memory_write */
+static qe6502_tick_t op_nes_isc_rw_ready_addr_data_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->latch_data + 1u);
+    adc_binary(cpu, (uint8_t)(value ^ 0xffu));
+    return write(cpu, cpu->latch_addr, value);
+}
+
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
 static qe6502_tick_t op_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {

@@ -92,13 +92,13 @@
         [IDX(qe6502_model_nmos, 0x06, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x06, 7)] = &op_error_trap,
 
-        /* 0x07 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x07, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x07, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x07, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x07, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x07, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x07, 5)] = &op_error_trap,
+        /* 0x07 SLO zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0x07, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x07, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x07, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x07, 3)] = &op_slo_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x07, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x07, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x07, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x07, 7)] = &op_error_trap,
 
@@ -172,14 +172,14 @@
         [IDX(qe6502_model_nmos, 0x0E, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x0E, 7)] = &op_error_trap,
 
-        /* 0x0F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x0F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x0F, 6)] = &op_error_trap,
+        /* 0x0F SLO abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0x0F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x0F, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x0F, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x0F, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x0F, 4)] = &op_slo_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x0F, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x0F, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x0F, 7)] = &op_error_trap,
 
         /* 0x10 BPL rel ; class=branch_rel */
@@ -252,14 +252,14 @@
         [IDX(qe6502_model_nmos, 0x16, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x16, 7)] = &op_error_trap,
 
-        /* 0x17 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x17, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x17, 6)] = &op_error_trap,
+        /* 0x17 SLO zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0x17, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x17, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x17, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x17, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x17, 4)] = &op_slo_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x17, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x17, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x17, 7)] = &op_error_trap,
 
         /* 0x18 CLC ; class=imp */
@@ -332,15 +332,15 @@
         [IDX(qe6502_model_nmos, 0x1E, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x1E, 7)] = &mc_dispatch,
 
-        /* 0x1F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x1F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x1F, 7)] = &op_error_trap,
+        /* 0x1F SLO abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0x1F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x1F, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0x1F, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0x1F, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x1F, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x1F, 5)] = &op_slo_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x1F, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x1F, 7)] = &mc_dispatch,
 
         /* 0x20 JSR abs ; class=jsr_abs */
         [IDX(qe6502_model_nmos, 0x20, 0)] = &mc_read_pc_inc,
@@ -412,13 +412,13 @@
         [IDX(qe6502_model_nmos, 0x26, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x26, 7)] = &op_error_trap,
 
-        /* 0x27 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x27, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x27, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x27, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x27, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x27, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x27, 5)] = &op_error_trap,
+        /* 0x27 RLA zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0x27, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x27, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x27, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x27, 3)] = &op_rla_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x27, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x27, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x27, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x27, 7)] = &op_error_trap,
 
@@ -492,14 +492,14 @@
         [IDX(qe6502_model_nmos, 0x2E, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x2E, 7)] = &op_error_trap,
 
-        /* 0x2F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x2F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x2F, 6)] = &op_error_trap,
+        /* 0x2F RLA abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0x2F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x2F, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x2F, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x2F, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x2F, 4)] = &op_rla_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x2F, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x2F, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x2F, 7)] = &op_error_trap,
 
         /* 0x30 BMI rel ; class=branch_rel */
@@ -572,14 +572,14 @@
         [IDX(qe6502_model_nmos, 0x36, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x36, 7)] = &op_error_trap,
 
-        /* 0x37 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x37, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x37, 6)] = &op_error_trap,
+        /* 0x37 RLA zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0x37, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x37, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x37, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x37, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x37, 4)] = &op_rla_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x37, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x37, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x37, 7)] = &op_error_trap,
 
         /* 0x38 SEC ; class=imp */
@@ -652,15 +652,15 @@
         [IDX(qe6502_model_nmos, 0x3E, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x3E, 7)] = &mc_dispatch,
 
-        /* 0x3F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x3F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x3F, 7)] = &op_error_trap,
+        /* 0x3F RLA abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0x3F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x3F, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0x3F, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0x3F, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x3F, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x3F, 5)] = &op_rla_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x3F, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x3F, 7)] = &mc_dispatch,
 
         /* 0x40 RTI ; class=rti */
         [IDX(qe6502_model_nmos, 0x40, 0)] = &mc_read_pc,
@@ -732,13 +732,13 @@
         [IDX(qe6502_model_nmos, 0x46, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x46, 7)] = &op_error_trap,
 
-        /* 0x47 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x47, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x47, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x47, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x47, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x47, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x47, 5)] = &op_error_trap,
+        /* 0x47 SRE zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0x47, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x47, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x47, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x47, 3)] = &op_sre_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x47, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x47, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x47, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x47, 7)] = &op_error_trap,
 
@@ -812,14 +812,14 @@
         [IDX(qe6502_model_nmos, 0x4E, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x4E, 7)] = &op_error_trap,
 
-        /* 0x4F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x4F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x4F, 6)] = &op_error_trap,
+        /* 0x4F SRE abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0x4F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x4F, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x4F, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x4F, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x4F, 4)] = &op_sre_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x4F, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x4F, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x4F, 7)] = &op_error_trap,
 
         /* 0x50 BVC rel ; class=branch_rel */
@@ -892,14 +892,14 @@
         [IDX(qe6502_model_nmos, 0x56, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x56, 7)] = &op_error_trap,
 
-        /* 0x57 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x57, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x57, 6)] = &op_error_trap,
+        /* 0x57 SRE zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0x57, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x57, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x57, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x57, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x57, 4)] = &op_sre_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x57, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x57, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x57, 7)] = &op_error_trap,
 
         /* 0x58 CLI ; class=imp */
@@ -972,15 +972,15 @@
         [IDX(qe6502_model_nmos, 0x5E, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x5E, 7)] = &mc_dispatch,
 
-        /* 0x5F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x5F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x5F, 7)] = &op_error_trap,
+        /* 0x5F SRE abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0x5F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x5F, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0x5F, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0x5F, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x5F, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x5F, 5)] = &op_sre_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x5F, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x5F, 7)] = &mc_dispatch,
 
         /* 0x60 RTS ; class=rts */
         [IDX(qe6502_model_nmos, 0x60, 0)] = &mc_read_pc,
@@ -1052,13 +1052,13 @@
         [IDX(qe6502_model_nmos, 0x66, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x66, 7)] = &op_error_trap,
 
-        /* 0x67 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x67, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x67, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x67, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x67, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x67, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x67, 5)] = &op_error_trap,
+        /* 0x67 RRA zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0x67, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x67, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x67, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x67, 3)] = &op_rra_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x67, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x67, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x67, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0x67, 7)] = &op_error_trap,
 
@@ -1132,14 +1132,14 @@
         [IDX(qe6502_model_nmos, 0x6E, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x6E, 7)] = &op_error_trap,
 
-        /* 0x6F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x6F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x6F, 6)] = &op_error_trap,
+        /* 0x6F RRA abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0x6F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x6F, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x6F, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x6F, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x6F, 4)] = &op_rra_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x6F, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x6F, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x6F, 7)] = &op_error_trap,
 
         /* 0x70 BVS rel ; class=branch_rel */
@@ -1212,14 +1212,14 @@
         [IDX(qe6502_model_nmos, 0x76, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x76, 7)] = &op_error_trap,
 
-        /* 0x77 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x77, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x77, 6)] = &op_error_trap,
+        /* 0x77 RRA zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0x77, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x77, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0x77, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x77, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x77, 4)] = &op_rra_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x77, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x77, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0x77, 7)] = &op_error_trap,
 
         /* 0x78 SEI ; class=imp */
@@ -1292,15 +1292,15 @@
         [IDX(qe6502_model_nmos, 0x7E, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0x7E, 7)] = &mc_dispatch,
 
-        /* 0x7F undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0x7F, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0x7F, 7)] = &op_error_trap,
+        /* 0x7F RRA abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0x7F, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0x7F, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0x7F, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0x7F, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0x7F, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0x7F, 5)] = &op_rra_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0x7F, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0x7F, 7)] = &mc_dispatch,
 
         /* 0x80 undocumented/illegal */
         [IDX(qe6502_model_nmos, 0x80, 0)] = &op_error_trap,
@@ -2012,13 +2012,13 @@
         [IDX(qe6502_model_nmos, 0xC6, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0xC6, 7)] = &op_error_trap,
 
-        /* 0xC7 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xC7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xC7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xC7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xC7, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xC7, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xC7, 5)] = &op_error_trap,
+        /* 0xC7 DCP zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0xC7, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xC7, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xC7, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xC7, 3)] = &op_dcp_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xC7, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xC7, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xC7, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0xC7, 7)] = &op_error_trap,
 
@@ -2092,14 +2092,14 @@
         [IDX(qe6502_model_nmos, 0xCE, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xCE, 7)] = &op_error_trap,
 
-        /* 0xCF undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xCF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xCF, 6)] = &op_error_trap,
+        /* 0xCF DCP abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0xCF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xCF, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xCF, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xCF, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xCF, 4)] = &op_dcp_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xCF, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xCF, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xCF, 7)] = &op_error_trap,
 
         /* 0xD0 BNE rel ; class=branch_rel */
@@ -2172,14 +2172,14 @@
         [IDX(qe6502_model_nmos, 0xD6, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xD6, 7)] = &op_error_trap,
 
-        /* 0xD7 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xD7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xD7, 6)] = &op_error_trap,
+        /* 0xD7 DCP zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0xD7, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xD7, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xD7, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xD7, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xD7, 4)] = &op_dcp_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xD7, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xD7, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xD7, 7)] = &op_error_trap,
 
         /* 0xD8 CLD ; class=imp */
@@ -2252,15 +2252,15 @@
         [IDX(qe6502_model_nmos, 0xDE, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xDE, 7)] = &mc_dispatch,
 
-        /* 0xDF undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xDF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xDF, 7)] = &op_error_trap,
+        /* 0xDF DCP abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0xDF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xDF, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0xDF, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0xDF, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xDF, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xDF, 5)] = &op_dcp_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xDF, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xDF, 7)] = &mc_dispatch,
 
         /* 0xE0 CPX #imm ; class=r_imm */
         [IDX(qe6502_model_nmos, 0xE0, 0)] = &mc_read_pc_inc,
@@ -2332,13 +2332,13 @@
         [IDX(qe6502_model_nmos, 0xE6, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0xE6, 7)] = &op_error_trap,
 
-        /* 0xE7 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xE7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xE7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xE7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xE7, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xE7, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xE7, 5)] = &op_error_trap,
+        /* 0xE7 ISC zp ; class=rw_zp */
+        [IDX(qe6502_model_nmos, 0xE7, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xE7, 1)] = &mc_latch_addr0_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xE7, 2)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xE7, 3)] = &op_isc_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xE7, 4)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xE7, 5)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xE7, 6)] = &op_error_trap,
         [IDX(qe6502_model_nmos, 0xE7, 7)] = &op_error_trap,
 
@@ -2412,14 +2412,14 @@
         [IDX(qe6502_model_nmos, 0xEE, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xEE, 7)] = &op_error_trap,
 
-        /* 0xEF undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xEF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xEF, 6)] = &op_error_trap,
+        /* 0xEF ISC abs ; class=rw_abs */
+        [IDX(qe6502_model_nmos, 0xEF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xEF, 1)] = &mc_latch_addr0_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xEF, 2)] = &mc_latch_addr1_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xEF, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xEF, 4)] = &op_isc_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xEF, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xEF, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xEF, 7)] = &op_error_trap,
 
         /* 0xF0 BEQ rel ; class=branch_rel */
@@ -2492,14 +2492,14 @@
         [IDX(qe6502_model_nmos, 0xF6, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xF6, 7)] = &op_error_trap,
 
-        /* 0xF7 undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xF7, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xF7, 6)] = &op_error_trap,
+        /* 0xF7 ISC zp,X ; class=rw_zpx */
+        [IDX(qe6502_model_nmos, 0xF7, 0)] = &mc_clear_latch_addr_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xF7, 1)] = &mc_zpx_c1_idx,
+        [IDX(qe6502_model_nmos, 0xF7, 2)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xF7, 3)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xF7, 4)] = &op_isc_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xF7, 5)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xF7, 6)] = &mc_dispatch,
         [IDX(qe6502_model_nmos, 0xF7, 7)] = &op_error_trap,
 
         /* 0xF8 SED ; class=imp */
@@ -2572,13 +2572,13 @@
         [IDX(qe6502_model_nmos, 0xFE, 6)] = &mc_fetch,
         [IDX(qe6502_model_nmos, 0xFE, 7)] = &mc_dispatch,
 
-        /* 0xFF undocumented/illegal */
-        [IDX(qe6502_model_nmos, 0xFF, 0)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 1)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 2)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 3)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 4)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 5)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 6)] = &op_error_trap,
-        [IDX(qe6502_model_nmos, 0xFF, 7)] = &op_error_trap
+        /* 0xFF ISC abs,X ; class=rw_abx */
+        [IDX(qe6502_model_nmos, 0xFF, 0)] = &mc_read_pc_inc,
+        [IDX(qe6502_model_nmos, 0xFF, 1)] = &mc_rw_abx_c1_hi,
+        [IDX(qe6502_model_nmos, 0xFF, 2)] = &mc_w_indexed_probe,
+        [IDX(qe6502_model_nmos, 0xFF, 3)] = &mc_read_latch_addr,
+        [IDX(qe6502_model_nmos, 0xFF, 4)] = &mc_latch_data_write_latch_addr,
+        [IDX(qe6502_model_nmos, 0xFF, 5)] = &op_isc_rw_ready_addr_data_pending_none_wr,
+        [IDX(qe6502_model_nmos, 0xFF, 6)] = &mc_fetch,
+        [IDX(qe6502_model_nmos, 0xFF, 7)] = &mc_dispatch
 
