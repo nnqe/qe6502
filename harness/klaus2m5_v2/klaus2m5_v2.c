@@ -4,7 +4,7 @@
 
 static uint8_t tick_is_ok(qe6502_tick_t tick)
 {
-    return (uint8_t)((tick.status & qe6502_status_trapped) == 0u);
+    return (uint8_t)((tick.status & qe6502_status_tick_not_ok) == 0u);
 }
 
 static uint8_t tick_is_write(qe6502_tick_t tick)

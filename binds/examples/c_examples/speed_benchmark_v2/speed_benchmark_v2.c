@@ -87,7 +87,7 @@ static double now_seconds(void) {
 }
 
 static uint8_t tick_is_ok(qe6502_tick_t tick) {
-    return (uint8_t)((tick.status & qe6502_status_trapped) == 0u);
+    return (uint8_t)((tick.status & qe6502_status_tick_not_ok) == 0u);
 }
 
 static uint8_t tick_is_write(qe6502_tick_t tick) {
@@ -216,7 +216,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result, uint8_t 
         print_result_line(test, "FAIL", 0.0);
     }
 
-    fprintf(stderr, "CPU trapped with status: %u\n", (unsigned)tick.status);
+    fprintf(stderr, "CPU tick_not_ok with status: %u\n", (unsigned)tick.status);
     return 0;
 }
 

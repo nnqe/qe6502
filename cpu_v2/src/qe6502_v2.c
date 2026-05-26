@@ -154,6 +154,13 @@ static inline void compare_register_with_value(qe6502_t* cpu, uint8_t reg, uint8
     update_flags_nzc(cpu, result, flag_C_if(reg >= value));
 }
 
+static inline void subtract_to_x(qe6502_t* cpu, uint8_t lhs, uint8_t rhs)
+{
+    const uint8_t result = (uint8_t)(lhs - rhs);
+    cpu->X = result;
+    update_flags_nzc(cpu, result, flag_C_if(lhs >= rhs));
+}
+
 static inline uint8_t asl_value(qe6502_t* cpu, uint8_t value)
 {
     const uint8_t result = (uint8_t)(value << 1);
@@ -188,6 +195,59 @@ static inline void update_flags_cvzn(qe6502_t* cpu, uint8_t flags)
 {
     const uint8_t mask = (uint8_t)(flag_C | flag_Z | flag_V | flag_N);
     cpu->P = (uint8_t)((cpu->P & (uint8_t)(~mask)) | (flags & mask));
+}
+
+static inline uint8_t arr_binary_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t old_carry = (uint8_t)(cpu->P & flag_C);
+    const uint8_t result = (uint8_t)((value >> 1) | (uint8_t)(old_carry << 7));
+    const uint8_t bit5 = (uint8_t)(result & 0x20u);
+    const uint8_t bit6 = (uint8_t)(result & 0x40u);
+    const uint8_t flags = (uint8_t)(
+        flag_C_if(bit6 != 0u) |
+        flag_Z_if(result == 0u) |
+        (result & flag_N) |
+        flag_V_if(((bit6 >> 1u) ^ bit5) != 0u)
+        );
+
+    update_flags_cvzn(cpu, flags);
+    return result;
+}
+
+static inline uint8_t arr_decimal_nmos_value(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t result = arr_binary_value(cpu, value);
+    uint8_t adjusted = result;
+
+    if (((value & 0x0fu) + (value & 0x01u)) > 5u)
+    {
+        const uint8_t adjusted_low = (uint8_t)((adjusted + 0x06u) & 0x0fu);
+        adjusted = (uint8_t)((adjusted & 0xf0u) | adjusted_low);
+    }
+
+    if (((value & 0xf0u) + (value & 0x10u)) > 0x50u)
+    {
+        adjusted = (uint8_t)(adjusted + 0x60u);
+        cpu->P = (uint8_t)(cpu->P | flag_C);
+    }
+    else
+    {
+        cpu->P = (uint8_t)(cpu->P & (uint8_t)(~flag_C));
+    }
+
+    return adjusted;
+}
+
+static inline void arr_value(qe6502_t* cpu, uint8_t value)
+{
+    if ((cpu->P & flag_D) == 0u)
+    {
+        cpu->A = arr_binary_value(cpu, value);
+    }
+    else
+    {
+        cpu->A = arr_decimal_nmos_value(cpu, value);
+    }
 }
 
 static inline void adc_binary(qe6502_t* cpu, uint8_t value)
@@ -374,13 +434,42 @@ static inline void sbc_decimal_cmos(qe6502_t* cpu, uint8_t value)
 
 /* Microcode handlers. */
 
-/* illegal_handler; role=illegal; action=trap_on_cpu_error */
+/* illegal_handler; role=invalid; action=mark_tick_not_ok_and_hold_pc_read */
 static qe6502_tick_t op_error_trap(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    cpu->status = (uint8_t)(qe6502_status_trapped);
+    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);
     cpu->microcode--;
     return read(cpu, cpu->PC);
+}
+
+/* mnemonic_handler; role=kil; action=read_next_byte_and_enter_jammed_cpu_state */
+static qe6502_tick_t op_kil_jam_r_pc_pending_jam(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);
+    return read(cpu, cpu->PC);
+}
+
+/* shared_handler; role=kil_jam; action=read_jam_vector_high */
+static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+    return read(cpu, 0xffffu);
+}
+
+/* shared_handler; role=kil_jam; action=read_jam_vector_low */
+static qe6502_tick_t mc_kil_jam_read_fffe(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+    return read(cpu, 0xfffeu);
+}
+
+/* shared_handler; role=kil_jam; action=repeat_jammed_vector_high_read_forever */
+static qe6502_tick_t mc_kil_jam_read_ffff_loop(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->microcode--;
+    return mc_kil_jam_read_ffff(cpu, bus);
 }
 
 /* shared_handler; role=dispatch; action=consume_fetched_opcode_and_dispatch_to_opcode_class */
@@ -1028,6 +1117,16 @@ static qe6502_tick_t mc_w_indexed_probe(qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
+/* common_handler; role=unstable_store_indexed_probe_preserve_base_high; action=dummy_read_indexed_probe_and_preserve_base_high_for_unstable_store */
+static qe6502_tick_t mc_unstable_store_indexed_probe_preserve_base_high(qe6502_t* cpu, uint8_t bus)
+{
+    const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
+    qe6502_tick_t tick = read(cpu, address);
+    set_latch_addr1(cpu, bus);
+
+    return tick;
+}
+
 /* common_handler; role=read_zp_latch_x; action=dummy_read_zero_page_base_then_add_x_wraparound */
 static qe6502_tick_t mc_read_zp_latch_x(qe6502_t* cpu, uint8_t bus)
 {
@@ -1157,6 +1256,60 @@ static qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 {
     cpu->A = (uint8_t)(cpu->A & bus);
     update_flags_nz(cpu, cpu->A);
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_anc_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_anc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->A = (uint8_t)(cpu->A & bus);
+    update_flags_nzc(cpu, cpu->A, flag_C_if((cpu->A & flag_N) != 0u));
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_alr_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_alr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->A = lsr_value(cpu, (uint8_t)(cpu->A & bus));
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_arr_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    arr_value(cpu, (uint8_t)(cpu->A & bus));
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; model=nes; role=exec_fetch; action=execute_illegal_arr_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_nes_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->A = arr_binary_value(cpu, (uint8_t)(cpu->A & bus));
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_axs_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_axs_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    subtract_to_x(cpu, (uint8_t)(cpu->A & cpu->X), bus);
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_xaa_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_xaa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->A = (uint8_t)((cpu->A | 0xeeu) & cpu->X & bus);
+    update_flags_nz(cpu, cpu->A);
+    return mc_fetch(cpu, bus);
+}
+
+/* mnemonic_handler; role=exec_fetch; action=execute_illegal_lxa_immediate_and_fetch_next_opcode */
+static qe6502_tick_t op_lxa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+{
+    const uint8_t value = (uint8_t)((cpu->A | 0xeeu) & bus);
+    cpu->A = value;
+    cpu->X = value;
+    update_flags_nz(cpu, value);
     return mc_fetch(cpu, bus);
 }
 
@@ -1745,6 +1898,24 @@ static qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
     return read(cpu, cpu->PC);
 }
 
+/* common_helper; role=unstable_store; action=write_value_to_base_or_value_high_address */
+static inline qe6502_tick_t write_unstable_store(qe6502_t* cpu, uint8_t value)
+{
+    const uint8_t base_high = u16_get_byte(cpu->latch_addr, 1);
+    const uint8_t page_cross = cpu->latch_data;
+    const uint8_t write_high = (page_cross == 0u) ? base_high : value;
+    const uint16_t address = u16_set_byte(cpu->latch_addr, 1, write_high);
+
+    return write(cpu, address, value);
+}
+
+/* common_helper; role=unstable_store; action=compute_base_high_plus_one_mask */
+static inline uint8_t unstable_store_mask(qe6502_t* cpu)
+{
+    const uint8_t base_high = u16_get_byte(cpu->latch_addr, 1);
+    return (uint8_t)(base_high + 1u);
+}
+
 /* mnemonic_handler; role=exec_write; action=execute_write_mnemonic_and_emit_final_memory_write */
 static qe6502_tick_t op_sta_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
@@ -1831,6 +2002,68 @@ static qe6502_tick_t op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr(qe6502_t*
     }
 
     return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_sax_store_and_emit_final_memory_write */
+static qe6502_tick_t op_sax_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->A & cpu->X);
+    return write(cpu, cpu->latch_addr, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_sax_store_and_emit_final_memory_write */
+static qe6502_tick_t op_sax_w_ready_addrlo_pending_addrhi_wr(qe6502_t* cpu, uint8_t bus)
+{
+    const uint8_t value = (uint8_t)(cpu->A & cpu->X);
+    const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
+    return write(cpu, address, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_sax_store_and_emit_final_memory_write */
+static qe6502_tick_t op_sax_w_ready_none_pending_addrlo_wr(qe6502_t* cpu, uint8_t bus)
+{
+    const uint8_t value = (uint8_t)(cpu->A & cpu->X);
+    return write(cpu, (uint16_t)bus, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_ahx_unstable_store_and_emit_final_memory_write */
+static qe6502_tick_t op_ahx_unstable_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->A & cpu->X & unstable_store_mask(cpu));
+    return write_unstable_store(cpu, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_tas_unstable_store_and_emit_final_memory_write */
+static qe6502_tick_t op_tas_unstable_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t stack = (uint8_t)(cpu->A & cpu->X);
+    const uint8_t value = (uint8_t)(stack & unstable_store_mask(cpu));
+    cpu->S = stack;
+    return write_unstable_store(cpu, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_shy_unstable_store_and_emit_final_memory_write */
+static qe6502_tick_t op_shy_unstable_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->Y & unstable_store_mask(cpu));
+    return write_unstable_store(cpu, value);
+}
+
+/* mnemonic_handler; role=exec_write; action=execute_illegal_shx_unstable_store_and_emit_final_memory_write */
+static qe6502_tick_t op_shx_unstable_w_ready_addr_pending_none_wr(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    const uint8_t value = (uint8_t)(cpu->X & unstable_store_mask(cpu));
+    return write_unstable_store(cpu, value);
 }
 
 /* mnemonic_handler; role=exec_write; action=execute_write_mnemonic_and_emit_final_memory_write */

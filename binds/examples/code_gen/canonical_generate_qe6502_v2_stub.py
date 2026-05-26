@@ -250,7 +250,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
 
     if symbol == "op_error_trap":
         lines.append("    (void)bus;")
-        lines.append("    cpu->status = (uint8_t)(qe6502_status_trapped);")
+        lines.append("    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);")
         lines.append("    cpu->microcode = (uint16_t)(cpu->microcode - 1u);")
         lines.append("    return read(cpu, cpu->PC);")
 

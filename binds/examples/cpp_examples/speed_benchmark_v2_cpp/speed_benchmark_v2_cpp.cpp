@@ -124,12 +124,12 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
 
     cpu.reset();
 
-    while (!cpu.fetching() && !cpu.trapped()) {
+    while (!cpu.fetching() && cpu.tick_is_ok()) {
         tick_fast(cpu, memory.data());
         ticks++;
     }
 
-    if (cpu.trapped()) {
+    if (!cpu.tick_is_ok()) {
         if (visible) {
             print_result_line(test, "FAIL", 0.0);
         }
@@ -138,7 +138,7 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
         return false;
     }
 
-    while (!cpu.trapped()) {
+    while (cpu.tick_is_ok()) {
         if (cpu.address() == test.success_address) {
             const double elapsed = now_seconds() - started_at;
 
@@ -190,7 +190,7 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
         print_result_line(test, "FAIL", 0.0);
     }
 
-    std::fprintf(stderr, "CPU trapped with status: %u\n", static_cast<unsigned>(cpu.status()));
+    std::fprintf(stderr, "CPU tick_not_ok with status: %u\n", static_cast<unsigned>(cpu.status()));
     return false;
 }
 

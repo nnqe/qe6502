@@ -125,8 +125,8 @@ static const uint8_t qe6502_status_nmi_ack = (1u << 2);
 /* IRQ is acknowledged by the core on this tick. */
 static const uint8_t qe6502_status_irq_ack = (1u << 3);
 
-/* CPU trapped on an unsupported or invalid execution path. */
-static const uint8_t qe6502_status_trapped = (1u << 7);
+/* Tick cannot continue normal instruction execution. */
+static const uint8_t qe6502_status_tick_not_ok = (1u << 7);
 
 /* Microcode entry. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
