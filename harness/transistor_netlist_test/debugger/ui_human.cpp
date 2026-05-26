@@ -104,20 +104,153 @@ void print_registers_inline(FILE* output, const CpuRegisters& regs)
                        static_cast<unsigned>(regs.p));
 }
 
-void print_cpu_point(FILE* output, const char* title, const CpuPointView& point)
+void print_memory_context(FILE* output, const BusStateView& bus)
+{
+    if (bus.memory_data_valid)
+    {
+        (void)std::fprintf(output,
+                           "mem[%04X]=%02X",
+                           static_cast<unsigned>(bus.address),
+                           static_cast<unsigned>(bus.memory_data));
+    }
+    else
+    {
+        (void)std::fprintf(output,
+                           "mem[%04X]=??",
+                           static_cast<unsigned>(bus.address));
+    }
+}
+
+void print_cpu_input_bus(FILE* output, const BusStateView& bus)
+{
+    if (bus.read)
+    {
+        (void)std::fprintf(output,
+                           "R %04X -> %02X",
+                           static_cast<unsigned>(bus.address),
+                           static_cast<unsigned>(bus.data));
+    }
+    else
+    {
+        (void)std::fprintf(output,
+                           "W %04X",
+                           static_cast<unsigned>(bus.address));
+    }
+}
+
+std::uint8_t cpu_output_write_data(const BusStateView& cpu_output_bus, const BusStateView& next_cpu_input_bus)
+{
+    if (!next_cpu_input_bus.read && (next_cpu_input_bus.address == cpu_output_bus.address))
+    {
+        return next_cpu_input_bus.data;
+    }
+
+    return cpu_output_bus.data;
+}
+
+void print_cpu_output_bus(FILE* output,
+                          const BusStateView& bus,
+                          const BusStateView& next_cpu_input_bus)
+{
+    if (bus.read)
+    {
+        (void)std::fprintf(output,
+                           "R %04X -> pending",
+                           static_cast<unsigned>(bus.address));
+    }
+    else
+    {
+        const std::uint8_t write_data = cpu_output_write_data(bus, next_cpu_input_bus);
+        (void)std::fprintf(output,
+                           "W %04X <= %02X",
+                           static_cast<unsigned>(bus.address),
+                           static_cast<unsigned>(write_data));
+    }
+}
+
+void print_cpu_input_data(FILE* output, const BusStateView& bus)
+{
+    if (bus.read)
+    {
+        (void)std::fprintf(output, "%02X", static_cast<unsigned>(bus.data));
+    }
+    else
+    {
+        (void)std::fputs("none", output);
+    }
+}
+
+void print_cpu_output_address_and_data(FILE* output,
+                                       const BusStateView& bus,
+                                       const BusStateView& next_cpu_input_bus)
+{
+    if (bus.read)
+    {
+        (void)std::fprintf(output,
+                           "%04X|none",
+                           static_cast<unsigned>(bus.address));
+    }
+    else
+    {
+        const std::uint8_t write_data = cpu_output_write_data(bus, next_cpu_input_bus);
+        (void)std::fprintf(output,
+                           "%04X|%02X",
+                           static_cast<unsigned>(bus.address),
+                           static_cast<unsigned>(write_data));
+    }
+}
+
+void print_cpu_input_point(FILE* output, const char* title, const CpuPointView& point)
 {
     (void)std::fprintf(output, "%s\n", title);
 
-    (void)std::fputs("  bus:   ", output);
-    print_bus(output, point.bus);
+    (void)std::fputs("  bus:        ", output);
+    print_cpu_input_bus(output, point.bus);
     (void)std::fputc('\n', output);
 
-    (void)std::fputs("  regs:  ", output);
+    (void)std::fputs("  mem:        ", output);
+    print_memory_context(output, point.bus);
+    (void)std::fputc('\n', output);
+
+    (void)std::fputs("  input data: ", output);
+    print_cpu_input_data(output, point.bus);
+    (void)std::fputc('\n', output);
+
+    (void)std::fputs("  regs:       ", output);
     print_registers_inline(output, point.registers);
     (void)std::fputc('\n', output);
 
     (void)std::fprintf(output,
-                       "  inputs: irq=%s nmi=%s\n",
+                       "  inputs:     irq=%s nmi=%s\n",
+                       input_state_name(point.interrupt_inputs.irq_asserted),
+                       input_state_name(point.interrupt_inputs.nmi_asserted));
+}
+
+void print_cpu_output_point(FILE* output,
+                            const char* title,
+                            const CpuPointView& point,
+                            const CpuPointView& next_cpu_input)
+{
+    (void)std::fprintf(output, "%s\n", title);
+
+    (void)std::fputs("  bus:              ", output);
+    print_cpu_output_bus(output, point.bus, next_cpu_input.bus);
+    (void)std::fputc('\n', output);
+
+    (void)std::fputs("  mem:              ", output);
+    print_memory_context(output, point.bus);
+    (void)std::fputc('\n', output);
+
+    (void)std::fputs("  output addr|data: ", output);
+    print_cpu_output_address_and_data(output, point.bus, next_cpu_input.bus);
+    (void)std::fputc('\n', output);
+
+    (void)std::fputs("  regs:             ", output);
+    print_registers_inline(output, point.registers);
+    (void)std::fputc('\n', output);
+
+    (void)std::fprintf(output,
+                       "  inputs:           irq=%s nmi=%s\n",
                        input_state_name(point.interrupt_inputs.irq_asserted),
                        input_state_name(point.interrupt_inputs.nmi_asserted));
 }
@@ -191,9 +324,9 @@ void print_human_fullcycle_transition(FILE* output, const FullCycleTransitionVie
                        "cycle %llu completed\n",
                        static_cast<unsigned long long>(transition.cycle_number));
 
-    print_cpu_point(output, "cpu-in:", transition.cpu_input);
-    print_cpu_point(output, "cpu-out:", transition.cpu_output);
-    print_cpu_point(output, "next cpu-in:", transition.next_cpu_input);
+    print_cpu_input_point(output, "cpu-in:", transition.cpu_input);
+    print_cpu_output_point(output, "cpu-out:", transition.cpu_output, transition.next_cpu_input);
+    print_cpu_input_point(output, "next cpu-in:", transition.next_cpu_input);
 }
 
 void print_human_message(FILE* output, const char* message)

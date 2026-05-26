@@ -361,11 +361,8 @@ CpuPointView DebuggerCore::make_cpu_point(bool bus_served) const
     point.bus.data = machine_.read_data_bus();
     point.bus.read = machine_.is_read();
     point.bus.served = bus_served;
-    if (point.bus.read)
-    {
-        point.bus.memory_data = machine_.read_memory(point.bus.address);
-        point.bus.memory_data_valid = true;
-    }
+    point.bus.memory_data = machine_.read_memory(point.bus.address);
+    point.bus.memory_data_valid = true;
     point.interrupt_inputs = machine_.read_interrupt_inputs();
     return point;
 }

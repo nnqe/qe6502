@@ -103,7 +103,7 @@ private:
 
     PerfectMachine machine_;
     CycleCursor cursor_;
-    DebuggerCycleMode cycle_mode_ = DebuggerCycleMode::Halfcycle;
+    DebuggerCycleMode cycle_mode_ = DebuggerCycleMode::Fullcycle;
     std::deque<UndoPoint> undo_points_;
 };
 
