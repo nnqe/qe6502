@@ -3,6 +3,8 @@
 #include "bootstrap.hpp"
 #include "perfect_bridge.hpp"
 #include "setup_input.hpp"
+#include "ui_ai.hpp"
+#include "ui_human.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -16,17 +18,18 @@ constexpr std::uint16_t ProgramAddress = 0x0200u;
 constexpr std::uint16_t SnapshotMemoryProbe = 0x1234u;
 constexpr std::uint8_t InitialA = 0x41u;
 constexpr std::uint8_t ExpectedA = static_cast<std::uint8_t>(InitialA + 1u);
-constexpr std::uint8_t OriginalProbeValue = 0x5au;
+constexpr std::uint8_t OriginalProbeValue = 0xa6u;
 constexpr std::uint8_t MutatedProbeValue = 0xa5u;
 
 const char* increment_a_setup_text()
 {
     return
         "// setup parser smoke coverage\n"
-        "pc = 0x0200; a = 0x41; x = 4; x = 0x12; y = 52; s = 0xfd; "
+        "pc = 0x0200; a = 0x41; x = 4; x = -54; y = -0x4a; s = 0xfd; "
         "p = b00100100;\n"
         "mem[0x0200] = { 0xff, 0xff, 0xff, 0xff };\n"
-        "mem[0x0200] = { 0x18, 0x69, 0x01, 0xea }; // CLC; ADC #$01; NOP\n";
+        "mem[0x0200] = { 0x18, 0x69, 0x01, 0xea }; // CLC; ADC #$01; NOP\n"
+        "mem[0x1234] = -90; // signed single-byte memory write form\n";
 }
 
 bool parse_increment_setup(SetupInput& setup, std::string& error)
@@ -38,11 +41,11 @@ bool parse_increment_setup(SetupInput& setup, std::string& error)
 
     if ((setup.registers.pc != ProgramAddress) ||
         (setup.registers.a != InitialA) ||
-        (setup.registers.x != 0x12u) ||
-        (setup.registers.y != 0x34u) ||
+        (setup.registers.x != 0xcau) ||
+        (setup.registers.y != 0xb6u) ||
         (setup.registers.s != 0xfdu) ||
         (setup.registers.p != 0x24u) ||
-        (setup.memory_writes.size() != 2u))
+        (setup.memory_writes.size() != 3u))
     {
         error = "parsed setup state does not match the expected smoke-test setup";
         return false;
@@ -153,6 +156,15 @@ void print_failure(const char* test_name, const char* stage, const std::string& 
 }
 
 } // namespace
+
+bool test_help_output()
+{
+    (void)std::printf("perfect6502_debug temporary help output BEGIN\n");
+    print_human_help(stdout);
+    print_ai_help(stdout);
+    (void)std::printf("perfect6502_debug temporary help output END\n");
+    return true;
+}
 
 bool test_bootstrap()
 {

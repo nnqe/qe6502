@@ -170,11 +170,20 @@ private:
             return false;
         }
 
-        const std::uint32_t max_value = (name == "pc") ? WordMax : ByteMax;
         std::uint32_t value = 0u;
-        if (!parse_number(max_value, value, error))
+        if (name == "pc")
         {
-            return false;
+            if (!parse_word_value(value, error))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (!parse_byte_value(value, error))
+            {
+                return false;
+            }
         }
 
         if (name == "pc")
@@ -213,12 +222,12 @@ private:
         }
 
         std::uint32_t address = 0u;
-        if (!parse_number(WordMax, address, error))
+        if (!parse_word_value(address, error))
         {
             return false;
         }
 
-        if (!expect(']', error) || !expect('=', error) || !expect('{', error))
+        if (!expect(']', error) || !expect('=', error))
         {
             return false;
         }
@@ -226,6 +235,38 @@ private:
         MemoryWrite write;
         write.address = static_cast<std::uint16_t>(address);
 
+        skip_space();
+        if (consume('{'))
+        {
+            if (!parse_memory_byte_list(write, error))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            std::uint32_t byte_value = 0u;
+            if (!parse_byte_value(byte_value, error))
+            {
+                return false;
+            }
+
+            write.bytes.push_back(static_cast<std::uint8_t>(byte_value));
+        }
+
+        const std::uint32_t bytes_available = AddressSpaceSize - address;
+        if (write.bytes.size() > bytes_available)
+        {
+            error_here(error, "memory write crosses the end of the 64K address space");
+            return false;
+        }
+
+        setup.memory_writes.push_back(write);
+        return true;
+    }
+
+    bool parse_memory_byte_list(MemoryWrite& write, std::string& error)
+    {
         skip_space();
         if (peek() == '}')
         {
@@ -236,7 +277,7 @@ private:
         while (true)
         {
             std::uint32_t byte_value = 0u;
-            if (!parse_number(ByteMax, byte_value, error))
+            if (!parse_byte_value(byte_value, error))
             {
                 return false;
             }
@@ -252,26 +293,44 @@ private:
             break;
         }
 
-        if (!expect('}', error))
-        {
-            return false;
-        }
-
-        const std::uint32_t bytes_available = AddressSpaceSize - address;
-        if (write.bytes.size() > bytes_available)
-        {
-            error_here(error, "memory write crosses the end of the 64K address space");
-            return false;
-        }
-
-        setup.memory_writes.push_back(write);
-        return true;
+        return expect('}', error);
     }
 
-    bool parse_number(std::uint32_t max_value, std::uint32_t& value, std::string& error)
+    bool parse_word_value(std::uint32_t& value, std::string& error)
+    {
+        return parse_unsigned_number(WordMax, value, error);
+    }
+
+    bool parse_byte_value(std::uint32_t& value, std::string& error)
     {
         skip_space();
 
+        const bool negative = consume('-');
+        const std::uint32_t max_magnitude = negative ? 0x80u : ByteMax;
+
+        std::uint32_t magnitude = 0u;
+        if (!parse_unsigned_number(max_magnitude, magnitude, error))
+        {
+            return false;
+        }
+
+        if (negative)
+        {
+            value = static_cast<std::uint32_t>((0x100u - magnitude) & ByteMax);
+        }
+        else
+        {
+            value = magnitude;
+        }
+
+        return true;
+    }
+
+    bool parse_unsigned_number(std::uint32_t max_value, std::uint32_t& value, std::string& error)
+    {
+        skip_space();
+
+        value = 0u;
         std::uint32_t base = 10u;
         std::size_t first_digit = pos_;
 

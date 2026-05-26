@@ -3,6 +3,8 @@
 extern "C"
 {
 #include "../third_party/perfect6502/perfect6502.h"
+#include "../third_party/perfect6502/types.h"
+#include "../third_party/perfect6502/netlist_sim.h"
 }
 
 #include <algorithm>
@@ -14,6 +16,18 @@ namespace perfect6502_debug
 namespace
 {
 constexpr std::size_t MemorySize = 65536u;
+constexpr nodenum_t IrqNode = 103;
+constexpr nodenum_t NmiNode = 1297;
+
+bool is_active_low_node_asserted(void* cpu, nodenum_t node)
+{
+    return isNodeHigh(static_cast<state_t*>(cpu), node) == 0;
+}
+
+void set_active_low_node_asserted(void* cpu, nodenum_t node, bool asserted)
+{
+    setNode(static_cast<state_t*>(cpu), node, asserted ? 0 : 1);
+}
 }
 
 PerfectSnapshot::PerfectSnapshot(void* snapshot) :
@@ -176,6 +190,24 @@ bool PerfectMachine::is_read() const
 std::uint64_t PerfectMachine::half_cycle() const
 {
     return static_cast<std::uint64_t>(cycle);
+}
+
+InterruptInputs PerfectMachine::read_interrupt_inputs() const
+{
+    InterruptInputs inputs;
+    inputs.irq_asserted = is_active_low_node_asserted(cpu_, IrqNode);
+    inputs.nmi_asserted = is_active_low_node_asserted(cpu_, NmiNode);
+    return inputs;
+}
+
+void PerfectMachine::set_irq_asserted(bool asserted)
+{
+    set_active_low_node_asserted(cpu_, IrqNode, asserted);
+}
+
+void PerfectMachine::set_nmi_asserted(bool asserted)
+{
+    set_active_low_node_asserted(cpu_, NmiNode, asserted);
 }
 
 std::uint8_t PerfectMachine::read_memory(std::uint16_t address) const

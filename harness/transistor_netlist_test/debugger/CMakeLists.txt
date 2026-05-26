@@ -2,7 +2,14 @@ set(target perfect6502_debug)
 
 add_executable(${target}
     main.cpp
+    command_loop.cpp
+    command_input.cpp
+    debugger_core.cpp
+    cycle_cursor.cpp
     temporary_tests.cpp
+    ui_human.cpp
+    ui_ai.cpp
+    help_text.cpp
     setup_input.cpp
     perfect_bridge.cpp
     bootstrap.cpp

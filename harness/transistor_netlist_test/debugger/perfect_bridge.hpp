@@ -18,6 +18,12 @@ struct CpuRegisters
     std::uint8_t ir = 0u;
 };
 
+struct InterruptInputs
+{
+    bool irq_asserted = false;
+    bool nmi_asserted = false;
+};
+
 class PerfectSnapshot
 {
 public:
@@ -66,6 +72,10 @@ public:
     std::uint8_t read_data_bus() const;
     bool is_read() const;
     std::uint64_t half_cycle() const;
+
+    InterruptInputs read_interrupt_inputs() const;
+    void set_irq_asserted(bool asserted);
+    void set_nmi_asserted(bool asserted);
 
     std::uint8_t read_memory(std::uint16_t address) const;
     void write_memory(std::uint16_t address, std::uint8_t value);

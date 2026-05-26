@@ -4,6 +4,7 @@
 namespace perfect6502_debug
 {
 
+bool test_help_output();
 bool test_bootstrap();
 bool test_snapshot_restore();
 
