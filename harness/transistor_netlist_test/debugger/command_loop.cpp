@@ -87,6 +87,14 @@ bool execute_command(DebuggerCore& debugger, const DebugCommand& command)
             return true;
         }
 
+        /*
+            Scripted runs do not echo the command line, so the prompt text remains
+            on stdout without a trailing newline. Trace output is meant to be parsed
+            mechanically, with each record starting at column zero. Emit one separator
+            newline before the first trace record so every trace line starts with "cy=".
+        */
+        print_human_message(stdout, "");
+
         for (const FullCycleTransitionView& transition : transitions)
         {
             print_ai_fullcycle_trace_line(stdout, transition);
