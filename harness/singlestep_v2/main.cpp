@@ -132,6 +132,20 @@ bool is_documented_6502_opcode(std::uint8_t opcode)
     }
 }
 
+bool is_nmos6502_testable_illegal_opcode(std::uint8_t opcode)
+{
+    switch (opcode) {
+    case 0x04: case 0x0c: case 0x14: case 0x1a:
+    case 0x34: case 0x3a: case 0x44: case 0x54: case 0x5a: case 0x64:
+    case 0x74: case 0x7a:
+    case 0xa3: case 0xa7: case 0xaf: case 0xb3: case 0xb7: case 0xbf:
+    case 0xd4: case 0xda: case 0xf4: case 0xfa:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool is_wdc65c02_opcode(std::uint8_t opcode)
 {
     if (is_documented_6502_opcode(opcode)) {
@@ -193,7 +207,7 @@ bool is_testable_opcode(qe6502::model model, std::uint8_t opcode)
     switch (model) {
     case qe6502::model::nmos:
     case qe6502::model::nes:
-        return is_documented_6502_opcode(opcode);
+        return is_documented_6502_opcode(opcode) || is_nmos6502_testable_illegal_opcode(opcode);
     case qe6502::model::wdc:
         return is_wdc65c02_opcode(opcode);
     case qe6502::model::rw:
