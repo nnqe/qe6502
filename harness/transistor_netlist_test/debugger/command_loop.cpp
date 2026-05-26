@@ -72,6 +72,29 @@ bool execute_command(DebuggerCore& debugger, const DebugCommand& command)
         return true;
     }
 
+    case CommandKind::Trace:
+    {
+        if (debugger.cycle_mode() != DebuggerCycleMode::Fullcycle)
+        {
+            print_human_error(stderr, "trace requires fullcycle mode on");
+            return true;
+        }
+
+        std::vector<FullCycleTransitionView> transitions;
+        if (!debugger.step_full_cycles(command.count, transitions, error))
+        {
+            print_human_error(stderr, error.c_str());
+            return true;
+        }
+
+        for (const FullCycleTransitionView& transition : transitions)
+        {
+            print_ai_fullcycle_trace_line(stdout, transition);
+        }
+
+        return true;
+    }
+
     case CommandKind::Undo:
         if (!debugger.undo(command.count, error))
         {

@@ -13,6 +13,7 @@ enum class CommandKind
     Help,
     Half,
     Cycle,
+    Trace,
     Undo,
     Irq,
     Nmi,

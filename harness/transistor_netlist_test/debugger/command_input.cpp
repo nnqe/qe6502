@@ -215,6 +215,13 @@ bool parse_debug_command(const std::string& line, DebugCommand& command, std::st
         return parse_count(input, command.count, error);
     }
 
+    if ((word == "t") || (word == "trace"))
+    {
+        command.kind = CommandKind::Trace;
+        command.repeatable = true;
+        return parse_count(input, command.count, error);
+    }
+
     if ((word == "u") || (word == "undo"))
     {
         command.kind = CommandKind::Undo;
