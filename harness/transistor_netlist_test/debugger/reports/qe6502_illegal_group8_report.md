@@ -127,13 +127,13 @@ This applies to the tested KIL/JAM behavior and matches the conclusion that thes
 
 # Implementation guidance for qe6502_v2
 
-These opcodes should be implemented as a special trapped/jammed state.
+These opcodes should be implemented as a special jammed state.
 
 Recommended model:
 
 ```text
 on KIL/JAM opcode:
-    enter trapped/jammed CPU state
+    enter jammed CPU state
     do not continue normal opcode dispatch
     do not complete as a normal instruction
     do not accept IRQ/NMI as a normal escape path
@@ -155,12 +155,12 @@ The `11` from SingleStepTests is only the length of the recorded observation win
 
 # Bus behavior to emulate
 
-If qe6502_v2 needs to provide cycle-level bus behavior while trapped, the observed KIL/JAM bus pattern should be matched as far as the test harness requires.
+If qe6502_v2 needs to provide cycle-level bus behavior while jammed, the observed KIL/JAM bus pattern should be matched as far as the test harness requires.
 
 Minimum implementation requirement:
 
 ```text
-the CPU enters trapped state and does not fetch/execute further opcodes normally
+the CPU enters jammed state and does not fetch/execute further opcodes normally
 ```
 
 Stronger cycle-observable behavior:

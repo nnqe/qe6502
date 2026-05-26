@@ -124,21 +124,13 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
 
     cpu.reset();
 
-    while (!cpu.fetching() && cpu.tick_is_ok()) {
+    while (!cpu.fetching()) {
         tick_fast(cpu, memory.data());
         ticks++;
     }
 
-    if (!cpu.tick_is_ok()) {
-        if (visible) {
-            print_result_line(test, "FAIL", 0.0);
-        }
 
-        std::fprintf(stderr, "CPU boot error\n");
-        return false;
-    }
-
-    while (cpu.tick_is_ok()) {
+    for (;;) {
         if (cpu.address() == test.success_address) {
             const double elapsed = now_seconds() - started_at;
 
@@ -186,12 +178,6 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
         }
     }
 
-    if (visible) {
-        print_result_line(test, "FAIL", 0.0);
-    }
-
-    std::fprintf(stderr, "CPU tick_not_ok with status: %u\n", static_cast<unsigned>(cpu.status()));
-    return false;
 }
 
 bool run_stage(const char* title, const test_case* const* tests, std::size_t test_count)

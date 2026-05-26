@@ -178,14 +178,7 @@ def validate(opcodes: dict[str, Any], classes: dict[str, Any]) -> None:
 
 
 def collect_symbols(opcodes: dict[str, Any], classes: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    symbols: dict[str, dict[str, Any]] = {
-        "op_error_trap": {
-            "handler_kind": "illegal_handler",
-            "role": "illegal",
-            "action": "trap_on_cpu_error",
-            "terminal_contract": {"ready": "none", "pending": "none"},
-        }
-    }
+    symbols: dict[str, dict[str, Any]] = {}
 
     for opcode in documented_opcodes(opcodes).values():
         for cycle in resolve_opcode_cycles(opcode, classes):
@@ -248,13 +241,7 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
     lines.append(f"static qe6502_tick_t {symbol}(qe6502_t* cpu, uint8_t bus)")
     lines.append("{")
 
-    if symbol == "op_error_trap":
-        lines.append("    (void)bus;")
-        lines.append("    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);")
-        lines.append("    cpu->microcode = (uint16_t)(cpu->microcode - 1u);")
-        lines.append("    return read(cpu, cpu->PC);")
-
-    elif symbol == "mc_dispatch":
+    if symbol == "mc_dispatch":
         lines.append("    cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));")
         lines.append("    cpu->PC = (uint16_t)(cpu->PC + 1u);")
         lines.append("    return qe6502_control_store[cpu->microcode](cpu, bus);")
@@ -352,8 +339,6 @@ def emit_function(symbol: str, meta: dict[str, Any]) -> str:
 
 
 def sort_key(symbol: str) -> tuple[int, str]:
-    if symbol == "op_error_trap":
-        return (0, symbol)
     if symbol in {"mc_fetch", "mc_fetch_no_interrupts", "mc_dispatch"}:
         return (1, symbol)
     if symbol.startswith("mc_"):
@@ -362,10 +347,7 @@ def sort_key(symbol: str) -> tuple[int, str]:
 
 
 def control_store_symbols_for_opcode(opcode: dict[str, Any], classes: dict[str, Any]) -> list[str]:
-    symbols = [cycle["symbol"] for cycle in resolve_opcode_cycles(opcode, classes)]
-    while len(symbols) < CYCLES_PER_SLOT:
-        symbols.append("op_error_trap")
-    return symbols
+    return [cycle["symbol"] for cycle in resolve_opcode_cycles(opcode, classes)]
 
 
 def emit_control_store(opcodes: dict[str, Any], classes: dict[str, Any]) -> str:
@@ -382,8 +364,7 @@ def emit_control_store(opcodes: dict[str, Any], classes: dict[str, Any]) -> str:
             title = f"{code} {opcode['syntax']} ; class={opcode['class']}"
             symbols = control_store_symbols_for_opcode(opcode, classes)
         else:
-            title = f"{code} undocumented/illegal"
-            symbols = ["op_error_trap"] * CYCLES_PER_SLOT
+            continue
 
         lines.append(f"        /* {title} */")
         for cycle, symbol in enumerate(symbols):
@@ -430,7 +411,7 @@ def write_report(c_text: str, report_path: Path) -> None:
     function_defs = re.findall(r"^static\s+qe6502_tick_t\s+(\w+)\(", c_text, re.M)
     control_store_refs = re.findall(r"= &(\w+),", c_text)
     legacy_refs = sorted({s for s in function_defs + control_store_refs if LEGACY_OP_SYMBOL_RE.match(s)})
-    missing_defs = sorted({s for s in control_store_refs if s not in function_defs and s != "op_error_trap"})
+    missing_defs = sorted({s for s in control_store_refs if s not in function_defs and True})
 
     report = {
         "function_count": len(function_defs),

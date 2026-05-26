@@ -325,7 +325,7 @@ std::uint32_t count_legal_prefix_match(const InvestigationRun& run, std::uint8_t
 
         ++matched;
 
-        if (cpu.fetching() || !cpu.tick_is_ok())
+        if (cpu.fetching())
         {
             break;
         }

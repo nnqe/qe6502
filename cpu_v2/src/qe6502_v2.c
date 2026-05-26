@@ -434,21 +434,20 @@ static inline void sbc_decimal_cmos(qe6502_t* cpu, uint8_t value)
 
 /* Microcode handlers. */
 
-/* illegal_handler; role=invalid; action=mark_tick_not_ok_and_hold_pc_read */
-static qe6502_tick_t op_error_trap(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);
-    cpu->microcode--;
-    return read(cpu, cpu->PC);
-}
-
-/* mnemonic_handler; role=kil; action=read_next_byte_and_enter_jammed_cpu_state */
+/* mnemonic_handler; role=kil_jam; action=read_next_byte_before_jammed_cpu_state */
 static qe6502_tick_t op_kil_jam_r_pc_pending_jam(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
-    cpu->status = (uint8_t)(qe6502_status_tick_not_ok);
     return read(cpu, cpu->PC);
+}
+
+static inline qe6502_tick_t read_cpu_jammed(qe6502_t* cpu)
+{
+    return (qe6502_tick_t){
+        .address = 0xffffu,
+        .bus = 0xffu,
+        .status = (uint8_t)((cpu->status & (~qe6502_status_writing)) | qe6502_status_cpu_jammed)
+    };
 }
 
 /* shared_handler; role=kil_jam; action=read_jam_vector_high */
@@ -466,10 +465,12 @@ static qe6502_tick_t mc_kil_jam_read_fffe(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=kil_jam; action=repeat_jammed_vector_high_read_forever */
-static qe6502_tick_t mc_kil_jam_read_ffff_loop(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
 {
+    (void)bus;
+    cpu->status = (uint8_t)(cpu->status | qe6502_status_cpu_jammed);
     cpu->microcode--;
-    return mc_kil_jam_read_ffff(cpu, bus);
+    return read_cpu_jammed(cpu);
 }
 
 /* shared_handler; role=dispatch; action=consume_fetched_opcode_and_dispatch_to_opcode_class */

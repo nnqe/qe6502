@@ -69,10 +69,6 @@ public:
         return (tick_.status & qe6502_status_opcode_fetch) != 0u;
     }
 
-    bool tick_is_ok() const noexcept
-    {
-        return (tick_.status & qe6502_status_tick_not_ok) == 0u;
-    }
 
     model active_model() const noexcept
     {

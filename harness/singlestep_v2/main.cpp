@@ -328,7 +328,7 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
 
     std::size_t cycle_index = 0u;
     const std::size_t cycles_to_run = compare_cycles ? cycles.size() : static_cast<std::size_t>(0u);
-    while (compare_cycles ? (cycle_index < cycles_to_run) : cpu.tick_is_ok()) {
+    while (compare_cycles ? (cycle_index < cycles_to_run) : true) {
         if (compare_cycles) {
             const nlohmann::json& expected_cycle = cycles.at(cycle_index);
             const std::uint16_t expected_address = json_u16(expected_cycle.at(0u));
@@ -361,12 +361,12 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
         if (!compare_cycles && cpu.fetching()) {
             break;
         }
+        if (!compare_cycles && cycle_index > 32u) {
+            std::fprintf(stderr, "%s: instruction cycle limit exceeded\n", name.c_str());
+            return false;
+        }
     }
 
-    if (!compare_cycles && !cpu.tick_is_ok()) {
-        std::fprintf(stderr, "%s: CPU tick is not OK\n", name.c_str());
-        return false;
-    }
     if (!compare_final_state(cpu, memory, final)) {
         std::fprintf(stderr, "%s: final state mismatch\n", name.c_str());
         return false;

@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 
-static uint8_t tick_is_ok(qe6502_tick_t tick)
-{
-    return (uint8_t)((tick.status & qe6502_status_tick_not_ok) == 0u);
-}
-
 static uint8_t tick_is_write(qe6502_tick_t tick)
 {
     return (uint8_t)((tick.status & qe6502_status_writing) != 0u);
@@ -45,7 +40,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
 
     qe6502_tick_t tick = qe6502_reset(cpu_ptr);
 
-    while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick))
+    while (!tick_is_opcode_fetch(tick))
     {
         const uint8_t data = tick_bus_data(tick, memory);
         if (tick_is_write(tick))
@@ -55,15 +50,11 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
         tick = qe6502_tick(cpu_ptr, data);
     }
 
-    if (!tick_is_ok(tick))
-    {
-        return "CPU boot error";
-    }
 
     uint64_t cycles = 0;
     const char* result_msg = "CPU Error";
 
-    while (tick_is_ok(tick))
+    for (;;)
     {
         uint8_t data = tick_bus_data(tick, memory);
 

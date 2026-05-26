@@ -13,7 +13,6 @@ nmos	0	mc_izx_read_ptrlo_inc_ptr	01	2	000A	000A
 nmos	0	mc_latch_data_read_latch_addr	01	3	000B	000B
 nmos	0	mc_r_izx_c4_data_no_latch	01	4	000C	000C
 nmos	0	op_ora_r_ready_none_pending_data_fetch	01	5	000D	000D
-nmos	0	op_error_trap	01	7	000F	000F
 nmos	0	mc_r_zp_c1_data	05	1	0029	0029
 nmos	0	mc_latch_addr0_read_latch_addr	06	1	0031	0031
 nmos	0	mc_latch_data_write_latch_addr	06	2	0032	0032
@@ -121,7 +120,6 @@ nes	1	mc_izx_read_ptrlo_inc_ptr	01	2	000A	100A
 nes	1	mc_latch_data_read_latch_addr	01	3	000B	100B
 nes	1	mc_r_izx_c4_data_no_latch	01	4	000C	100C
 nes	1	op_ora_r_ready_none_pending_data_fetch	01	5	000D	100D
-nes	1	op_error_trap	01	7	000F	100F
 nes	1	mc_r_zp_c1_data	05	1	0029	1029
 nes	1	mc_latch_addr0_read_latch_addr	06	1	0031	1031
 nes	1	mc_latch_data_write_latch_addr	06	2	0032	1032
@@ -229,7 +227,6 @@ wdc	2	mc_izx_read_ptrlo_inc_ptr	01	2	000A	200A
 wdc	2	mc_latch_data_read_latch_addr	01	3	000B	200B
 wdc	2	mc_r_izx_c4_data_no_latch	01	4	000C	200C
 wdc	2	op_ora_r_ready_none_pending_data_fetch	01	5	000D	200D
-wdc	2	op_error_trap	01	7	000F	200F
 wdc	2	mc_fetch	02	1	0011	2011
 wdc	2	mc_latch_addr0_read_latch_addr	04	1	0021	2021
 wdc	2	op_cmos_tsb_rw_ready_addr_data_pending_none_wr	04	3	0023	2023
@@ -362,7 +359,6 @@ rw	3	mc_izx_read_ptrlo_inc_ptr	01	2	000A	300A
 rw	3	mc_latch_data_read_latch_addr	01	3	000B	300B
 rw	3	mc_r_izx_c4_data_no_latch	01	4	000C	300C
 rw	3	op_ora_r_ready_none_pending_data_fetch	01	5	000D	300D
-rw	3	op_error_trap	01	7	000F	300F
 rw	3	mc_fetch	02	1	0011	3011
 rw	3	mc_latch_addr0_read_latch_addr	04	1	0021	3021
 rw	3	op_cmos_tsb_rw_ready_addr_data_pending_none_wr	04	3	0023	3023
@@ -495,7 +491,6 @@ st	4	mc_izx_read_ptrlo_inc_ptr	01	2	000A	400A
 st	4	mc_latch_data_read_latch_addr	01	3	000B	400B
 st	4	mc_r_izx_c4_data_no_latch	01	4	000C	400C
 st	4	op_ora_r_ready_none_pending_data_fetch	01	5	000D	400D
-st	4	op_error_trap	01	7	000F	400F
 st	4	mc_fetch	02	1	0011	4011
 st	4	mc_latch_addr0_read_latch_addr	04	1	0021	4021
 st	4	op_cmos_tsb_rw_ready_addr_data_pending_none_wr	04	3	0023	4023

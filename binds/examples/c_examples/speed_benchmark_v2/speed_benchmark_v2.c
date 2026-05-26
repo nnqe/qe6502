@@ -86,10 +86,6 @@ static double now_seconds(void) {
 #endif
 }
 
-static uint8_t tick_is_ok(qe6502_tick_t tick) {
-    return (uint8_t)((tick.status & qe6502_status_tick_not_ok) == 0u);
-}
-
 static uint8_t tick_is_write(qe6502_tick_t tick) {
     return (uint8_t)((tick.status & qe6502_status_writing) != 0u);
 }
@@ -150,21 +146,13 @@ static int run_test(const test_case_t* test, test_result_t* out_result, uint8_t 
 
     tick = qe6502_reset(&cpu);
 
-    while (!tick_is_opcode_fetch(tick) && tick_is_ok(tick)) {
+    while (!tick_is_opcode_fetch(tick)) {
         tick_fast(&cpu, memory, &tick);
         ticks++;
     }
 
-    if (!tick_is_ok(tick)) {
-        if (visible) {
-            print_result_line(test, "FAIL", 0.0);
-        }
 
-        fprintf(stderr, "CPU boot error\n");
-        return 0;
-    }
-
-    while (tick_is_ok(tick)) {
+    for (;;) {
         if (tick.address == test->success_address) {
             elapsed = now_seconds() - started_at;
 
@@ -212,12 +200,6 @@ static int run_test(const test_case_t* test, test_result_t* out_result, uint8_t 
         }
     }
 
-    if (visible) {
-        print_result_line(test, "FAIL", 0.0);
-    }
-
-    fprintf(stderr, "CPU tick_not_ok with status: %u\n", (unsigned)tick.status);
-    return 0;
 }
 
 static int run_stage(const char* title, const test_case_t* const* tests, size_t test_count) {
