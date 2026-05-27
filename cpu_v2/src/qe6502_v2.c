@@ -3170,8 +3170,12 @@ qe6502_tick_t qe6502_restart(qe6502_t *cpu)
 
     *cpu = (qe6502_t){0};
     cpu->model = model;
+    cpu->PC = 0x00ffu;
+    cpu->S = 0xc0u;
+    cpu->X = 0xc0u;
+    cpu->P = qe6502_flag_Z;
     enter_service_slot(cpu, service_slot_reset_0);
-    return qe6502_tick(cpu, 0u);
+    return (qe6502_tick_t){0x00ffu, 0u, 0u};
 }
 
 qe6502_tick_t qe6502_reset(qe6502_t *cpu)
