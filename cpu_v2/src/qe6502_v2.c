@@ -434,19 +434,11 @@ static inline void sbc_decimal_cmos(qe6502_t* cpu, uint8_t value)
 
 /* Microcode handlers. */
 
-static inline qe6502_tick_t read_cpu_jammed(qe6502_t* cpu)
-{
-    return (qe6502_tick_t){
-        .address = 0xffffu,
-        .bus = 0xffu,
-        .status = (uint8_t)((cpu->status & (~qe6502_status_writing)) | qe6502_status_cpu_jammed)
-    };
-}
-
 /* shared_handler; role=kil_jam; action=read_jam_vector_high */
 static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
+
     return read(cpu, 0xffffu);
 }
 
@@ -454,6 +446,7 @@ static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t mc_kil_jam_read_fffe(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
+
     return read(cpu, 0xfffeu);
 }
 
@@ -461,9 +454,15 @@ static qe6502_tick_t mc_kil_jam_read_fffe(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
+
     cpu->status = (uint8_t)(cpu->status | qe6502_status_cpu_jammed);
     cpu->microcode--;
-    return read_cpu_jammed(cpu);
+
+    return (qe6502_tick_t){
+        .address = 0xffffu,
+        .bus = 0xffu,
+        .status = (uint8_t)((cpu->status & (~qe6502_status_writing)) | qe6502_status_cpu_jammed)
+    };
 }
 
 /* shared_handler; role=dispatch; action=consume_fetched_opcode_and_dispatch_to_opcode_class */
