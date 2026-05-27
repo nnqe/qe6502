@@ -24,6 +24,10 @@ inline constexpr std::uint8_t flag_un = qe6502_flag_UN;
 inline constexpr std::uint8_t flag_v  = qe6502_flag_V;
 inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 
+inline constexpr std::uint8_t interrupt_nmi_edge_latch   = qe6502_interrupt_nmi_edge_latch;
+inline constexpr std::uint8_t interrupt_inverted_irq_pin   = qe6502_interrupt_inverted_irq_pin;
+inline constexpr std::uint8_t interrupt_inverted_nmi_pin   = qe6502_interrupt_inverted_nmi_pin;
+
 class cpu {
 public:
     constexpr cpu() = default;
@@ -35,6 +39,11 @@ public:
         cpu_.model = static_cast<std::uint8_t>(cpu_model);
     }
 
+    void restart() noexcept
+    {
+        tick_ = qe6502_restart(&cpu_);
+    }
+
     void reset() noexcept
     {
         tick_ = qe6502_reset(&cpu_);
@@ -43,6 +52,31 @@ public:
     void go_to(std::uint16_t address) noexcept
     {
         tick_ = qe6502_goto(&cpu_, address);
+    }
+
+    void set_irq(std::uint8_t pin) noexcept
+    {
+        qe6502_set_irq(&cpu_, pin);
+    }
+
+    std::uint8_t get_irq() const noexcept
+    {
+        return qe6502_get_irq(&cpu_);
+    }
+
+    void set_nmi(std::uint8_t pin) noexcept
+    {
+        qe6502_set_nmi(&cpu_, pin);
+    }
+
+    std::uint8_t get_nmi() const noexcept
+    {
+        return qe6502_get_nmi(&cpu_);
+    }
+
+    void toggle_nmi() noexcept
+    {
+        qe6502_toggle_nmi(&cpu_);
     }
 
     void step(std::uint8_t bus) noexcept

@@ -122,7 +122,7 @@ bool run_test(const test_case& test, test_result& out_result, bool visible)
 
     const double started_at = now_seconds();
 
-    cpu.reset();
+    cpu.restart();
 
     while (!cpu.fetching()) {
         tick_fast(cpu, memory.data());

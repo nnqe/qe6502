@@ -144,7 +144,7 @@ static int run_test(const test_case_t* test, test_result_t* out_result, uint8_t 
 
     started_at = now_seconds();
 
-    tick = qe6502_reset(&cpu);
+    tick = qe6502_restart(&cpu);
 
     while (!tick_is_opcode_fetch(tick)) {
         tick_fast(&cpu, memory, &tick);
