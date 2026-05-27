@@ -33,7 +33,7 @@
         [IDX(qe6502_model_nes, 0x00, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nes, 0x00, 1)] = &mc_stack_push_pc_high,
         [IDX(qe6502_model_nes, 0x00, 2)] = &mc_stack_push_pc_low,
-        [IDX(qe6502_model_nes, 0x00, 3)] = &mc_brk_c3_push_p,
+        [IDX(qe6502_model_nes, 0x00, 3)] = &mc_nmos_brk_c3_push_p,
         [IDX(qe6502_model_nes, 0x00, 4)] = &mc_brk_c4_vec_lo,
         [IDX(qe6502_model_nes, 0x00, 5)] = &mc_brk_c5_vec_hi,
         [IDX(qe6502_model_nes, 0x00, 6)] = &mc_latch_pch_interrupt_fetch,

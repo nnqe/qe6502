@@ -55,9 +55,8 @@ typedef enum service_slot
 QE6502_STATIC_ASSERT((unsigned int)service_slot_count_used <= service_slot_count,
                  "service slot index space overflow");
 
-static const uint8_t interrupt_accepted_nmi  = (1u << 0);
-static const uint8_t interrupt_accepted_irq  = (1u << 1);
-static const uint8_t interrupt_accepted_mask = (uint8_t)(interrupt_accepted_nmi | interrupt_accepted_irq);
+
+static const uint8_t interrupt_accepted_mask = (uint8_t)(qe6502_interrupt_accepted_nmi | qe6502_interrupt_accepted_irq);
 
 #define IDX(model, slot, cycle) ((((model) & 0x0Fu) << 12u) + (((slot) & 0x1FFu) << 3u) + (cycle))
 #define SERVICE_SLOT_IDX(model, service, cycle) IDX((model), (service_slot_base + (service)), (cycle))
@@ -121,27 +120,47 @@ static inline qe6502_tick_t opcode_fetch(const qe6502_t* cpu, uint8_t bus)
 static inline qe6502_tick_t handle_interrupts(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t interrupts = cpu->interrupts;
-    uint8_t status;
+    uint8_t status = 0;
 
-    if ((interrupts & interrupt_accepted_nmi) != 0u)
+    if ((interrupts & qe6502_interrupt_accepted_nmi) != 0u)
     {
         cpu->latch_addr = 0xfffau;
         cpu->interrupts = (uint8_t)(interrupts &
             (uint8_t)(~(interrupt_accepted_mask | qe6502_interrupt_nmi_edge_latch)));
         status = qe6502_status_nmi_ack;
     }
-    else
+    else if ((cpu->P & flag_I) == 0u)
     {
         cpu->latch_addr = 0xfffeu;
-        cpu->interrupts = (uint8_t)(interrupts & (uint8_t)(~interrupt_accepted_irq));
+        cpu->interrupts = (uint8_t)(interrupts & (uint8_t)(~qe6502_interrupt_accepted_irq));
         status = qe6502_status_irq_ack;
     }
 
-    cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 0u) - 1u);
+    if (status != 0u)
+    {
+        cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 0u) - 1u);
+    }
 
     qe6502_tick_t tick = opcode_fetch(cpu, bus);
     tick.status = (uint8_t)(tick.status | status);
     return tick;
+}
+
+static inline void handle_brk_hijack(qe6502_t* cpu)
+{
+    if ((cpu->interrupts & interrupt_accepted_mask) == 0u)
+    {
+        return;
+    }
+    if ((cpu->interrupts & qe6502_interrupt_accepted_nmi) != 0u)
+    {
+        cpu->latch_addr = 0xfffau;
+    }
+    else if ((cpu->P & flag_I) == 0u)
+    {
+        cpu->latch_addr = 0xfffeu;
+    }
+    cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 4u) - 1u);
 }
 
 static inline qe6502_tick_t fetch(qe6502_t* cpu, uint8_t bus)
@@ -177,13 +196,7 @@ static inline qe6502_tick_t stack_read(qe6502_t* cpu)
 static inline void sample_interrupts(qe6502_t* cpu)
 {
     const uint8_t interrupts = cpu->interrupts;
-    uint8_t accepted = (uint8_t)((interrupts >> 5u) & interrupt_accepted_nmi);
-
-    if ((cpu->P & flag_I) == 0u)
-    {
-        accepted = (uint8_t)(accepted | ((interrupts >> 5u) & interrupt_accepted_irq));
-    }
-
+    uint8_t accepted = (uint8_t)((interrupts >> 5u) & interrupt_accepted_mask);
     cpu->interrupts = (uint8_t)(interrupts | accepted);
 }
 
@@ -784,8 +797,18 @@ static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
     return stack_write(cpu, u16_get_byte(cpu->PC, 0));
 }
 
-/* special_handler; role=push_p; action=push_status_to_stack */
-static qe6502_tick_t mc_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
+/* special_handler; model=nmos; role=push_p; action=push_status_to_stack */
+static qe6502_tick_t mc_nmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    qe6502_tick_t tick = stack_write(cpu, (uint8_t)(cpu->P | flag_B));
+    handle_brk_hijack(cpu);
+    return tick;
+}
+
+/* special_handler; model=cmos; role=push_p; action=push_status_to_stack */
+static qe6502_tick_t mc_cmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
