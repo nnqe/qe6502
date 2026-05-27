@@ -26,6 +26,8 @@ struct QeSnapshot
     std::uint8_t ir = 0u;
     std::uint64_t half_cycle = 0u;
     bool before_memory_half = true;
+    CpuRegisters visible_registers;
+    bool side_effects_pending = false;
     bool valid = false;
 };
 
@@ -58,12 +60,15 @@ public:
 
 private:
     void start_at_pc(std::uint16_t pc);
+    void publish_instruction_side_effects();
 
     qe6502_t cpu_ = {};
     qe6502_tick_t tick_ = {};
     std::array<std::uint8_t, 65536u> memory_ = {};
     std::uint8_t data_bus_ = 0u;
     std::uint8_t ir_ = 0u;
+    CpuRegisters visible_registers_;
+    bool side_effects_pending_ = false;
     std::uint64_t half_cycle_ = 0u;
     bool before_memory_half_ = true;
     bool initialized_ = false;

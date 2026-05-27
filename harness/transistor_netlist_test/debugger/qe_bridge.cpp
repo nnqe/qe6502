@@ -57,6 +57,15 @@ bool QeMachine::apply_setup(const SetupInput& setup, std::string& error)
     cpu_.Y = setup.registers.y;
     cpu_.S = setup.registers.s;
     cpu_.P = clean_p(setup.registers.p);
+    visible_registers_.pc = setup.registers.pc;
+    visible_registers_.a = setup.registers.a;
+    visible_registers_.x = setup.registers.x;
+    visible_registers_.y = setup.registers.y;
+    visible_registers_.s = setup.registers.s;
+    visible_registers_.p = cpu_.P;
+    visible_registers_.ir = setup.registers.ir;
+    side_effects_pending_ = false;
+
     start_at_pc(setup.registers.pc);
     initialized_ = true;
     return true;
@@ -86,6 +95,8 @@ QeSnapshot QeMachine::create_snapshot(std::string& error) const
     snapshot.memory = memory_;
     snapshot.data_bus = data_bus_;
     snapshot.ir = ir_;
+    snapshot.visible_registers = visible_registers_;
+    snapshot.side_effects_pending = side_effects_pending_;
     snapshot.half_cycle = half_cycle_;
     snapshot.before_memory_half = before_memory_half_;
     snapshot.valid = true;
@@ -105,6 +116,8 @@ bool QeMachine::restore_snapshot(const QeSnapshot& snapshot, std::string& error)
     memory_ = snapshot.memory;
     data_bus_ = snapshot.data_bus;
     ir_ = snapshot.ir;
+    visible_registers_ = snapshot.visible_registers;
+    side_effects_pending_ = snapshot.side_effects_pending;
     half_cycle_ = snapshot.half_cycle;
     before_memory_half_ = snapshot.before_memory_half;
     initialized_ = true;
@@ -127,12 +140,46 @@ void QeMachine::step_half_cycle()
     }
     else
     {
-        if ((tick_.status & qe6502_status_opcode_fetch) != 0u)
+        const bool input_is_opcode_fetch = (tick_.status & qe6502_status_opcode_fetch) != 0u;
+        const bool side_effects_were_pending = side_effects_pending_;
+        const std::uint16_t input_address = tick_.address;
+        const std::uint16_t visible_pc_before_tick = visible_registers_.pc;
+
+        if (input_is_opcode_fetch)
         {
             ir_ = data_bus_;
+            visible_registers_.pc = static_cast<std::uint16_t>(input_address + 1u);
+            visible_registers_.ir = data_bus_;
         }
 
         tick_ = qe6502_tick(&cpu_, data_bus_);
+
+        if (!input_is_opcode_fetch)
+        {
+            visible_registers_.pc = cpu_.PC;
+        }
+
+        if ((cpu_.A != visible_registers_.a) ||
+            (cpu_.X != visible_registers_.x) ||
+            (cpu_.Y != visible_registers_.y) ||
+            (cpu_.S != visible_registers_.s) ||
+            (cpu_.P != visible_registers_.p))
+        {
+            side_effects_pending_ = true;
+        }
+
+        const bool output_is_new_opcode_fetch =
+            ((tick_.status & qe6502_status_opcode_fetch) != 0u) &&
+            (tick_.address != input_address);
+        const bool input_consumes_early_opcode_fetch =
+            input_is_opcode_fetch &&
+            side_effects_were_pending &&
+            (input_address == visible_pc_before_tick);
+
+        if (output_is_new_opcode_fetch || input_consumes_early_opcode_fetch)
+        {
+            publish_instruction_side_effects();
+        }
     }
 
     before_memory_half_ = !before_memory_half_;
@@ -145,17 +192,20 @@ void QeMachine::step_full_cycle()
     step_half_cycle();
 }
 
+void QeMachine::publish_instruction_side_effects()
+{
+    visible_registers_.pc = cpu_.PC;
+    visible_registers_.a = cpu_.A;
+    visible_registers_.x = cpu_.X;
+    visible_registers_.y = cpu_.Y;
+    visible_registers_.s = cpu_.S;
+    visible_registers_.p = cpu_.P;
+    side_effects_pending_ = false;
+}
+
 CpuRegisters QeMachine::read_registers() const
 {
-    CpuRegisters regs;
-    regs.pc = cpu_.PC;
-    regs.a = cpu_.A;
-    regs.x = cpu_.X;
-    regs.y = cpu_.Y;
-    regs.s = cpu_.S;
-    regs.p = cpu_.P;
-    regs.ir = ir_;
-    return regs;
+    return visible_registers_;
 }
 
 std::uint16_t QeMachine::read_address_bus() const
