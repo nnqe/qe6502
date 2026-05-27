@@ -2,6 +2,7 @@
 
 #include "cycle_cursor.hpp"
 #include "help_text.hpp"
+#include "processor_kind.hpp"
 
 #include <cstdio>
 
@@ -281,15 +282,16 @@ void print_human_view(FILE* output, const DebuggerView& view)
     const CpuRegisters& regs = point.registers;
 
     (void)std::fprintf(output,
-                       "mode: %s\n",
+                       "processor: %s\nmode: %s\n",
+                       processor_kind_name(view.processor),
                        cycle_mode_name(view.cycle_mode));
 
     (void)std::fprintf(output,
-                       "cursor: cycle=%llu boundary=%s next_half=%s perfect_half=%llu\n",
+                       "cursor: cycle=%llu boundary=%s next_half=%s machine_half=%llu\n",
                        static_cast<unsigned long long>(point.cursor.cycle_number),
                        cycle_boundary_name(point.cursor.boundary),
                        next_halfcycle_name(point.cursor.boundary),
-                       static_cast<unsigned long long>(point.perfect_half_cycle));
+                       static_cast<unsigned long long>(point.machine_half_cycle));
 
     (void)std::fputs("bus: ", output);
     print_bus(output, point.bus);

@@ -170,9 +170,9 @@ bool execute_command(DebuggerCore& debugger, const DebugCommand& command)
 
 } // namespace
 
-int run_command_loop()
+int run_command_loop(ProcessorKind processor)
 {
-    DebuggerCore debugger;
+    DebuggerCore debugger(processor);
     std::string error;
 
     if (!debugger.initialize(error))
@@ -182,6 +182,8 @@ int run_command_loop()
     }
 
     print_human_message(stdout, "perfect6502_debug interactive loop");
+    const std::string processor_message = std::string("processor: ") + processor_kind_name(processor);
+    print_human_message(stdout, processor_message.c_str());
     print_human_message(stdout, "type help for human-oriented help");
     print_human_message(stdout, "type help ai for AI-oriented help");
     print_human_message(stdout, "type q to quit");

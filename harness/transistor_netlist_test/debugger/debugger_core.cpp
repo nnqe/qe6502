@@ -25,6 +25,11 @@ std::uint16_t stack_address(std::uint8_t stack_pointer, int offset)
 
 } // namespace
 
+DebuggerCore::DebuggerCore(ProcessorKind processor) :
+    processor_(processor)
+{
+}
+
 bool DebuggerCore::initialize(std::string& error)
 {
     SetupInput setup;
@@ -44,6 +49,12 @@ bool DebuggerCore::apply_setup_text(const std::string& text, std::string& error)
 
 bool DebuggerCore::step_halfcycles(std::uint32_t count, std::string& error)
 {
+    if (processor_ == ProcessorKind::Qe6502)
+    {
+        error = "half is unavailable in qe6502 mode";
+        return false;
+    }
+
     if (cycle_mode_ == DebuggerCycleMode::Fullcycle)
     {
         error = "half is unavailable while fullcycle mode is on; use cycle or fullcycle off";
@@ -167,7 +178,14 @@ bool DebuggerCore::undo(std::uint32_t count, std::string& error)
     for (std::uint32_t i = 0u; i < count; ++i)
     {
         UndoPoint& point = undo_points_.back();
-        if (!machine_.restore_snapshot(point.snapshot, error))
+        if (processor_ == ProcessorKind::Perfect6502)
+        {
+            if (!perfect_machine_.restore_snapshot(point.perfect_snapshot, error))
+            {
+                return false;
+            }
+        }
+        else if (!qe_machine_.restore_snapshot(point.qe_snapshot, error))
         {
             return false;
         }
@@ -177,11 +195,28 @@ bool DebuggerCore::undo(std::uint32_t count, std::string& error)
         undo_points_.pop_back();
     }
 
+    if (processor_ == ProcessorKind::Qe6502)
+    {
+        cycle_mode_ = DebuggerCycleMode::Fullcycle;
+    }
+
     return true;
 }
 
 bool DebuggerCore::set_fullcycle_mode(bool enabled, std::string& error)
 {
+    if (processor_ == ProcessorKind::Qe6502)
+    {
+        if (!enabled)
+        {
+            error = "fullcycle off is unavailable in qe6502 mode";
+            return false;
+        }
+
+        cycle_mode_ = DebuggerCycleMode::Fullcycle;
+        return true;
+    }
+
     if (!enabled)
     {
         cycle_mode_ = DebuggerCycleMode::Halfcycle;
@@ -214,6 +249,11 @@ DebuggerCycleMode DebuggerCore::cycle_mode() const
     return cycle_mode_;
 }
 
+ProcessorKind DebuggerCore::processor() const
+{
+    return processor_;
+}
+
 bool DebuggerCore::set_irq_asserted(bool asserted, std::string& error)
 {
     if (!save_undo_point(error))
@@ -221,7 +261,7 @@ bool DebuggerCore::set_irq_asserted(bool asserted, std::string& error)
         return false;
     }
 
-    machine_.set_irq_asserted(asserted);
+    set_irq_input(asserted);
     return true;
 }
 
@@ -232,19 +272,20 @@ bool DebuggerCore::set_nmi_asserted(bool asserted, std::string& error)
         return false;
     }
 
-    machine_.set_nmi_asserted(asserted);
+    set_nmi_input(asserted);
     return true;
 }
 
 bool DebuggerCore::toggle_nmi(std::string& error)
 {
-    const InterruptInputs inputs = machine_.read_interrupt_inputs();
+    const InterruptInputs inputs = read_interrupt_inputs();
     return set_nmi_asserted(!inputs.nmi_asserted, error);
 }
 
 DebuggerView DebuggerCore::make_view() const
 {
     DebuggerView view;
+    view.processor = processor_;
     view.cycle_mode = cycle_mode_;
     view.point = make_cpu_point(cursor_.boundary == CycleBoundary::BeforeCpuHalf);
 
@@ -254,7 +295,7 @@ DebuggerView DebuggerCore::make_view() const
     {
         MemoryByteView byte;
         byte.address = stack_address(regs.s, offset);
-        byte.value = machine_.read_memory(byte.address);
+        byte.value = read_memory(byte.address);
         byte.marker = (offset == 0);
         view.stack_bytes.push_back(byte);
     }
@@ -263,7 +304,7 @@ DebuggerView DebuggerCore::make_view() const
     {
         MemoryByteView byte;
         byte.address = static_cast<std::uint16_t>(regs.pc + i);
-        byte.value = machine_.read_memory(byte.address);
+        byte.value = read_memory(byte.address);
         byte.marker = (i == 0u);
         view.pc_bytes.push_back(byte);
     }
@@ -273,22 +314,34 @@ DebuggerView DebuggerCore::make_view() const
 
 bool DebuggerCore::apply_parsed_setup(const SetupInput& setup, std::string& error)
 {
-    if (!apply_setup_memory(machine_, setup, error))
+    if (processor_ == ProcessorKind::Perfect6502)
     {
-        return false;
-    }
+        if (!apply_setup_memory(perfect_machine_, setup, error))
+        {
+            return false;
+        }
 
-    if (!bootstrap_to_registers(machine_,
-                                SetupCodeAddress,
-                                SetupDataAddress,
-                                setup.registers,
-                                error))
+        if (!bootstrap_to_registers(perfect_machine_,
+                                    SetupCodeAddress,
+                                    SetupDataAddress,
+                                    setup.registers,
+                                    error))
+        {
+            return false;
+        }
+    }
+    else if (!qe_machine_.apply_setup(setup, error))
     {
         return false;
     }
 
     cursor_ = CycleCursor();
     clear_undo_history();
+
+    if (processor_ == ProcessorKind::Qe6502)
+    {
+        cycle_mode_ = DebuggerCycleMode::Fullcycle;
+    }
 
     if (cycle_mode_ == DebuggerCycleMode::Fullcycle)
     {
@@ -300,14 +353,28 @@ bool DebuggerCore::apply_parsed_setup(const SetupInput& setup, std::string& erro
 
 bool DebuggerCore::save_undo_point(std::string& error)
 {
-    PerfectSnapshot snapshot = machine_.create_snapshot(error);
-    if (!snapshot.is_valid())
+    UndoPoint point;
+    if (processor_ == ProcessorKind::Perfect6502)
     {
-        return false;
+        PerfectSnapshot snapshot = perfect_machine_.create_snapshot(error);
+        if (!snapshot.is_valid())
+        {
+            return false;
+        }
+
+        point.perfect_snapshot = std::move(snapshot);
+    }
+    else
+    {
+        QeSnapshot snapshot = qe_machine_.create_snapshot(error);
+        if (!snapshot.valid)
+        {
+            return false;
+        }
+
+        point.qe_snapshot = snapshot;
     }
 
-    UndoPoint point;
-    point.snapshot = std::move(snapshot);
     point.cursor = cursor_;
     point.cycle_mode = cycle_mode_;
     undo_points_.push_back(std::move(point));
@@ -330,7 +397,15 @@ void DebuggerCore::clear_undo_history()
 
 void DebuggerCore::step_one_halfcycle()
 {
-    machine_.step_half_cycle();
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        perfect_machine_.step_half_cycle();
+    }
+    else
+    {
+        qe_machine_.step_half_cycle();
+    }
+
     advance_one_halfcycle(cursor_);
 }
 
@@ -355,16 +430,110 @@ CpuPointView DebuggerCore::make_cpu_point(bool bus_served) const
 {
     CpuPointView point;
     point.cursor = cursor_;
-    point.perfect_half_cycle = machine_.half_cycle();
-    point.registers = machine_.read_registers();
-    point.bus.address = machine_.read_address_bus();
-    point.bus.data = machine_.read_data_bus();
-    point.bus.read = machine_.is_read();
+    point.machine_half_cycle = machine_half_cycle();
+    point.registers = read_registers();
+    point.bus.address = read_address_bus();
+    point.bus.data = read_data_bus();
+    point.bus.read = is_read();
     point.bus.served = bus_served;
-    point.bus.memory_data = machine_.read_memory(point.bus.address);
+    point.bus.memory_data = read_memory(point.bus.address);
     point.bus.memory_data_valid = true;
-    point.interrupt_inputs = machine_.read_interrupt_inputs();
+    point.interrupt_inputs = read_interrupt_inputs();
     return point;
+}
+
+CpuRegisters DebuggerCore::read_registers() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.read_registers();
+    }
+
+    return qe_machine_.read_registers();
+}
+
+std::uint16_t DebuggerCore::read_address_bus() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.read_address_bus();
+    }
+
+    return qe_machine_.read_address_bus();
+}
+
+std::uint8_t DebuggerCore::read_data_bus() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.read_data_bus();
+    }
+
+    return qe_machine_.read_data_bus();
+}
+
+bool DebuggerCore::is_read() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.is_read();
+    }
+
+    return qe_machine_.is_read();
+}
+
+std::uint64_t DebuggerCore::machine_half_cycle() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.half_cycle();
+    }
+
+    return qe_machine_.half_cycle();
+}
+
+InterruptInputs DebuggerCore::read_interrupt_inputs() const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.read_interrupt_inputs();
+    }
+
+    return qe_machine_.read_interrupt_inputs();
+}
+
+std::uint8_t DebuggerCore::read_memory(std::uint16_t address) const
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        return perfect_machine_.read_memory(address);
+    }
+
+    return qe_machine_.read_memory(address);
+}
+
+void DebuggerCore::set_irq_input(bool asserted)
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        perfect_machine_.set_irq_asserted(asserted);
+    }
+    else
+    {
+        qe_machine_.set_irq_asserted(asserted);
+    }
+}
+
+void DebuggerCore::set_nmi_input(bool asserted)
+{
+    if (processor_ == ProcessorKind::Perfect6502)
+    {
+        perfect_machine_.set_nmi_asserted(asserted);
+    }
+    else
+    {
+        qe_machine_.set_nmi_asserted(asserted);
+    }
 }
 
 } // namespace perfect6502_debug

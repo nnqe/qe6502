@@ -3,8 +3,10 @@ set(target perfect6502_debug)
 add_executable(${target}
     main.cpp
     command_loop.cpp
+    processor_kind.cpp
     command_input.cpp
     debugger_core.cpp
+    qe_bridge.cpp
     cycle_cursor.cpp
     temporary_tests.cpp
     ui_human.cpp
@@ -21,6 +23,12 @@ target_include_directories(${target}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${PROJECT_SOURCE_DIR}/cpu_v2/src
+)
+
+target_link_libraries(${target}
+    PRIVATE
+        qe6502_v2_static
 )
 
 if(MSVC)
