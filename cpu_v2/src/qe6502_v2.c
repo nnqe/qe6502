@@ -487,8 +487,8 @@ static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
     return read(cpu, 0xffffu);
 }
 
-/* shared_handler; role=kil_jam; action=read_jam_vector_low */
-static qe6502_tick_t mc_kil_jam_read_fffe(qe6502_t* cpu, uint8_t bus)
+/* common_handler; role=read_fixed_fffe; action=read_fixed_address_fffe */
+static qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -766,20 +766,12 @@ static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
     return stack_write(cpu, u16_get_byte(cpu->PC, 0));
 }
 
-/* special_handler; model=cmos; role=push_p; action=push_status_to_stack */
-static qe6502_tick_t mc_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
+/* common_handler; role=push_status_b; action=push_status_with_break_flag_to_stack */
+static qe6502_tick_t mc_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return stack_write(cpu, stack_status(cpu->P, flag_B));
-}
-
-/* special_handler; role=vec_lo; action=read_brk_vector_low_to_pc_low */
-static qe6502_tick_t mc_brk_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return read(cpu, 0xfffeu);
 }
 
 /* special_handler; role=vec_hi; action=read_brk_vector_high_to_pc_high_and_set_interrupt_disable */
@@ -1702,8 +1694,8 @@ static qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy(qe6502_t* cpu, uin
     return read(cpu, cpu->PC);
 }
 
-/* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_lda_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+/* common_handler; role=load_a_fetch; action=load_a_update_nz_and_fetch_next_opcode */
+static qe6502_tick_t mc_load_a_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = bus;
     update_flags_nz(cpu, cpu->A);
@@ -1731,16 +1723,16 @@ static qe6502_tick_t op_las_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
     return fetch(cpu);
 }
 
-/* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_ldx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+/* common_handler; role=load_x_fetch; action=load_x_update_nz_and_fetch_next_opcode */
+static qe6502_tick_t mc_load_x_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->X = bus;
     update_flags_nz(cpu, cpu->X);
     return fetch(cpu);
 }
 
-/* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_ldy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+/* common_handler; role=load_y_fetch; action=load_y_update_nz_and_fetch_next_opcode */
+static qe6502_tick_t mc_load_y_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->Y = bus;
     update_flags_nz(cpu, cpu->Y);
@@ -1781,14 +1773,6 @@ static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr(qe6502_t* cpu,
     return stack_write(cpu, cpu->A);
 }
 
-/* mnemonic_handler; role=write; action=write_mnemonic_value_to_stack_and_decrement_s */
-static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    return stack_write(cpu, stack_status(cpu->P, flag_B));
-}
-
 /* mnemonic_handler; model=cmos; role=write; action=write_x_to_stack_and_decrement_s */
 static qe6502_tick_t op_cmos_phx_stack_push_ready_none_pending_none_wr(qe6502_t* cpu, uint8_t bus)
 {
@@ -1806,36 +1790,9 @@ static qe6502_tick_t op_cmos_phy_stack_push_ready_none_pending_none_wr(qe6502_t*
 }
 
 /* mnemonic_handler; role=exec_fetch; action=consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode */
-static qe6502_tick_t op_pla_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->A = bus;
-    update_flags_nz(cpu, cpu->A);
-
-    return fetch(cpu);
-}
-
-/* mnemonic_handler; role=exec_fetch; action=consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode */
 static qe6502_tick_t op_plp_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->P = (uint8_t)((bus | flag_UN) & (uint8_t)(~flag_B));
-
-    return fetch(cpu);
-}
-
-/* mnemonic_handler; model=cmos; role=exec_fetch; action=consume_pulled_stack_value_into_x_update_nz_and_fetch_next_opcode */
-static qe6502_tick_t op_cmos_plx_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->X = bus;
-    update_flags_nz(cpu, cpu->X);
-
-    return fetch(cpu);
-}
-
-/* mnemonic_handler; model=cmos; role=exec_fetch; action=consume_pulled_stack_value_into_y_update_nz_and_fetch_next_opcode */
-static qe6502_tick_t op_cmos_ply_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->Y = bus;
-    update_flags_nz(cpu, cpu->Y);
 
     return fetch(cpu);
 }
@@ -2843,12 +2800,12 @@ static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr_prefetch(qe650
     return op_pha_stack_push_ready_none_pending_none_wr(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_php_stack_push_ready_none_pending_none_wr */
+/* prefetch_handler; prefetc; condition=always; base=mc_stack_push_status_b */
 static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
 
-    return op_php_stack_push_ready_none_pending_none_wr(cpu, bus);
+    return mc_stack_push_status_b(cpu, bus);
 }
 
 /* prefetch_handler; prefetc; condition=always; base=op_rla_rw_ready_addr_data_pending_none_wr */
