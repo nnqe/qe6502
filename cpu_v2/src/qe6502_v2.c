@@ -872,12 +872,23 @@ static qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
     return read(cpu, 0xfffeu);
 }
 
-/* interrupt_handler; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_and_read_vector_high */
-static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+/* interrupt_handler; model=nmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_clear_lost_nmi_and_read_vector_high */
+static qe6502_tick_t mc_nmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
-    cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~qe6502_interrupt_accepted_nmi));
+    cpu->interrupts = (uint8_t)(cpu->interrupts &
+        (uint8_t)(~(qe6502_interrupt_accepted_nmi | qe6502_interrupt_nmi_edge_latch)));
+
+    return read(cpu, 0xfffbu);
+}
+
+/* interrupt_handler; model=cmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_and_read_vector_high */
+static qe6502_tick_t mc_cmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
+    cpu->P = (uint8_t)(cpu->P | flag_I);
+    cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~(qe6502_interrupt_accepted_nmi|qe6502_interrupt_nmi_edge_latch)));
 
     return read(cpu, 0xfffbu);
 }

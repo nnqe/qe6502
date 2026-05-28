@@ -23,7 +23,7 @@
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 2)] = &mc_stack_push_pc_low,
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 3)] = &mc_interrupt_c3_push_p,
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 4)] = &mc_nmi_c4_vec_lo,
-        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 5)] = &mc_nmi_c5_vec_hi,
+        [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 5)] = &mc_cmos_nmi_c5_vec_hi,
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 6)] = &mc_latch_pch_interrupt_fetch,
         [SERVICE_SLOT_IDX(qe6502_model_st, service_slot_nmi, 7)] = &mc_dispatch,
 
