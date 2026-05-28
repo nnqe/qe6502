@@ -119,6 +119,16 @@ static inline qe6502_tick_t opcode_fetch(const qe6502_t* cpu)
     return tick;
 }
 
+/* Interrupt model note.
+ *
+ * qe6502_v2 keeps interrupt entry intentionally small and fast: NMI is an
+ * accepted edge latched by qe6502_nmi(), while IRQ is a level latch maintained
+ * by qe6502_set_irq(). This deliberately does not model every real-silicon /
+ * perfect6502 timing corner case. Handling those corners in-core would add
+ * extra checks to the hot fetch path and costs about 8% in current profiling.
+ * A future optional external interrupt adapter can normalize pin timing for
+ * perfect6502-style behavior when exact interrupt timing is needed.
+ */
 static inline qe6502_tick_t fetch(qe6502_t* cpu)
 {
     if (cpu->interrupts)
@@ -789,13 +799,83 @@ static qe6502_tick_t mc_cmos_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
     return read(cpu, 0xffffu);
 }
 
-static inline qe6502_tick_t mc_interrupt_c3_push_p(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_nmi_c4_vec_lo(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_nmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_cmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_nmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
-static inline qe6502_tick_t mc_cmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+/* common_helper; role=read_with_status; action=read_address_with_extra_tick_status_bits */
+static inline qe6502_tick_t read_with_status(const qe6502_t* cpu, uint16_t address, uint8_t status)
+{
+    qe6502_tick_t tick = read(cpu, address);
+    tick.status = (uint8_t)(tick.status | status);
+    return tick;
+}
+
+/* interrupt_helper; model=nmos; role=vector_low; action=latch_vector_low_and_set_interrupt_disable */
+static inline void nmos_interrupt_vector_low(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
+    cpu->P = (uint8_t)(cpu->P | flag_I);
+}
+
+/* interrupt_helper; model=cmos; role=vector_low; action=latch_vector_low_set_interrupt_disable_and_clear_decimal */
+static inline void cmos_interrupt_vector_low(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
+    cpu->P = (uint8_t)((cpu->P | flag_I) & (uint8_t)(~flag_D));
+}
+
+/* interrupt_handler; role=push_p; action=push_hardware_interrupt_status_to_stack */
+static inline qe6502_tick_t mc_interrupt_c3_push_p(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return stack_write(cpu, stack_status(cpu->P, 0u));
+}
+
+/* interrupt_handler; role=vec_lo; action=read_nmi_vector_low_and_mark_nmi_ack */
+static inline qe6502_tick_t mc_nmi_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read_with_status(cpu, 0xfffau, qe6502_status_nmi_ack);
+}
+
+/* interrupt_handler; model=nmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_and_read_nmi_vector_high */
+static inline qe6502_tick_t mc_nmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    nmos_interrupt_vector_low(cpu, bus);
+
+    return read(cpu, 0xfffbu);
+}
+
+/* interrupt_handler; model=cmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_clear_decimal_and_read_nmi_vector_high */
+static inline qe6502_tick_t mc_cmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    cmos_interrupt_vector_low(cpu, bus);
+
+    return read(cpu, 0xfffbu);
+}
+
+/* interrupt_handler; role=vec_lo; action=read_irq_vector_low_and_mark_irq_ack */
+static inline qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    return read_with_status(cpu, 0xfffeu, qe6502_status_irq_ack);
+}
+
+/* interrupt_handler; model=nmos; role=vec_hi; action=consume_irq_vector_low_set_interrupt_disable_and_read_irq_vector_high */
+static inline qe6502_tick_t mc_nmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    nmos_interrupt_vector_low(cpu, bus);
+
+    return read(cpu, 0xffffu);
+}
+
+/* interrupt_handler; model=cmos; role=vec_hi; action=consume_irq_vector_low_set_interrupt_disable_clear_decimal_and_read_irq_vector_high */
+static inline qe6502_tick_t mc_cmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    cmos_interrupt_vector_low(cpu, bus);
+
+    return read(cpu, 0xffffu);
+}
 
 /* common_handler; action=latch_bus_as_addr_low_read_pc_and_increment_pc */
 static inline qe6502_tick_t mc_latch_addr0_read_pc_inc(qe6502_t* cpu, uint8_t bus)
