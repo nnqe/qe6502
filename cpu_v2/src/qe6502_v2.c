@@ -127,10 +127,12 @@ static inline qe6502_tick_t fetch(qe6502_t* cpu)
         {
             cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
             cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 0u) - 1u);
+            return read(cpu, cpu->PC);
         }
         else if(((cpu->P & flag_I) == 0u) && (cpu->interrupts & qe6502_interrupt_accepted_irq))
         {
             cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_irq, 0u) - 1u);
+            return read(cpu, cpu->PC);
         }
     }
     return opcode_fetch(cpu);
