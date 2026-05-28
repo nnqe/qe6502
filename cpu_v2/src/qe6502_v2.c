@@ -889,6 +889,19 @@ static qe6502_tick_t mc_nmi_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
     return read(cpu, 0xfffau);
 }
 
+/* interrupt_handler; model=nmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_clear_lost_nmi_and_read_vector_high */
+static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+{
+    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
+    cpu->P = (uint8_t)(cpu->P | flag_I);
+    prefetch(cpu);
+    if (qe6502_get_nmi(cpu) != 0)
+    {
+        cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
+    }
+    return read(cpu, 0xfffbu);
+}
+
 /* interrupt_handler; role=vec_lo; action=read_irq_vector_low */
 static qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
 {
@@ -897,15 +910,6 @@ static qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
     return read(cpu, 0xfffeu);
 }
 
-/* interrupt_handler; model=nmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_clear_lost_nmi_and_read_vector_high */
-static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->PC = u16_set_byte(cpu->PC, 0, bus);
-    cpu->P = (uint8_t)(cpu->P | flag_I);
-    prefetch(cpu);
-    cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
-    return read(cpu, 0xfffbu);
-}
 
 /* interrupt_handler; model=nmos; role=vec_hi; action=consume_nmi_vector_low_set_interrupt_disable_clear_lost_nmi_and_read_vector_high */
 static qe6502_tick_t mc_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
