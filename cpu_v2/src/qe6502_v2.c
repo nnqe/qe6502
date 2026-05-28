@@ -875,7 +875,7 @@ static qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
-    cpu->P = (uint8_t)(cpu->P | flag_I);
+    cpu->P = (uint8_t)(cpu->P | flag_I) & (~qe6502_interrupt_accepted_nmi);
     prefetch(cpu);
     return read(cpu, 0xfffbu);
 }
