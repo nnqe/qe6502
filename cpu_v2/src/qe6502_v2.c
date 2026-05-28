@@ -14,6 +14,11 @@ static inline uint8_t flag_C_if(bool cond) { return cond ? flag_C : 0; }
 static inline uint8_t flag_Z_if(bool cond) { return cond ? flag_Z : 0; }
 static inline uint8_t flag_V_if(bool cond) { return cond ? flag_V : 0; }
 
+static inline uint8_t stack_status(uint8_t status, uint8_t break_flag)
+{
+    return (uint8_t)((status | flag_UN | break_flag) & (uint8_t)(~flag_B | break_flag));
+}
+
 static inline uint8_t u16_get_byte(uint16_t x, unsigned byte_index)
 {
     return (uint8_t)(x >> (byte_index * 8));
@@ -117,6 +122,13 @@ static inline qe6502_tick_t opcode_fetch(const qe6502_t* cpu, uint8_t bus)
     return tick;
 }
 
+static inline void sample_interrupts(qe6502_t* cpu)
+{
+    const uint8_t interrupts = cpu->interrupts;
+    uint8_t accepted = (uint8_t)((interrupts >> 5u) & interrupt_accepted_mask);
+    cpu->interrupts = (uint8_t)(interrupts | accepted);
+}
+
 static inline qe6502_tick_t handle_interrupts(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t interrupts = cpu->interrupts;
@@ -125,14 +137,11 @@ static inline qe6502_tick_t handle_interrupts(qe6502_t* cpu, uint8_t bus)
     if ((interrupts & qe6502_interrupt_accepted_nmi) != 0u)
     {
         cpu->latch_addr = 0xfffau;
-        cpu->interrupts = (uint8_t)(interrupts &
-            (uint8_t)(~(interrupt_accepted_mask | qe6502_interrupt_nmi_edge_latch)));
         status = qe6502_status_nmi_ack;
     }
     else if ((cpu->P & flag_I) == 0u)
     {
         cpu->latch_addr = 0xfffeu;
-        cpu->interrupts = (uint8_t)(interrupts & (uint8_t)(~qe6502_interrupt_accepted_irq));
         status = qe6502_status_irq_ack;
     }
 
@@ -148,6 +157,8 @@ static inline qe6502_tick_t handle_interrupts(qe6502_t* cpu, uint8_t bus)
 
 static inline void handle_brk_hijack(qe6502_t* cpu)
 {
+    sample_interrupts(cpu);
+
     if ((cpu->interrupts & interrupt_accepted_mask) == 0u)
     {
         return;
@@ -155,12 +166,15 @@ static inline void handle_brk_hijack(qe6502_t* cpu)
     if ((cpu->interrupts & qe6502_interrupt_accepted_nmi) != 0u)
     {
         cpu->latch_addr = 0xfffau;
+        cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~interrupt_accepted_mask));
+        cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 4u) - 1u);
     }
     else if ((cpu->P & flag_I) == 0u)
     {
         cpu->latch_addr = 0xfffeu;
+        cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~interrupt_accepted_mask));
+        cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 4u) - 1u);
     }
-    cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_interrupt, 4u) - 1u);
 }
 
 static inline qe6502_tick_t fetch(qe6502_t* cpu, uint8_t bus)
@@ -191,13 +205,6 @@ static inline qe6502_tick_t stack_read(qe6502_t* cpu)
 {
     cpu->S++;
     return read(cpu, (uint16_t)(0x0100u | cpu->S));
-}
-
-static inline void sample_interrupts(qe6502_t* cpu)
-{
-    const uint8_t interrupts = cpu->interrupts;
-    uint8_t accepted = (uint8_t)((interrupts >> 5u) & interrupt_accepted_mask);
-    cpu->interrupts = (uint8_t)(interrupts | accepted);
 }
 
 static inline void prefetch(qe6502_t* cpu)
@@ -802,7 +809,7 @@ static qe6502_tick_t mc_nmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    qe6502_tick_t tick = stack_write(cpu, (uint8_t)(cpu->P | flag_B));
+    qe6502_tick_t tick = stack_write(cpu, stack_status(cpu->P, flag_B));
     handle_brk_hijack(cpu);
     return tick;
 }
@@ -812,7 +819,7 @@ static qe6502_tick_t mc_cmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return stack_write(cpu, (uint8_t)(cpu->P | flag_B));
+    return stack_write(cpu, stack_status(cpu->P, flag_B));
 }
 
 /* special_handler; role=vec_lo; action=read_brk_vector_low_to_pc_low */
@@ -846,6 +853,7 @@ static qe6502_tick_t mc_interrupt_c0_dummy_read_pc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
+    cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~interrupt_accepted_mask));
     return read(cpu, cpu->PC);
 }
 
@@ -854,7 +862,7 @@ static qe6502_tick_t mc_interrupt_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return stack_write(cpu, (uint8_t)(cpu->P & (uint8_t)(~flag_B)));
+    return stack_write(cpu, stack_status(cpu->P, 0u));
 }
 
 /* interrupt_handler; role=vec_lo; action=read_selected_interrupt_vector_low */
@@ -870,6 +878,7 @@ static qe6502_tick_t mc_interrupt_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
+    cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~qe6502_interrupt_nmi_edge_latch));
 
     return read(cpu, (uint16_t)(cpu->latch_addr + 1u));
 }
@@ -879,6 +888,7 @@ static qe6502_tick_t mc_cmos_interrupt_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)((cpu->P | flag_I) & (uint8_t)(~flag_D));
+    cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~qe6502_interrupt_nmi_edge_latch));
 
     return read(cpu, (uint16_t)(cpu->latch_addr + 1u));
 }
@@ -1791,7 +1801,7 @@ static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr(qe6502_t* cpu,
 {
     (void)bus;
 
-    return stack_write(cpu, (uint8_t)(cpu->P | flag_B));
+    return stack_write(cpu, stack_status(cpu->P, flag_B));
 }
 
 /* mnemonic_handler; model=cmos; role=write; action=write_x_to_stack_and_decrement_s */
