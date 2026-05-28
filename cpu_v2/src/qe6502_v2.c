@@ -136,11 +136,13 @@ static inline qe6502_tick_t handle_interrupts(qe6502_t* cpu)
     if ((interrupts & qe6502_interrupt_accepted_nmi) != 0u)
     {
         status = qe6502_status_nmi_ack;
+        cpu->interrupts = (uint8_t)(interrupts & (~qe6502_interrupt_accepted_nmi));
         cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 0u) - 1u);
     }
     else if (((interrupts & qe6502_interrupt_accepted_irq) != 0u) && ((cpu->P & flag_I) == 0u))
     {
         status = qe6502_status_irq_ack;
+        cpu->interrupts = (uint8_t)(interrupts & (~qe6502_interrupt_accepted_irq));
         cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_irq, 0u) - 1u);
     }
 
@@ -875,7 +877,7 @@ static qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus)
 static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
-    cpu->P = (uint8_t)(cpu->P | flag_I) & (~qe6502_interrupt_accepted_nmi);
+    cpu->P = (uint8_t)(cpu->P | flag_I);
     prefetch(cpu);
     return read(cpu, 0xfffbu);
 }
