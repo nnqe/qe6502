@@ -52,6 +52,8 @@ typedef enum service_slot
     service_slot_reset_0 = 1,
     service_slot_reset_1 = 2,
     service_slot_goto = 3,
+    service_slot_nmi = 4,
+    service_slot_irq = 5,
 
     service_slot_count_used
 } service_slot_t;
@@ -124,10 +126,11 @@ static inline qe6502_tick_t fetch(qe6502_t* cpu)
         if (cpu->interrupts & qe6502_interrupt_accepted_nmi)
         {
             cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
+            cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 0u) - 1u);
         }
         else if(((cpu->P & flag_I) == 0u) && (cpu->interrupts & qe6502_interrupt_accepted_irq))
         {
-
+            cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_irq, 0u) - 1u);
         }
     }
     return opcode_fetch(cpu);
@@ -751,17 +754,8 @@ static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
     return stack_write(cpu, u16_get_byte(cpu->PC, 0));
 }
 
-/* special_handler; model=nmos; role=push_p; action=push_status_to_stack */
-static qe6502_tick_t mc_nmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
-{
-    (void)bus;
-
-    qe6502_tick_t tick = stack_write(cpu, stack_status(cpu->P, flag_B));
-    return tick;
-}
-
 /* special_handler; model=cmos; role=push_p; action=push_status_to_stack */
-static qe6502_tick_t mc_cmos_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_brk_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -792,6 +786,14 @@ static qe6502_tick_t mc_cmos_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 
     return read(cpu, 0xffffu);
 }
+
+static inline qe6502_tick_t mc_interrupt_c3_push_p(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_nmi_c4_vec_lo(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_nmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_cmos_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_irq_c4_vec_lo(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_nmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
+static inline qe6502_tick_t mc_cmos_irq_c5_vec_hi(qe6502_t* cpu, uint8_t bus){ (void)bus; (void)cpu; return (qe6502_tick_t){0}; }
 
 /* common_handler; action=latch_bus_as_addr_low_read_pc_and_increment_pc */
 static inline qe6502_tick_t mc_latch_addr0_read_pc_inc(qe6502_t* cpu, uint8_t bus)

@@ -18,13 +18,31 @@
         [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 0)] = &mc_fetch,
         [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_goto, 1)] = &mc_dispatch,
 
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 0)] = &mc_read_pc,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 1)] = &mc_stack_push_pc_high,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 2)] = &mc_stack_push_pc_low,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 3)] = &mc_interrupt_c3_push_p,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 4)] = &mc_nmi_c4_vec_lo,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 5)] = &mc_nmos_nmi_c5_vec_hi,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 6)] = &mc_latch_pch_interrupt_fetch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_nmi, 7)] = &mc_dispatch,
+
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 0)] = &mc_read_pc,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 1)] = &mc_stack_push_pc_high,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 2)] = &mc_stack_push_pc_low,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 3)] = &mc_interrupt_c3_push_p,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 4)] = &mc_irq_c4_vec_lo,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 5)] = &mc_nmos_irq_c5_vec_hi,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 6)] = &mc_latch_pch_interrupt_fetch,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_irq, 7)] = &mc_dispatch,
+
         /* NMOS opcode slots. */
 
         /* 0x00 BRK ; class=brk */
         [IDX(qe6502_model_nmos, 0x00, 0)] = &mc_read_pc_inc,
         [IDX(qe6502_model_nmos, 0x00, 1)] = &mc_stack_push_pc_high,
         [IDX(qe6502_model_nmos, 0x00, 2)] = &mc_stack_push_pc_low,
-        [IDX(qe6502_model_nmos, 0x00, 3)] = &mc_nmos_brk_c3_push_p,
+        [IDX(qe6502_model_nmos, 0x00, 3)] = &mc_brk_c3_push_p,
         [IDX(qe6502_model_nmos, 0x00, 4)] = &mc_brk_c4_vec_lo,
         [IDX(qe6502_model_nmos, 0x00, 5)] = &mc_brk_c5_vec_hi,
         [IDX(qe6502_model_nmos, 0x00, 6)] = &mc_latch_pch_interrupt_fetch,
