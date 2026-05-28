@@ -246,6 +246,9 @@ private:
         {
             out << "R ";
             print_hex_word(out, tick_.address);
+            out << "={";
+            print_hex_byte(out, memory_[tick_.address]);
+            out << "}";
         }
     }
 

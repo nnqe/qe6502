@@ -250,7 +250,11 @@ private:
         else
         {
             out << "R ";
-            print_hex_word(out, readAddressBus(cpu_));
+            const std::uint16_t address = readAddressBus(cpu_);
+            print_hex_word(out, address);
+            out << "={";
+            print_hex_byte(out, memory[address]);
+            out << "}";
         }
     }
 
