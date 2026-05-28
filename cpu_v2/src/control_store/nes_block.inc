@@ -18,24 +18,6 @@
         [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_goto, 0)] = &mc_fetch,
         [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_goto, 1)] = &mc_dispatch,
 
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 0)] = &mc_interrupt_c0_dummy_read_pc,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 1)] = &mc_stack_push_pc_high,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 2)] = &mc_stack_push_pc_low,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 3)] = &mc_nmi_c3_push_p,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 4)] = &mc_nmi_c4_vec_lo,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 5)] = &mc_nmi_c5_vec_hi,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 6)] = &mc_latch_pch_interrupt_fetch,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_nmi, 7)] = &mc_dispatch,
-
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 0)] = &mc_interrupt_c0_dummy_read_pc,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 1)] = &mc_stack_push_pc_high,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 2)] = &mc_stack_push_pc_low,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 3)] = &mc_irq_c3_push_p,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 4)] = &mc_irq_c4_vec_lo,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 5)] = &mc_irq_c5_vec_hi,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 6)] = &mc_latch_pch_interrupt_fetch,
-        [SERVICE_SLOT_IDX(qe6502_model_nes, service_slot_irq, 7)] = &mc_dispatch,
-
         /* NES opcode slots; NMOS-compatible except ADC/SBC decimal disable. */
 
         /* 0x00 BRK ; class=brk */

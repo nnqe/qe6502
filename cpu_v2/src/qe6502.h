@@ -136,6 +136,9 @@ static const uint8_t qe6502_interrupt_accepted_nmi  = (1u << 0);
 /* IRQ accept latched. */
 static const uint8_t qe6502_interrupt_accepted_irq  = (1u << 1);
 
+/* NMI|IRQ accept latched. */
+static const uint8_t qe6502_interrupt_accepted_mask = (uint8_t)(qe6502_interrupt_accepted_nmi | qe6502_interrupt_accepted_irq);
+
 /* NMI input pin edge is latched. */
 static const uint8_t qe6502_interrupt_nmi_edge_latch   = (1u << 5);
 
