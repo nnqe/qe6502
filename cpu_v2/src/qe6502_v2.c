@@ -868,7 +868,6 @@ static qe6502_tick_t mc_nmi_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    sample_interrupts(cpu);
     return stack_write(cpu, stack_status(cpu->P, 0u));
 }
 
@@ -902,6 +901,7 @@ static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
+    sample_interrupts(cpu);
     prefetch(cpu);
     return read(cpu, 0xfffbu);
 }
