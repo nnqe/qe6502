@@ -169,6 +169,20 @@ static inline void handle_brk_hijack(qe6502_t* cpu)
     }
 }
 
+static inline void handle_irq_hijack(qe6502_t* cpu)
+{
+    sample_interrupts(cpu);
+
+    if ((cpu->interrupts & interrupt_accepted_mask) == 0u)
+    {
+        return;
+    }
+    if ((cpu->interrupts & qe6502_interrupt_accepted_nmi) != 0u)
+    {
+        cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 4u) - 1u);
+    }
+}
+
 static inline qe6502_tick_t fetch(qe6502_t* cpu)
 {
     if ((cpu->interrupts & interrupt_accepted_mask) != 0u)
@@ -850,10 +864,20 @@ static qe6502_tick_t mc_interrupt_c0_dummy_read_pc(qe6502_t* cpu, uint8_t bus)
 }
 
 /* interrupt_handler; role=push_p; action=push_status_to_stack_with_break_clear */
-static qe6502_tick_t mc_interrupt_c3_push_p(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_nmi_c3_push_p(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
+    sample_interrupts(cpu);
+    return stack_write(cpu, stack_status(cpu->P, 0u));
+}
+
+/* interrupt_handler; role=push_p; action=push_status_to_stack_with_break_clear */
+static qe6502_tick_t mc_irq_c3_push_p(qe6502_t* cpu, uint8_t bus)
+{
+    (void)bus;
+
+    handle_irq_hijack(cpu);
     return stack_write(cpu, stack_status(cpu->P, 0u));
 }
 
