@@ -901,8 +901,8 @@ static qe6502_tick_t mc_nmi_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
-    sample_interrupts(cpu);
     prefetch(cpu);
+    cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
     return read(cpu, 0xfffbu);
 }
 
