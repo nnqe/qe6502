@@ -236,8 +236,8 @@ std::uint64_t QeMachine::half_cycle() const
 InterruptInputs QeMachine::read_interrupt_inputs() const
 {
     InterruptInputs inputs;
-    inputs.irq_asserted = qe6502_get_irq(&cpu_) == 0u;
-    inputs.nmi_asserted = qe6502_get_nmi(&cpu_) == 0u;
+    inputs.irq_asserted = false;
+    inputs.nmi_asserted = false;
     return inputs;
 }
 
@@ -248,7 +248,9 @@ void QeMachine::set_irq_asserted(bool asserted)
 
 void QeMachine::set_nmi_asserted(bool asserted)
 {
-    qe6502_set_nmi(&cpu_, asserted ? 0u : 1u);
+    if (asserted){
+        qe6502_nmi(&cpu_);
+    }
 }
 
 std::uint8_t QeMachine::read_memory(std::uint16_t address) const

@@ -110,7 +110,9 @@ public:
 
     void set_nmi(std::uint8_t level)
     {
-        qe6502_set_nmi(&cpu_, level);
+        if (0 == level){
+            qe6502_nmi(&cpu_);
+        }
     }
 
     void reset()

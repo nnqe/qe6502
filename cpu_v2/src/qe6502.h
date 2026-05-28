@@ -139,16 +139,6 @@ static const uint8_t qe6502_interrupt_accepted_irq  = (1u << 1);
 /* NMI|IRQ accept latched. */
 static const uint8_t qe6502_interrupt_accepted_mask = (uint8_t)(qe6502_interrupt_accepted_nmi | qe6502_interrupt_accepted_irq);
 
-/* NMI input pin edge is latched. */
-static const uint8_t qe6502_interrupt_nmi_edge_latch   = (1u << 5);
-
-/* IRQ input pin is stored in inverted form. */
-static const uint8_t qe6502_interrupt_inverted_irq_pin = (1u << 6);
-
-/* NMI input pin is stored in inverted form. */
-static const uint8_t qe6502_interrupt_inverted_nmi_pin = (1u << 7);
-
-
 
 /* Microcode entry. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
@@ -173,14 +163,8 @@ void qe6502_set_irq(qe6502_t *cpu, uint8_t pin);
 /* Get the IRQ input pin. */
 uint8_t qe6502_get_irq(const qe6502_t *cpu);
 
-/* Set the NMI input pin. */
-void qe6502_set_nmi(qe6502_t *cpu, uint8_t pin);
-
-/* Get the NMI input pin. */
-uint8_t qe6502_get_nmi(const qe6502_t *cpu);
-
-/* Toggle the NMI input pin. */
-void qe6502_toggle_nmi(qe6502_t *cpu);
+/* Trigger NMI. */
+void qe6502_nmi(qe6502_t *cpu);
 
 /* Execute one CPU bus phase and return the next bus request. */
 static inline qe6502_tick_t

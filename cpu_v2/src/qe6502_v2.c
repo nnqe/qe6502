@@ -119,6 +119,17 @@ static inline qe6502_tick_t opcode_fetch(const qe6502_t* cpu)
 
 static inline qe6502_tick_t fetch(qe6502_t* cpu)
 {
+    if (cpu->interrupts)
+    {
+        if (cpu->interrupts & qe6502_interrupt_accepted_nmi)
+        {
+            cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
+        }
+        else if(((cpu->P & flag_I) == 0u) && (cpu->interrupts & qe6502_interrupt_accepted_irq))
+        {
+
+        }
+    }
     return opcode_fetch(cpu);
 }
 
@@ -3090,46 +3101,22 @@ void qe6502_set_irq(qe6502_t *cpu, uint8_t pin)
 {
     if (pin == 0u)
     {
-        cpu->interrupts = (uint8_t)(cpu->interrupts | qe6502_interrupt_inverted_irq_pin);
+        cpu->interrupts = (uint8_t)(cpu->interrupts | qe6502_interrupt_accepted_irq);
     }
     else
     {
-        cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~qe6502_interrupt_inverted_irq_pin));
+        cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_irq));
     }
 }
 
 uint8_t qe6502_get_irq(const qe6502_t *cpu)
 {
-    return (uint8_t)((cpu->interrupts & qe6502_interrupt_inverted_irq_pin) == 0u ? 1u : 0u);
+    return (uint8_t)((cpu->interrupts & qe6502_interrupt_accepted_irq) == 0u ? 1u : 0u);
 }
 
-void qe6502_set_nmi(qe6502_t *cpu, uint8_t pin)
+void qe6502_nmi(qe6502_t *cpu)
 {
-    const uint8_t old_pin = qe6502_get_nmi(cpu);
-
-    if ((old_pin != 0u) && (pin == 0u))
-    {
-        cpu->interrupts = (uint8_t)(cpu->interrupts | qe6502_interrupt_nmi_edge_latch);
-    }
-
-    if (pin == 0u)
-    {
-        cpu->interrupts = (uint8_t)(cpu->interrupts | qe6502_interrupt_inverted_nmi_pin);
-    }
-    else
-    {
-        cpu->interrupts = (uint8_t)(cpu->interrupts & (uint8_t)(~qe6502_interrupt_inverted_nmi_pin));
-    }
-}
-
-uint8_t qe6502_get_nmi(const qe6502_t *cpu)
-{
-    return (uint8_t)((cpu->interrupts & qe6502_interrupt_inverted_nmi_pin) == 0u ? 1u : 0u);
-}
-
-void qe6502_toggle_nmi(qe6502_t *cpu)
-{
-    qe6502_set_nmi(cpu, (uint8_t)(qe6502_get_nmi(cpu) == 0u ? 1u : 0u));
+    cpu->interrupts = (uint8_t)(cpu->interrupts | qe6502_interrupt_accepted_nmi);
 }
 
 const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
