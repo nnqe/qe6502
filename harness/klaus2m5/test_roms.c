@@ -2,10 +2,10 @@
 #include <string.h>
 
 static const uint8_t s_nmos_klaus2m5_rom[0x10000] =
-    #include "../klaus2m5/6502_functional_test.hex"
+    #include "6502_functional_test.hex"
 
 static const uint8_t s_cmos_klaus2m5_rom[0x10000] =
-    #include "../klaus2m5/65C02_extended_opcodes_test.hex"
+    #include "65C02_extended_opcodes_test.hex"
 
 void copy_klaus2m5_image(uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles)
 {
