@@ -62,7 +62,7 @@
         [IDX(qe6502_model_nes, 0x02, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x02, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x02, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x02, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x02, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x03 SLO (zp,X) ; class=rw_izx */
         [IDX(qe6502_model_nes, 0x03, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -177,7 +177,7 @@
         [IDX(qe6502_model_nes, 0x12, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x12, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x12, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x12, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x12, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x13 SLO (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0x13, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -308,7 +308,7 @@
         [IDX(qe6502_model_nes, 0x22, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x22, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x22, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x22, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x22, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x23 RLA (zp,X) ; class=rw_izx */
         [IDX(qe6502_model_nes, 0x23, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -424,7 +424,7 @@
         [IDX(qe6502_model_nes, 0x32, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x32, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x32, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x32, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x32, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x33 RLA (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0x33, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -555,7 +555,7 @@
         [IDX(qe6502_model_nes, 0x42, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x42, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x42, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x42, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x42, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x43 SRE (zp,X) ; class=rw_izx */
         [IDX(qe6502_model_nes, 0x43, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -669,7 +669,7 @@
         [IDX(qe6502_model_nes, 0x52, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x52, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x52, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x52, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x52, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x53 SRE (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0x53, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -800,7 +800,7 @@
         [IDX(qe6502_model_nes, 0x62, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x62, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x62, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x62, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x62, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x63 RRA (zp,X) ; class=rw_izx */
         [IDX(qe6502_model_nes, 0x63, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -916,7 +916,7 @@
         [IDX(qe6502_model_nes, 0x72, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x72, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x72, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x72, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x72, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x73 RRA (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0x73, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -1145,7 +1145,7 @@
         [IDX(qe6502_model_nes, 0x92, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0x92, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0x92, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0x92, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0x92, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0x93 AHX (zp),Y ; class=unstable_w_izy */
         [IDX(qe6502_model_nes, 0x93, 0)] = &mc_read_pc_inc,
@@ -1363,7 +1363,7 @@
         [IDX(qe6502_model_nes, 0xB2, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0xB2, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0xB2, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0xB2, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0xB2, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0xB3 LAX (zp),Y ; class=r_izy */
         [IDX(qe6502_model_nes, 0xB3, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -1591,7 +1591,7 @@
         [IDX(qe6502_model_nes, 0xD2, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0xD2, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0xD2, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0xD2, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0xD2, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0xD3 DCP (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0xD3, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -1725,7 +1725,7 @@
         [IDX(qe6502_model_nes, 0xE3, 3)] = &mc_latch_data_read_latch_addr,
         [IDX(qe6502_model_nes, 0xE3, 4)] = &mc_r_izx_c4_data,
         [IDX(qe6502_model_nes, 0xE3, 5)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xE3, 6)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xE3, 6)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xE3, 7)] = &mc_fetch_illegal_ext_dispatch,
 
         /* 0xE4 CPX zp ; class=r_zp */
@@ -1752,7 +1752,7 @@
         [IDX(qe6502_model_nes, 0xE7, 0)] = &mc_clear_latch_addr_read_pc_inc,
         [IDX(qe6502_model_nes, 0xE7, 1)] = &mc_latch_addr0_read_latch_addr,
         [IDX(qe6502_model_nes, 0xE7, 2)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xE7, 3)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xE7, 3)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xE7, 4)] = &mc_fetch,
         [IDX(qe6502_model_nes, 0xE7, 5)] = &mc_dispatch,
 
@@ -1805,7 +1805,7 @@
         [IDX(qe6502_model_nes, 0xEF, 1)] = &mc_latch_addr0_read_pc_inc,
         [IDX(qe6502_model_nes, 0xEF, 2)] = &mc_latch_addr1_read_latch_addr,
         [IDX(qe6502_model_nes, 0xEF, 3)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xEF, 4)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xEF, 4)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xEF, 5)] = &mc_fetch,
         [IDX(qe6502_model_nes, 0xEF, 6)] = &mc_dispatch,
 
@@ -1830,7 +1830,7 @@
         [IDX(qe6502_model_nes, 0xF2, 1)] = &mc_kil_jam_read_ffff,
         [IDX(qe6502_model_nes, 0xF2, 2)] = &mc_read_fffe,
         [IDX(qe6502_model_nes, 0xF2, 3)] = &mc_read_fffe,
-        [IDX(qe6502_model_nes, 0xF2, 4)] = &mc_kil_jam_r_ffff_pending_data_loop,
+        [IDX(qe6502_model_nes, 0xF2, 4)] = &op_kil_jam_r_ffff_pending_data_loop,
 
         /* 0xF3 ISC (zp),Y ; class=rw_izy */
         [IDX(qe6502_model_nes, 0xF3, 0)] = &mc_clear_latch_addr_read_pc_inc,
@@ -1839,7 +1839,7 @@
         [IDX(qe6502_model_nes, 0xF3, 3)] = &mc_w_indexed_probe,
         [IDX(qe6502_model_nes, 0xF3, 4)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nes, 0xF3, 5)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xF3, 6)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xF3, 6)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xF3, 7)] = &mc_fetch_illegal_ext_dispatch,
 
         /* 0xF4 NOP zp,X ; class=nop_zpx_read */
@@ -1870,7 +1870,7 @@
         [IDX(qe6502_model_nes, 0xF7, 1)] = &mc_zpx_c1_idx,
         [IDX(qe6502_model_nes, 0xF7, 2)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nes, 0xF7, 3)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xF7, 4)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xF7, 4)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xF7, 5)] = &mc_fetch,
         [IDX(qe6502_model_nes, 0xF7, 6)] = &mc_dispatch,
 
@@ -1898,7 +1898,7 @@
         [IDX(qe6502_model_nes, 0xFB, 2)] = &mc_w_indexed_probe,
         [IDX(qe6502_model_nes, 0xFB, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nes, 0xFB, 4)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xFB, 5)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xFB, 5)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xFB, 6)] = &mc_fetch,
         [IDX(qe6502_model_nes, 0xFB, 7)] = &mc_dispatch,
 
@@ -1934,7 +1934,7 @@
         [IDX(qe6502_model_nes, 0xFF, 2)] = &mc_w_indexed_probe,
         [IDX(qe6502_model_nes, 0xFF, 3)] = &mc_read_latch_addr,
         [IDX(qe6502_model_nes, 0xFF, 4)] = &mc_latch_data_write_latch_addr,
-        [IDX(qe6502_model_nes, 0xFF, 5)] = &op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
+        [IDX(qe6502_model_nes, 0xFF, 5)] = &mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch,
         [IDX(qe6502_model_nes, 0xFF, 6)] = &mc_fetch,
         [IDX(qe6502_model_nes, 0xFF, 7)] = &mc_dispatch
 

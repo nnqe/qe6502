@@ -493,7 +493,7 @@ static qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=kil_jam; action=repeat_jammed_vector_high_read_forever */
-static qe6502_tick_t mc_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2772,7 +2772,7 @@ static qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
 }
 
 /* prefetch_handler; prefetc; condition=always; base=op_nes_isc_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
 
