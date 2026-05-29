@@ -116,3 +116,11 @@ jobs:
       - name: Test
         if: contains(matrix.preset, 'wasm') == false
         run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure
+
+      - name: Check shared exports
+        if: runner.os != 'Windows' && contains(matrix.preset, 'wasm') == false
+        run: cmake -DQE6502_BUILD_DIR=build/${{ matrix.preset }} -P cmake/qe6502CheckSharedExports.cmake
+
+      - name: Install smoke test
+        if: runner.os != 'Windows' && contains(matrix.preset, 'wasm') == false
+        run: cmake -DQE6502_BUILD_DIR=build/${{ matrix.preset }} -P cmake/qe6502InstallSmokeTest.cmake

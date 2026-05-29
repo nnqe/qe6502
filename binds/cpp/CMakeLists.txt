@@ -8,7 +8,7 @@ add_library(qe6502_cpp_static STATIC
 )
 
 target_link_libraries(qe6502_cpp_static
-    PUBLIC qe6502_static
+    PUBLIC qe6502::static
 )
 
 target_include_directories(qe6502_cpp_static

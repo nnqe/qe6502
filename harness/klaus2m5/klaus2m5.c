@@ -1,6 +1,6 @@
 #include <qe6502/qe6502.h>
 #include <stdint.h>
-#include <string.h>
+#include <time.h>
 
 static uint8_t tick_is_write(qe6502_tick_t tick)
 {
@@ -22,37 +22,46 @@ static uint8_t tick_bus_data(qe6502_tick_t tick, uint8_t* memory)
     return memory[tick.address];
 }
 
+static double elapsed_seconds(clock_t start, clock_t stop)
+{
+    const double ticks = (double)(stop - start);
+    return ticks / (double)CLOCKS_PER_SEC;
+}
+
+static double emulated_mhz(uint64_t ticks, double seconds)
+{
+    if (seconds <= 0.0)
+    {
+        return 0.0;
+    }
+
+    return ((double)ticks / seconds) / 1000000.0;
+}
+
 const char* test_klaus2m5_v2(uint8_t cpu_model,
                              uint8_t* memory,
                              uint16_t success_address,
                              uint64_t expected_cycles,
-                             uint8_t* result)
+                             uint8_t* result,
+                             double* mhz)
 {
-    *result = 0;
-
     qe6502_t cpu;
     qe6502_t* cpu_ptr = &cpu;
-    memset(cpu_ptr, 0, sizeof(cpu));
-    cpu.model = cpu_model;
-
-    memory[0xFFFC] = 0x00;
-    memory[0xFFFD] = 0x04;
-
-    qe6502_tick_t tick = qe6502_restart(cpu_ptr);
-
-    while (!tick_is_opcode_fetch(tick))
-    {
-        const uint8_t data = tick_bus_data(tick, memory);
-        if (tick_is_write(tick))
-        {
-            memory[tick.address] = data;
-        }
-        tick = qe6502_tick(cpu_ptr, data);
-    }
-
-
+    qe6502_tick_t tick;
     uint64_t cycles = 0;
+    uint64_t bus_ticks = 0;
+    clock_t start;
+    clock_t stop;
     const char* result_msg = "CPU Error";
+
+    *result = 0;
+    *mhz = 0.0;
+
+    cpu.model = cpu_model;
+    (void)qe6502_restart(cpu_ptr);
+    tick = qe6502_goto(cpu_ptr, 0x0400u);
+
+    start = clock();
 
     for (;;)
     {
@@ -75,6 +84,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
         }
 
         tick = qe6502_tick(cpu_ptr, data);
+        bus_ticks++;
 
         if (tick_is_opcode_fetch(tick))
         {
@@ -86,6 +96,9 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
             }
         }
     }
+
+    stop = clock();
+    *mhz = emulated_mhz(bus_ticks, elapsed_seconds(start, stop));
 
     return result_msg;
 }

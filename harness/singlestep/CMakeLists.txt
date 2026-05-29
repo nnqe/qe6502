@@ -6,7 +6,7 @@ add_executable(${target}
 )
 
 target_link_libraries(${target}
-    PRIVATE qe6502_static
+    PRIVATE qe6502::static
 )
 
 target_include_directories(${target}

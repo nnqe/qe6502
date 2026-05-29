@@ -7,7 +7,8 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
                              uint8_t* memory,
                              uint16_t success_address,
                              uint64_t expected_cycles,
-                             uint8_t* result);
+                             uint8_t* result,
+                             double* mhz);
 
 void copy_klaus2m5_image(uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles);
 void copy_klaus2m5_extended_image(uint8_t* dst, uint16_t* success_address, uint64_t* expected_cycles);
@@ -100,6 +101,7 @@ static int test_model(const char* exec_name,
     uint64_t expected_cycles = 0;
     uint8_t memory[0x10000];
     uint8_t result = 0;
+    double mhz = 0.0;
     const char* msg = NULL;
     uint8_t parsed_model = 0;
 
@@ -151,15 +153,17 @@ static int test_model(const char* exec_name,
         memory,
         success_address,
         expected_cycles,
-        &result
+        &result,
+        &mhz
     );
 
     printf(
-        "%s CPU %s test %s : normal %s\n",
+        "%s CPU %s test %s : normal %s (%.2f MHz)\n",
         model_display_name(model_arg),
         test_arg,
         result ? "[PASS]" : "[FAIL]",
-        msg
+        msg,
+        mhz
     );
 
     return result ? 0 : 1;

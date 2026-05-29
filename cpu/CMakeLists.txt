@@ -6,22 +6,27 @@ set(QE6502_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502.h
 )
 
-file(GLOB_RECURSE QE6502_PRIVATE_SOURCE ./src/*.c)
+file(GLOB_RECURSE QE6502_PRIVATE_SOURCE CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+)
 
 function(qe6502_configure_core_target target)
     target_include_directories(${target}
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
     target_compile_definitions(${target}
         PUBLIC
             QE6502_VERBOS=$<BOOL:${QE6502_VERBOS}>
         PRIVATE
-            QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
+            QE6502_BUILD_WASM=$<BOOL:${QE6502_BUILD_WASM}>
     )
 
+    if(QE6502_BUILD_WASM)
+        target_compile_options(${target} PRIVATE -ffreestanding)
+    endif()
 
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /WX /we4505)
@@ -37,10 +42,10 @@ function(qe6502_configure_core_target target)
     target_compile_features(${target} PUBLIC c_std_11)
 endfunction()
 
-if(NOT QE_BUILD_WASM)
-    message(STATUS "QE6502 2 Native Build")
-else()
+if(QE6502_BUILD_WASM)
     message(STATUS "QE6502 2 WASM Build")
+else()
+    message(STATUS "QE6502 2 Native Build")
 endif()
 
 add_library(qe6502_static STATIC
@@ -51,33 +56,113 @@ add_library(qe6502_static STATIC
 qe6502_configure_core_target(qe6502_static)
 
 target_compile_definitions(qe6502_static
+    PUBLIC
+        QE6502_STATIC=1
     PRIVATE
-        QE_BUILD_SHARED=0
-        QE_BUILDING_LIBRARY=1
+        QE6502_BUILD_SHARED=0
 )
 
 set_target_properties(qe6502_static PROPERTIES
+    EXPORT_NAME static
     POSITION_INDEPENDENT_CODE ON
     C_VISIBILITY_PRESET hidden
 )
 
 add_library(qe6502 ALIAS qe6502_static)
+add_library(qe6502::static ALIAS qe6502_static)
 
-if(NOT QE_BUILD_WASM)
+if(QE6502_BUILD_WASM)
+    add_executable(qe6502_shared
+        ${QE6502_PUBLIC_HEADERS}
+        ${QE6502_PRIVATE_SOURCE}
+    )
+else()
     add_library(qe6502_shared SHARED
         ${QE6502_PUBLIC_HEADERS}
         ${QE6502_PRIVATE_SOURCE}
     )
+endif()
 
-    qe6502_configure_core_target(qe6502_shared)
+qe6502_configure_core_target(qe6502_shared)
 
-    target_compile_definitions(qe6502_shared
-        PRIVATE
-            QE_BUILD_SHARED=1
-            QE_BUILDING_LIBRARY=1
-    )
+target_compile_definitions(qe6502_shared
+    PUBLIC
+        QE6502_SHARED=1
+    PRIVATE
+        QE6502_BUILDING_LIBRARY=1
+        QE6502_BUILD_SHARED=1
+)
 
+set_target_properties(qe6502_shared PROPERTIES
+    EXPORT_NAME shared
+    C_VISIBILITY_PRESET hidden
+)
+
+if(NOT QE6502_BUILD_WASM)
     set_target_properties(qe6502_shared PROPERTIES
-        C_VISIBILITY_PRESET hidden
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        MACOSX_RPATH ON
     )
 endif()
+
+if(QE6502_BUILD_WASM)
+    set_target_properties(qe6502_shared PROPERTIES
+        PREFIX ""
+        SUFFIX ".wasm"
+    )
+
+    target_link_options(qe6502_shared PRIVATE
+        -nostdlib
+        LINKER:--no-entry
+        LINKER:--export-memory
+        LINKER:--export=qe6502abi_version
+        LINKER:--export=qe6502abi_setup
+        LINKER:--export=qe6502abi_restart
+        LINKER:--export=qe6502abi_reset
+        LINKER:--export=qe6502abi_goto
+        LINKER:--export=qe6502abi_set_irq
+        LINKER:--export=qe6502abi_get_irq
+        LINKER:--export=qe6502abi_get_tick
+        LINKER:--export=qe6502abi_set_data
+        LINKER:--export=qe6502abi_get_data
+        LINKER:--export=qe6502abi_save
+        LINKER:--export=qe6502abi_load
+        LINKER:--export=qe6502abi_nmi
+        LINKER:--export=qe6502abi_tick
+        LINKER:--export=qe6502abi_get_pc
+        LINKER:--export=qe6502abi_set_pc
+        LINKER:--export=qe6502abi_get_s
+        LINKER:--export=qe6502abi_set_s
+        LINKER:--export=qe6502abi_get_a
+        LINKER:--export=qe6502abi_set_a
+        LINKER:--export=qe6502abi_get_x
+        LINKER:--export=qe6502abi_set_x
+        LINKER:--export=qe6502abi_get_y
+        LINKER:--export=qe6502abi_set_y
+        LINKER:--export=qe6502abi_get_p
+        LINKER:--export=qe6502abi_set_p
+        LINKER:--export=qe6502abi_get_model
+        LINKER:--export=qe6502abi_set_model
+    )
+endif()
+
+if(QE6502_BUILD_WASM)
+    add_executable(qe6502::shared ALIAS qe6502_shared)
+    set(QE6502_RUNTIME_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+else()
+    add_library(qe6502::shared ALIAS qe6502_shared)
+    set(QE6502_RUNTIME_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
+endif()
+
+install(TARGETS qe6502_static qe6502_shared
+    EXPORT qe6502Targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${QE6502_RUNTIME_INSTALL_DIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
