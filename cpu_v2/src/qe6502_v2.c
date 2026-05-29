@@ -112,13 +112,6 @@ static inline qe6502_tick_t write_zero(const qe6502_t* cpu, uint16_t address)
     return write(cpu, address, 0u);
 }
 
-static inline qe6502_tick_t opcode_fetch(const qe6502_t* cpu)
-{
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
-    return tick;
-}
-
 /* Interrupt model note.
  *
  * qe6502_v2 keeps interrupt entry intentionally small and fast: NMI is an
@@ -145,14 +138,10 @@ static inline qe6502_tick_t fetch(qe6502_t* cpu)
             return read(cpu, cpu->PC);
         }
     }
-    return opcode_fetch(cpu);
-}
 
-static inline qe6502_tick_t dispatch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
-    cpu->PC++;
-    return qe6502_control_store[cpu->microcode](cpu, bus);
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
+    return tick;
 }
 
 static inline qe6502_tick_t stack_write(qe6502_t* cpu, uint8_t data)
@@ -477,6 +466,14 @@ static inline void sbc_decimal_cmos(qe6502_t* cpu, uint8_t value)
 }
 
 
+static qe6502_tick_t read_pc_inc(qe6502_t* cpu)
+{
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    cpu->PC++;
+    return tick;
+}
+
+
 /* Microcode handlers. */
 
 /* shared_handler; role=kil_jam; action=read_jam_vector_high */
@@ -496,7 +493,7 @@ static qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=kil_jam; action=repeat_jammed_vector_high_read_forever */
-static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
+static qe6502_tick_t mc_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -513,7 +510,9 @@ static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t 
 /* shared_handler; role=dispatch; action=consume_fetched_opcode_and_dispatch_to_opcode_class */
 static qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
 {
-    return dispatch(cpu, bus);
+    cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
+    cpu->PC++;
+    return qe6502_control_store[cpu->microcode](cpu, bus);
 }
 
 /* shared_handler; role=fetch; action=consume_previous_bus_cycle_and_fetch_next_opcode */
@@ -531,14 +530,6 @@ static qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
 
     cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_illegal_ext, 0u) - 1u);
     return fetch(cpu);
-}
-
-static qe6502_tick_t
-read_pc_inc(qe6502_t* cpu)
-{
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    cpu->PC++;
-    return tick;
 }
 
 /* shared_handler; role=read_pc_inc; action=read_pc_and_increment_pc */
@@ -2385,23 +2376,27 @@ static qe6502_tick_t mc_read_addr_with_bus_hi_prefetch(qe6502_t* cpu, uint8_t bu
     return mc_read_addr_with_bus_hi(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_read_latch_addr */
+/* prefetch_handler; prefetc; condition=always; */
 static qe6502_tick_t mc_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
+    (void)bus;
+
     prefetch(cpu);
 
-    return mc_read_latch_addr(cpu, bus);
+    return read(cpu, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; base=mc_read_latch_addr */
+/* prefetch_handler; prefetc; condition=decimal_clear; */
 static qe6502_tick_t mc_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
+    (void)bus;
+
     if ((cpu->P & flag_D) == 0u)
     {
         prefetch(cpu);
     }
 
-    return mc_read_latch_addr(cpu, bus);
+    return read(cpu, cpu->latch_addr);
 }
 
 /* prefetch_handler; prefetc; condition=always; base=mc_read_pc */
@@ -2800,12 +2795,14 @@ static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr_prefetch(qe650
     return op_pha_stack_push_ready_none_pending_none_wr(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_stack_push_status_b */
+/* prefetch_handler; prefetc; condition=always; */
 static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
+    (void)bus;
+
     prefetch(cpu);
 
-    return mc_stack_push_status_b(cpu, bus);
+    return stack_write(cpu, stack_status(cpu->P, flag_B));
 }
 
 /* prefetch_handler; prefetc; condition=always; base=op_rla_rw_ready_addr_data_pending_none_wr */
