@@ -1,6 +1,0 @@
-if(QE_BUILD_WASM)
-    add_subdirectory(js_examples)
-else()
-    add_subdirectory(c_examples)
-    add_subdirectory(cpp_examples)
-endif()

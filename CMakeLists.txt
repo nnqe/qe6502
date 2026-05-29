@@ -4,33 +4,15 @@ project(qe6502 LANGUAGES C CXX)
 
 include(CTest)
 
-# Public build-time options for qe6502
-option(QE6502_ENABLE_CYCLE_MERGE "Enable cpu cycles merge (adds -DQE6502_ENABLE_CYCLE_MERGE)" OFF)
-option(QE6502_ENABLE_NMOS_6502 "Enable NMOS 6502 (adds -DQE6502_ENABLE_NMOS_6502)" ON)
-option(QE6502_ENABLE_CMOS_65C02 "Enable CMOS 65C02 (adds -DQE6502_ENABLE_CMOS_65C02)" ON)
-option(QE6502_VERBOS "Enable verbos build (adds -DQE6502_VERBOS)" OFF)
-option(QE6502_BUILD_EXAMPLES "Enable examples (adds -DQE6502_BUILD_EXAMPLES)" ON)
+option(DQE6502_BUILD_BIND_JS "Enable JavaScript bind build (adds -DQE6502_BUILD_BIND_JS)" OFF)
+option(DQE6502_BUILD_BIND_CPP "Enable CPP bind build (adds -DQE6502_BUILD_BIND_CPP)" OFF)
+option(DQE6502_BUILD_BIND_PYTHON "Enable Pyhton bind build (adds -DQE6502_BUILD_BIND_PYTHON)" OFF)
 
-if(NOT QE6502_ENABLE_NMOS_6502 AND NOT QE6502_ENABLE_CMOS_65C02)
-    message(FATAL_ERROR
-        "Invalid qe6502 configuration: both QE6502_ENABLE_NMOS_6502 and "
-        "QE6502_ENABLE_CMOS_65C02 are OFF. At least one CPU family must be enabled."
-    )
-endif()
-
-message(STATUS "qe6502 config:")
-message(STATUS "  QE6502_ENABLE_NMOS_6502   = ${QE6502_ENABLE_NMOS_6502}")
-message(STATUS "  QE6502_ENABLE_CMOS_65C02  = ${QE6502_ENABLE_CMOS_65C02}")
-message(STATUS "  QE6502_VERBOS             = ${QE6502_VERBOS}")
-message(STATUS "  QE6502_ENABLE_CYCLE_MERGE = ${QE6502_ENABLE_CYCLE_MERGE}")
-message(STATUS "  QE6502_BUILD_EXAMPLES     = ${QE6502_BUILD_EXAMPLES}")
+message(STATUS "  DQE6502_BUILD_BIND_JS     = ${DQE6502_BUILD_BIND_JS}")
+message(STATUS "  DQE6502_BUILD_BIND_CPP     = ${DQE6502_BUILD_BIND_CPP}")
+message(STATUS "  DQE6502_BUILD_BIND_PYTHON     = ${DQE6502_BUILD_BIND_PYTHON}")
 
 # Add subdirectories
-add_subdirectory(qe)
 add_subdirectory(cpu)
-add_subdirectory(cpu_v2)
 add_subdirectory(binds)
-
-if(BUILD_TESTING)
-    add_subdirectory(harness)
-endif()
+add_subdirectory(harness)

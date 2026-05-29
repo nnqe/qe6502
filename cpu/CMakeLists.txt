@@ -2,7 +2,7 @@
 # qe6502: no external dependencies
 
 set(QE6502_PUBLIC_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502_abi.h
 )
 
 file(GLOB_RECURSE QE6502_PRIVATE_SOURCE ./src/*.c)
@@ -16,14 +16,11 @@ function(qe6502_configure_core_target target)
 
     target_compile_definitions(${target}
         PUBLIC
-            QE6502_ENABLE_CYCLE_MERGE=$<BOOL:${QE6502_ENABLE_CYCLE_MERGE}>
-            QE6502_ENABLE_NMOS_6502=$<BOOL:${QE6502_ENABLE_NMOS_6502}>
-            QE6502_ENABLE_CMOS_65C02=$<BOOL:${QE6502_ENABLE_CMOS_65C02}>
+            QE6502_VERBOS=$<BOOL:${QE6502_VERBOS}>
         PRIVATE
             QE_BUILD_WASM=$<BOOL:${QE_BUILD_WASM}>
     )
 
-    target_link_libraries(${target} PUBLIC qe_static)
 
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /WX /we4505)
@@ -40,9 +37,9 @@ function(qe6502_configure_core_target target)
 endfunction()
 
 if(NOT QE_BUILD_WASM)
-    message(STATUS "QE6502 Native Build")
+    message(STATUS "QE6502 2 Native Build")
 else()
-    message(STATUS "QE6502 WASM Build")
+    message(STATUS "QE6502 2 WASM Build")
 endif()
 
 add_library(qe6502_static STATIC
