@@ -14,7 +14,6 @@ target_link_libraries(qe6502_cpp_static
 target_include_directories(qe6502_cpp_static
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cpu/src>
         $<INSTALL_INTERFACE:include>
 )
 

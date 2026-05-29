@@ -2,15 +2,17 @@ set(target singlestep)
 
 add_executable(${target}
     main.cpp
+    ${PROJECT_SOURCE_DIR}/binds/cpp/src/cpu.cpp
 )
 
 target_link_libraries(${target}
-    PRIVATE qe6502_cpp_static
+    PRIVATE qe6502_static
 )
 
 target_include_directories(${target}
     PRIVATE
         ${PROJECT_SOURCE_DIR}/harness/third_party
+        ${PROJECT_SOURCE_DIR}/binds/cpp/include
 )
 
 if(MSVC)

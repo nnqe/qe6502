@@ -1,7 +1,7 @@
 #ifndef QE6502_CPP_CPU_HPP
 #define QE6502_CPP_CPU_HPP
 
-#include "qe6502.h"
+#include <qe6502/qe6502.h>
 
 #include <cstdint>
 

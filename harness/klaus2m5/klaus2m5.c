@@ -1,4 +1,4 @@
-#include "qe6502.h"
+#include <qe6502/qe6502.h>
 #include <stdint.h>
 #include <string.h>
 

@@ -1,4 +1,4 @@
-#include "qe6502.h"
+#include <qe6502/qe6502.h>
 #include <stdbool.h>
 
 static const uint8_t flag_C  = qe6502_flag_C ;
