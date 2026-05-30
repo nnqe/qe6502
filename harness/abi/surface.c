@@ -7,13 +7,11 @@
 
 static const char *const qe6502abi_expected[] = {
     "qe6502abi_get_a",
-    "qe6502abi_get_data",
     "qe6502abi_get_irq",
     "qe6502abi_get_model",
     "qe6502abi_get_p",
     "qe6502abi_get_pc",
     "qe6502abi_get_s",
-    "qe6502abi_get_tick",
     "qe6502abi_get_x",
     "qe6502abi_get_y",
     "qe6502abi_goto",
@@ -23,7 +21,6 @@ static const char *const qe6502abi_expected[] = {
     "qe6502abi_restart",
     "qe6502abi_save",
     "qe6502abi_set_a",
-    "qe6502abi_set_data",
     "qe6502abi_set_irq",
     "qe6502abi_set_model",
     "qe6502abi_set_p",

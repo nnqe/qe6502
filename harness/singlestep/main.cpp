@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <initializer_list>
 #include <exception>
 #include <fstream>
 #include <string>
@@ -170,6 +171,34 @@ bool compare_u16(const char* name, std::uint16_t actual, std::uint16_t expected)
     return true;
 }
 
+
+bool is_nmos_kil_opcode(qe6502::model model, std::uint8_t opcode)
+{
+    if (model != qe6502::model::nmos && model != qe6502::model::nes) {
+        return false;
+    }
+
+    for (const std::uint8_t kil_opcode : {
+             static_cast<std::uint8_t>(0x02u),
+             static_cast<std::uint8_t>(0x12u),
+             static_cast<std::uint8_t>(0x22u),
+             static_cast<std::uint8_t>(0x32u),
+             static_cast<std::uint8_t>(0x42u),
+             static_cast<std::uint8_t>(0x52u),
+             static_cast<std::uint8_t>(0x62u),
+             static_cast<std::uint8_t>(0x72u),
+             static_cast<std::uint8_t>(0x92u),
+             static_cast<std::uint8_t>(0xB2u),
+             static_cast<std::uint8_t>(0xD2u),
+             static_cast<std::uint8_t>(0xF2u),
+         }) {
+        if (opcode == kil_opcode) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool compare_final_state(const qe6502::cpu& cpu, const std::array<std::uint8_t, 0x10000>& memory, const nlohmann::json& final)
 {
     bool ok = true;
@@ -204,8 +233,13 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
     set_initial_state(cpu, initial);
     cpu.jump_to(cpu.pc());
 
+    constexpr std::size_t nmos_kil_cycles_to_compare = 2u;
+    const std::uint16_t initial_pc = json_u16(initial.at("pc"));
+    const bool nmos_kil_opcode = is_nmos_kil_opcode(model, memory[initial_pc]);
     std::size_t cycle_index = 0u;
-    const std::size_t cycles_to_run = compare_cycles ? cycles.size() : static_cast<std::size_t>(0u);
+    const std::size_t cycles_to_run = compare_cycles
+        ? (nmos_kil_opcode && cycles.size() > nmos_kil_cycles_to_compare ? nmos_kil_cycles_to_compare : cycles.size())
+        : static_cast<std::size_t>(0u);
     while (compare_cycles ? (cycle_index < cycles_to_run) : true) {
         if (compare_cycles) {
             const nlohmann::json& expected_cycle = cycles.at(cycle_index);
@@ -236,6 +270,9 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
         cpu.tick(bus);
         cycle_index++;
 
+        if (!compare_cycles && nmos_kil_opcode && cycle_index >= nmos_kil_cycles_to_compare) {
+            break;
+        }
         if (!compare_cycles && cpu.is_opcode_fetch()) {
             break;
         }

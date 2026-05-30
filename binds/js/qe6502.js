@@ -25,7 +25,7 @@ export const Status = Object.freeze({
   cpuJammed: 1 << 7,
 });
 
-const ABI_VERSION = 0x00000001;
+const ABI_VERSION = 0x00000003;
 const SNAPSHOT_SIZE = 64;
 
 const TICK_ADDRESS_MASK = 0xffff;
@@ -43,8 +43,6 @@ const REQUIRED_EXPORTS = [
   "qe6502abi_goto",
   "qe6502abi_set_irq",
   "qe6502abi_get_irq",
-  "qe6502abi_set_data",
-  "qe6502abi_get_data",
   "qe6502abi_save",
   "qe6502abi_load",
   "qe6502abi_nmi",
@@ -151,7 +149,7 @@ async function instantiateQe6502(bytes) {
 
 export async function loadQe6502Browser(source) {
   if (typeof source === "string" || isUrl(source)) {
-    const response = await fetch(source);
+    const response = await fetch(source, { cache: "no-store" });
 
     if (!response.ok) {
       throw new Error(
@@ -288,7 +286,7 @@ export class Qe6502Cpu {
     const scratch = this.#allocScratch();
 
     try {
-      this.#runtime.exports.qe6502abi_save(this.#ptr, scratch);
+      this.#runtime.exports.qe6502abi_save(this.#ptr, this.#tick, scratch);
       return new Uint8Array(
         new Uint8Array(this.#runtime.memory.buffer, scratch, SNAPSHOT_SIZE),
       );
@@ -317,16 +315,6 @@ export class Qe6502Cpu {
     } finally {
       this.#runtime.exports.qe6502js_context_free(scratch);
     }
-  }
-
-  userData() {
-    this.#assertAlive();
-    return this.#runtime.exports.qe6502abi_get_data(this.#ptr);
-  }
-
-  setUserData(value) {
-    this.#assertAlive();
-    this.#runtime.exports.qe6502abi_set_data(this.#ptr, BigInt(value));
   }
 
   cpuModel() {

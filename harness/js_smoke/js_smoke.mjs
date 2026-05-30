@@ -30,7 +30,6 @@ try {
   cpu.setY(0x9a);
   cpu.setS(0xbc);
   cpu.setP(0xde);
-  cpu.setUserData(0x1122334455667788n);
 
   const snapshot = cpu.save();
 
@@ -41,7 +40,6 @@ try {
   assert.equal(cpu.y(), 0x9a);
   assert.equal(cpu.s(), 0xbc);
   assert.equal(cpu.p(), 0xde);
-  assert.equal(cpu.userData(), 0x1122334455667788n);
 
   cpu.setPc(0);
   cpu.setA(0);
@@ -49,7 +47,6 @@ try {
   cpu.setY(0);
   cpu.setS(0);
   cpu.setP(0);
-  cpu.setUserData(0n);
 
   const loadedTick = cpu.load(snapshot);
 
@@ -60,7 +57,6 @@ try {
   assert.equal(cpu.y(), 0x9a);
   assert.equal(cpu.s(), 0xbc);
   assert.equal(cpu.p(), 0xde);
-  assert.equal(cpu.userData(), 0x1122334455667788n);
 
   cpu.jumpTo(0x2000);
   assert.equal(cpu.busAddress(), 0x2000);

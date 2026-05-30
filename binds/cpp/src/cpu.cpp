@@ -7,7 +7,6 @@ namespace qe6502 {
 cpu::cpu(model cpu_model) noexcept
     : cpu_{}
     , tick_{}
-    , user_data_{}
 {
     cpu_.model = static_cast<std::uint8_t>(cpu_model);
 }
@@ -44,25 +43,14 @@ void cpu::nmi() noexcept
 
 state cpu::save() const noexcept
 {
-    return state{cpu_, tick_, user_data_};
+    return state{cpu_, tick_};
 }
 
 const qe6502_tick_t& cpu::load(const state& value) noexcept
 {
     cpu_ = value.cpu;
     tick_ = value.tick;
-    user_data_ = value.user_data;
     return tick_;
-}
-
-std::uint64_t cpu::user_data() const noexcept
-{
-    return user_data_;
-}
-
-void cpu::user_data(std::uint64_t value) noexcept
-{
-    user_data_ = value;
 }
 
 model cpu::cpu_model() const noexcept

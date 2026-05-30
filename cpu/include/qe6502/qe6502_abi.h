@@ -57,7 +57,7 @@ extern "C" {
  */
 
 #define QE6502_ABI_VERSION_MAJOR 0u
-#define QE6502_ABI_VERSION_MINOR 1u
+#define QE6502_ABI_VERSION_MINOR 3u
 #define QE6502_ABI_VERSION \
     ((QE6502_ABI_VERSION_MAJOR << 16u) | QE6502_ABI_VERSION_MINOR)
 
@@ -70,7 +70,7 @@ extern "C" {
 
 /*
  * Opaque 64-byte, 8-byte-aligned ABI context.
- * The first 32 bytes are currently used; the remaining 32 bytes are reserved.
+ * The first 20 bytes are currently used; the remaining 44 bytes are reserved.
  */
 typedef struct qe6502abi_context
 {
@@ -146,18 +146,14 @@ QE6502_ABI_API void             qe6502abi_nmi(qe6502abi_context_t *ctx);
 QE6502_ABI_API void             qe6502abi_set_irq(qe6502abi_context_t *ctx, uint32_t pin);
 QE6502_ABI_API uint32_t         qe6502abi_get_irq(const qe6502abi_context_t *ctx);
 
-/* Last tick produced by restart/reset/goto/tick. */
-QE6502_ABI_API qe6502abi_tick_t qe6502abi_get_tick(const qe6502abi_context_t *ctx);
-
-/* Caller-owned 64-bit metadata. qe6502 stores it and never interprets it. */
-QE6502_ABI_API void     qe6502abi_set_data(qe6502abi_context_t *ctx, uint64_t data);
-QE6502_ABI_API uint64_t qe6502abi_get_data(const qe6502abi_context_t *ctx);
+/* Execution functions return ticks but do not store them in the ABI context. */
 
 /*
  * Save and restore the portable 64-byte ABI context snapshot.
- * Snapshot layout is big-endian: magic, version, CPU context, tick, user_data, reserved.
+ * Snapshot layout is big-endian: magic, version, CPU context, tick, reserved.
  */
 QE6502_ABI_API void             qe6502abi_save(const qe6502abi_context_t *ctx,
+                                               qe6502abi_tick_t tick,
                                                uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE]);
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx,
                                                const uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE]);

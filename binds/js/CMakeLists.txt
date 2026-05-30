@@ -34,8 +34,6 @@ target_link_options(qe6502_js PRIVATE
     LINKER:--export=qe6502abi_goto
     LINKER:--export=qe6502abi_set_irq
     LINKER:--export=qe6502abi_get_irq
-    LINKER:--export=qe6502abi_set_data
-    LINKER:--export=qe6502abi_get_data
     LINKER:--export=qe6502abi_save
     LINKER:--export=qe6502abi_load
     LINKER:--export=qe6502abi_nmi

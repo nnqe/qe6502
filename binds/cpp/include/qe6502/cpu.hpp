@@ -28,7 +28,6 @@ inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 struct state {
     qe6502_t cpu{};
     qe6502_tick_t tick{};
-    std::uint64_t user_data{};
 };
 
 class cpu {
@@ -55,9 +54,6 @@ public:
 
     state save() const noexcept;
     const qe6502_tick_t& load(const state& value) noexcept;
-
-    std::uint64_t user_data() const noexcept;
-    void user_data(std::uint64_t value) noexcept;
 
     model cpu_model() const noexcept;
 
@@ -90,7 +86,6 @@ public:
 private:
     qe6502_t cpu_{};
     qe6502_tick_t tick_{};
-    std::uint64_t user_data_{};
 };
 
 inline const qe6502_tick_t& cpu::tick(std::uint8_t input) noexcept
