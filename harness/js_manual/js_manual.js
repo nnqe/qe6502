@@ -5,13 +5,22 @@ function withCacheBuster(url) {
   return `${url}${separator}v=${encodeURIComponent(MANUAL_CACHE_BUSTER)}`;
 }
 
-const [qeModule, singleStepModule] = await Promise.all([
+const [qeModule, singleStepModule, singleStepSourcesModule] = await Promise.all([
   import(withCacheBuster("./qe6502.js")),
   import(withCacheBuster("./js_singlestep.js")),
+  import(withCacheBuster("./single_step_sources.js")),
 ]);
 
 const { loadQe6502Browser, Model, Status } = qeModule;
 const { runSingleStepSuite } = singleStepModule;
+const {
+  getGithubBaseUrlForModel,
+  parseOpcodeText,
+  sourceFromGithubFull,
+  sourceFromGithubOpcode,
+  sourceFromLocalFile,
+  sourceFromLocalFolder,
+} = singleStepSourcesModule;
 
 const WASM_URL = withCacheBuster("./qe6502_js.wasm");
 const STANDARD_ROM_URL = withCacheBuster("./roms/6502_functional_test.hex");
@@ -52,6 +61,10 @@ const clearButton = document.querySelector("#clear-button");
 const singleStepControls = document.querySelector("#singlestep-controls");
 const singleStepModel = document.querySelector("#singlestep-model");
 const singleStepScope = document.querySelector("#singlestep-scope");
+const singleStepSource = document.querySelector("#singlestep-source");
+const singleStepBaseUrl = document.querySelector("#singlestep-base-url");
+const singleStepLocalFile = document.querySelector("#singlestep-local-file");
+const singleStepLocalFolder = document.querySelector("#singlestep-local-folder");
 const singleStepOpcode = document.querySelector("#singlestep-opcode");
 const singleStepCycles = document.querySelector("#singlestep-cycles");
 const singleStepMaxCases = document.querySelector("#singlestep-max-cases");
@@ -333,10 +346,20 @@ function singleStepMaxCasesValue() {
   return value;
 }
 
+function updateSingleStepBaseUrl() {
+  singleStepBaseUrl.value = getGithubBaseUrlForModel(singleStepModel.value);
+}
+
 function updateSingleStepUi() {
   const singleStepSelected = testSelect.value === "singlestep";
+  const source = singleStepSource.value;
+  const opcodeMode = singleStepScope.value === "opcode";
+
   singleStepControls.hidden = !singleStepSelected;
-  singleStepOpcode.disabled = singleStepScope.value !== "opcode";
+  singleStepOpcode.disabled = !opcodeMode;
+  singleStepBaseUrl.hidden = source !== "github";
+  singleStepLocalFile.hidden = source !== "local-file";
+  singleStepLocalFolder.hidden = source !== "local-folder";
 }
 
 function setControlsDisabled(disabled) {
@@ -344,13 +367,66 @@ function setControlsDisabled(disabled) {
   testSelect.disabled = disabled;
   singleStepModel.disabled = disabled;
   singleStepScope.disabled = disabled;
+  singleStepSource.disabled = disabled;
+  singleStepBaseUrl.disabled = disabled;
+  singleStepLocalFile.disabled = disabled;
+  singleStepLocalFolder.disabled = disabled;
   singleStepOpcode.disabled = disabled || singleStepScope.value !== "opcode";
   singleStepCycles.disabled = disabled;
   singleStepMaxCases.disabled = disabled;
 }
 
+function singleStepDescriptorsFromUi() {
+  const allOpcodes = singleStepScope.value === "all";
+  const opcode = parseOpcodeText(singleStepOpcode.value);
+
+  if (singleStepSource.value === "github") {
+    const baseUrl = singleStepBaseUrl.value;
+    return {
+      descriptors: allOpcodes
+        ? sourceFromGithubFull(baseUrl)
+        : sourceFromGithubOpcode(baseUrl, opcode),
+      sourceLabel: allOpcodes ? `${baseUrl.replace(/\/+$/u, "")}/00..ff.json` : `${baseUrl.replace(/\/+$/u, "")}/${opcode.toString(16).padStart(2, "0")}.json`,
+    };
+  }
+
+  if (singleStepSource.value === "local-file") {
+    if (!singleStepLocalFile.files || singleStepLocalFile.files.length !== 1) {
+      throw new Error("Choose one local opcode JSON file named like 00.json..ff.json");
+    }
+
+    return {
+      descriptors: sourceFromLocalFile(singleStepLocalFile.files[0]),
+      sourceLabel: singleStepLocalFile.files[0].name,
+    };
+  }
+
+  if (singleStepSource.value === "local-folder") {
+    if (!singleStepLocalFolder.files || singleStepLocalFolder.files.length === 0) {
+      throw new Error("Choose a local SingleStepTests folder containing opcode JSON files");
+    }
+
+    let descriptors = sourceFromLocalFolder(singleStepLocalFolder.files);
+    if (!allOpcodes) {
+      descriptors = descriptors.filter((descriptor) => descriptor.opcode === opcode);
+      if (descriptors.length === 0) {
+        throw new Error(`Selected folder does not contain ${opcode.toString(16).padStart(2, "0")}.json`);
+      }
+    }
+
+    return {
+      descriptors,
+      sourceLabel: allOpcodes ? "selected local folder" : descriptors[0].name,
+    };
+  }
+
+  throw new Error(`Unknown SingleStep source: ${singleStepSource.value}`);
+}
+
 async function runSingleStepTest() {
   const qe = await qe6502();
+  const { descriptors, sourceLabel } = singleStepDescriptorsFromUi();
+
   return runSingleStepSuite({
     qe,
     modelName: singleStepModel.value,
@@ -358,6 +434,8 @@ async function runSingleStepTest() {
     allOpcodes: singleStepScope.value === "all",
     compareCycles: singleStepCycles.checked,
     maxCases: singleStepMaxCasesValue(),
+    descriptors,
+    sourceLabel,
     log,
   });
 }
@@ -386,7 +464,7 @@ async function runSelectedTest() {
       log(error.stack);
     }
     if (testSelect.value === "singlestep") {
-      log("SingleStepTests are fetched directly from GitHub raw URLs; the full package runner uses generated 00..FF opcode URLs and skips missing files. Check network access, CORS, and whether the selected opcode exists for that model.");
+      log("SingleStepTests can be loaded from GitHub raw URLs or from local opcode JSON files/folders. If browser fetch reports a network TypeError, switch Source to Local folder and choose the downloaded SingleStepTests model folder.");
     }
     setStatus("FAIL", "fail");
   } finally {
@@ -397,6 +475,11 @@ async function runSelectedTest() {
 
 testSelect.addEventListener("change", updateSingleStepUi);
 singleStepScope.addEventListener("change", updateSingleStepUi);
+singleStepSource.addEventListener("change", updateSingleStepUi);
+singleStepModel.addEventListener("change", () => {
+  updateSingleStepBaseUrl();
+  updateSingleStepUi();
+});
 
 runButton.addEventListener("click", () => {
   void runSelectedTest();
@@ -407,5 +490,6 @@ clearButton.addEventListener("click", () => {
   setStatus("Ready.");
 });
 
+updateSingleStepBaseUrl();
 updateSingleStepUi();
 log("Ready. Select a test and press Run selected test.");

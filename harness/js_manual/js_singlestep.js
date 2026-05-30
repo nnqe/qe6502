@@ -1,8 +1,8 @@
 import { Model } from "./qe6502.js";
+import { getGithubBaseUrlForModel, parseOpcodeText, sourceFromGithubFull, sourceFromGithubOpcode } from "./single_step_sources.js";
 
 const MEMORY_SIZE = 0x10000;
 const INSTRUCTION_CYCLE_LIMIT = 32;
-const DEFAULT_RAW_BASE_URL = "https://raw.githubusercontent.com/SingleStepTests/65x02/main";
 const NMOS_KIL_OPCODES = new Set([0x02, 0x12, 0x22, 0x32, 0x42, 0x52, 0x62, 0x72, 0x92, 0xb2, 0xd2, 0xf2]);
 const NMOS_KIL_CYCLES_TO_COMPARE = 2;
 const ALL_OPCODE_VALUES = Object.freeze(Array.from({ length: 256 }, (_, index) => index));
@@ -204,69 +204,39 @@ function runCase(qe, testCase, modelInfo, opcode, compareCycles) {
   }
 }
 
-function opcodeFilename(opcode) {
-  return `${opcode.toString(16).padStart(2, "0")}.json`;
+function describeDescriptor(descriptor) {
+  return descriptor.url ?? descriptor.name;
 }
 
-function normalizeBaseUrl(value) {
-  return String(value).replace(/\/+$/, "");
-}
+async function loadDescriptorJson(descriptor) {
+  const text = await descriptor.loadText();
 
-function rawOpcodeUrl(modelInfo, opcode) {
-  return `${normalizeBaseUrl(DEFAULT_RAW_BASE_URL)}/${modelInfo.directory}/${opcodeFilename(opcode)}`;
-}
-
-function apiDirectoryUrl(modelInfo) {
-  const directory = modelInfo.directory.split("/").map(encodeURIComponent).join("/");
-  return `${normalizeBaseUrl(DEFAULT_API_BASE_URL)}/${directory}?ref=${encodeURIComponent(DEFAULT_REF)}`;
-}
-
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    cache: "no-store",
-    headers: {
-      Accept: "application/json",
-      "Cache-Control": "no-cache",
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
-  }
-  return response.json();
-}
-
-async function fetchOpcodeList(modelInfo) {
-  const url = apiDirectoryUrl(modelInfo);
-  const listing = await fetchJson(url);
-  if (!Array.isArray(listing)) {
-    throw new Error(`${url}: expected a GitHub contents directory listing`);
+  if (text === undefined) {
+    return undefined;
   }
 
-  const opcodes = [];
-  for (const item of listing) {
-    if (item === null || item.type !== "file" || typeof item.name !== "string") {
-      continue;
-    }
-    const match = /^([0-9a-fA-F]{2})\.json$/.exec(item.name);
-    if (match !== null) {
-      opcodes.push(Number.parseInt(match[1], 16) & 0xff);
-    }
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`${describeDescriptor(descriptor)}: invalid JSON: ${detail}`);
   }
-
-  opcodes.sort((a, b) => a - b);
-  if (opcodes.length === 0) {
-    throw new Error(`${url}: no opcode JSON files found`);
-  }
-  return opcodes;
 }
 
-async function runOpcode(qe, modelInfo, opcode, options, counts) {
-  const url = rawOpcodeUrl(modelInfo, opcode);
-  options.log(`Fetching ${url}`);
-  const tests = await fetchJson(url);
+async function runOpcode(qe, modelInfo, descriptor, options, counts) {
+  const opcode = descriptor.opcode & 0xff;
+  const sourceName = describeDescriptor(descriptor);
+  options.log(`Loading ${sourceName}`);
+  const tests = await loadDescriptorJson(descriptor);
+
+  if (tests === undefined) {
+    ++counts.filesSkipped;
+    options.log(`SKIP ${hex8(opcode)} (missing)`);
+    return;
+  }
 
   if (!Array.isArray(tests)) {
-    throw new Error(`${url}: root JSON value is not an array`);
+    throw new Error(`${sourceName}: root JSON value is not an array`);
   }
 
   let localCases = 0;
@@ -319,6 +289,8 @@ export async function runSingleStepSuite({
   allOpcodes,
   compareCycles,
   maxCases,
+  descriptors,
+  sourceLabel,
   log,
 }) {
   const modelInfo = SingleStepModels[modelName];
@@ -328,10 +300,26 @@ export async function runSingleStepSuite({
 
   const counts = {
     filesRun: 0,
+    filesSkipped: 0,
     casesRun: 0,
     casesFailed: 0,
     busTicks: 0,
   };
+  let activeDescriptors = descriptors;
+  let activeSourceLabel = sourceLabel;
+
+  if (activeDescriptors === undefined) {
+    const baseUrl = getGithubBaseUrlForModel(modelName);
+    activeDescriptors = allOpcodes
+      ? sourceFromGithubFull(baseUrl)
+      : sourceFromGithubOpcode(baseUrl, parseOpcodeText(opcode));
+    activeSourceLabel = allOpcodes ? `${baseUrl}00..ff.json` : activeDescriptors[0].url;
+  }
+
+  if (!Array.isArray(activeDescriptors) || activeDescriptors.length === 0) {
+    throw new Error("No SingleStep opcode file descriptors were provided");
+  }
+
   const options = {
     compareCycles,
     maxCases,
@@ -340,29 +328,32 @@ export async function runSingleStepSuite({
   const startedAt = performance.now();
 
   log(`Running SingleStepTests for ${modelInfo.displayName} (${modelInfo.directory})...`);
-  log(`Source: ${DEFAULT_RAW_BASE_URL}/${modelInfo.directory}/`);
+  log(`Source: ${activeSourceLabel ?? "selected local file(s)"}`);
   log(compareCycles ? "Cycle comparison: enabled" : "Cycle comparison: disabled");
   if (maxCases !== 0) {
     log(`Max cases per opcode: ${maxCases}`);
   }
 
-  if (allOpcodes) {
-    log(`Fetching opcode list from ${apiDirectoryUrl(modelInfo)}`);
-    const opcodes = await fetchOpcodeList(modelInfo);
-    log(`Found ${opcodes.length} opcode file(s) for ${modelInfo.displayName}`);
-    for (const op of opcodes) {
-      await runOpcode(qe, modelInfo, op, options, counts);
-      await yieldToBrowser();
-    }
-  } else {
-    await runOpcode(qe, modelInfo, normalizeOpcode(opcode), options, counts);
+  if (allOpcodes && activeDescriptors.length === ALL_OPCODE_VALUES.length) {
+    log("Full package mode: loading 00..FF opcode descriptors; missing GitHub raw files will be skipped");
+  }
+
+  for (const descriptor of activeDescriptors) {
+    await runOpcode(qe, modelInfo, descriptor, options, counts);
+    await yieldToBrowser();
+  }
+
+  if (counts.filesRun === 0) {
+    throw new Error(
+      `No opcode JSON files were loaded for ${modelInfo.displayName}; check GitHub/network access or use the local file/folder source`,
+    );
   }
 
   const elapsedMs = performance.now() - startedAt;
   const mhz = emulatedMhz(counts.busTicks, elapsedMs);
   log(
     `SUMMARY SingleStep ${modelInfo.displayName} [PASS] ` +
-      `files=${counts.filesRun} cases=${counts.casesRun} failed=${counts.casesFailed} ` +
+      `files=${counts.filesRun} skipped=${counts.filesSkipped} cases=${counts.casesRun} failed=${counts.casesFailed} ` +
       `busTicks=${counts.busTicks} ` +
       `time=${(elapsedMs / 1000).toFixed(2)} s ` +
       `${mhz.toFixed(2)} MHz`,

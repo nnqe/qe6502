@@ -160,6 +160,26 @@
           </select>
         </label>
         <label>
+          Source
+          <select id="singlestep-source">
+            <option value="github">GitHub raw</option>
+            <option value="local-file">Local opcode file</option>
+            <option value="local-folder">Local opcode folder</option>
+          </select>
+        </label>
+        <label>
+          GitHub base
+          <input id="singlestep-base-url" type="text" size="70">
+        </label>
+        <label>
+          Local file
+          <input id="singlestep-local-file" type="file" accept=".json,application/json" hidden>
+        </label>
+        <label>
+          Local folder
+          <input id="singlestep-local-folder" type="file" webkitdirectory multiple hidden>
+        </label>
+        <label>
           Opcode
           <input id="singlestep-opcode" type="text" inputmode="text" maxlength="2" value="EA" size="2">
         </label>
@@ -178,8 +198,9 @@
       <div class="hint">
         Serve this directory over HTTP after a WASM build, for example:
         <code>python3 -m http.server -d build/release_wasm/harness/js_manual 8000</code>.
-        SingleStepTests are downloaded on demand from
-        <code>https://raw.githubusercontent.com/SingleStepTests/65x02/main/</code>.
+        SingleStepTests can be downloaded on demand from
+        <code>https://raw.githubusercontent.com/SingleStepTests/65x02/main/</code>,
+        or loaded from a local <code>00.json</code>..<code>ff.json</code> file/folder when the browser cannot reach GitHub.
       </div>
     </section>
   </main>
