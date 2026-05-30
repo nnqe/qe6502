@@ -115,7 +115,7 @@ jobs:
 
       - name: Test
         if: contains(matrix.preset, 'wasm') == false
-        run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure
+        run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure --verbose
 
       - name: Install smoke test
         if: runner.os != 'Windows' && contains(matrix.preset, 'wasm') == false
