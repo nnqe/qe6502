@@ -202,7 +202,7 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
 
     load_ram(memory, initial.at("ram"));
     set_initial_state(cpu, initial);
-    cpu.go_to(cpu.pc());
+    cpu.jump_to(cpu.pc());
 
     std::size_t cycle_index = 0u;
     const std::size_t cycles_to_run = compare_cycles ? cycles.size() : static_cast<std::size_t>(0u);
@@ -214,29 +214,29 @@ bool run_case(const nlohmann::json& test_case, qe6502::model model, bool compare
             const std::string expected_rw = expected_cycle.at(2u).get<std::string>();
             const bool expected_write = expected_rw == "write";
 
-            if (cpu.address() != expected_address) {
-                std::fprintf(stderr, "%s: cycle %zu address mismatch: got 0x%04X expected 0x%04X\n", name.c_str(), cycle_index, static_cast<unsigned>(cpu.address()), static_cast<unsigned>(expected_address));
+            if (cpu.bus_address() != expected_address) {
+                std::fprintf(stderr, "%s: cycle %zu address mismatch: got 0x%04X expected 0x%04X\n", name.c_str(), cycle_index, static_cast<unsigned>(cpu.bus_address()), static_cast<unsigned>(expected_address));
                 return false;
             }
-            if (cpu.writing() != expected_write) {
-                std::fprintf(stderr, "%s: cycle %zu rw mismatch: got %s expected %s\n", name.c_str(), cycle_index, cpu.writing() ? "write" : "read", expected_rw.c_str());
+            if (cpu.is_write() != expected_write) {
+                std::fprintf(stderr, "%s: cycle %zu rw mismatch: got %s expected %s\n", name.c_str(), cycle_index, cpu.is_write() ? "write" : "read", expected_rw.c_str());
                 return false;
             }
-            const std::uint8_t actual_data = cpu.writing() ? cpu.data() : memory[cpu.address()];
+            const std::uint8_t actual_data = cpu.is_write() ? cpu.bus_data() : memory[cpu.bus_address()];
             if (actual_data != expected_data) {
                 std::fprintf(stderr, "%s: cycle %zu data mismatch: got 0x%02X expected 0x%02X\n", name.c_str(), cycle_index, static_cast<unsigned>(actual_data), static_cast<unsigned>(expected_data));
                 return false;
             }
         }
 
-        const std::uint8_t bus = cpu.writing() ? cpu.data() : memory[cpu.address()];
-        if (cpu.writing()) {
-            memory[cpu.address()] = bus;
+        const std::uint8_t bus = cpu.is_write() ? cpu.bus_data() : memory[cpu.bus_address()];
+        if (cpu.is_write()) {
+            memory[cpu.bus_address()] = bus;
         }
-        cpu.step(bus);
+        cpu.tick(bus);
         cycle_index++;
 
-        if (!compare_cycles && cpu.fetching()) {
+        if (!compare_cycles && cpu.is_opcode_fetch()) {
             break;
         }
         if (!compare_cycles && cycle_index > 32u) {

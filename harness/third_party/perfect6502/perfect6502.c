@@ -116,7 +116,8 @@ readPC(void *state)
  *
  ************************************************************/
 
-uint8_t memory[65536];
+ /* Local patch: avoid macOS __DATA,__common linker alignment warning. */
+uint8_t memory[65536] = {0};
 
 static uint8_t
 mRead(uint16_t a)

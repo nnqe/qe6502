@@ -4,6 +4,7 @@
 #include <qe6502/qe6502.h>
 
 #include <cstdint>
+#include <string>
 
 namespace qe6502 {
 
@@ -24,124 +25,109 @@ inline constexpr std::uint8_t flag_un = qe6502_flag_UN;
 inline constexpr std::uint8_t flag_v  = qe6502_flag_V;
 inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 
+struct state {
+    qe6502_t cpu{};
+    qe6502_tick_t tick{};
+    std::uint64_t user_data{};
+};
+
 class cpu {
 public:
-    constexpr cpu() = default;
+    explicit cpu(model cpu_model = model::nmos) noexcept;
 
-    explicit constexpr cpu(model cpu_model)
-        : cpu_{}
-        , tick_{}
-    {
-        cpu_.model = static_cast<std::uint8_t>(cpu_model);
-    }
+    void restart() noexcept;
+    void reset() noexcept;
+    void jump_to(std::uint16_t address) noexcept;
 
-    void restart() noexcept
-    {
-        tick_ = qe6502_restart(&cpu_);
-    }
+    void set_irq(std::uint8_t pin) noexcept;
+    std::uint8_t get_irq() const noexcept;
+    void nmi() noexcept;
 
-    void reset() noexcept
-    {
-        tick_ = qe6502_reset(&cpu_);
-    }
+    const qe6502_tick_t& tick(std::uint8_t input = 0) noexcept;
 
-    void go_to(std::uint16_t address) noexcept
-    {
-        tick_ = qe6502_goto(&cpu_, address);
-    }
+    std::uint16_t bus_address() const noexcept;
+    std::uint8_t bus_data() const noexcept;
+    std::uint8_t bus_status() const noexcept;
 
-    void set_irq(std::uint8_t pin) noexcept
-    {
-        qe6502_set_irq(&cpu_, pin);
-    }
+    bool is_write() const noexcept;
+    bool is_opcode_fetch() const noexcept;
+    bool is_jammed() const noexcept;
 
-    std::uint8_t get_irq() const noexcept
-    {
-        return qe6502_get_irq(&cpu_);
-    }
+    state save() const noexcept;
+    const qe6502_tick_t& load(const state& value) noexcept;
 
-    void nmi() noexcept
-    {
-        qe6502_nmi(&cpu_);
-    }
+    std::uint64_t user_data() const noexcept;
+    void user_data(std::uint64_t value) noexcept;
 
-    void step(std::uint8_t bus) noexcept
-    {
-        tick_ = qe6502_tick(&cpu_, bus);
-    }
+    model cpu_model() const noexcept;
 
-    std::uint16_t address() const noexcept { return tick_.address; }
-    std::uint8_t data() const noexcept { return tick_.bus; }
-    std::uint8_t status() const noexcept { return tick_.status; }
+    std::uint16_t pc() const noexcept;
+    void pc(std::uint16_t value) noexcept;
 
-    bool reading() const noexcept
-    {
-        return !writing();
-    }
+    std::uint8_t s() const noexcept;
+    void s(std::uint8_t value) noexcept;
 
-    bool writing() const noexcept
-    {
-        return (tick_.status & qe6502_status_writing) != 0u;
-    }
+    std::uint8_t a() const noexcept;
+    void a(std::uint8_t value) noexcept;
 
-    bool fetching() const noexcept
-    {
-        return (tick_.status & qe6502_status_opcode_fetch) != 0u;
-    }
+    std::uint8_t x() const noexcept;
+    void x(std::uint8_t value) noexcept;
 
+    std::uint8_t y() const noexcept;
+    void y(std::uint8_t value) noexcept;
 
-    model active_model() const noexcept
-    {
-        return static_cast<model>(cpu_.model);
-    }
+    std::uint8_t p() const noexcept;
+    void p(std::uint8_t value) noexcept;
 
-    void active_model(model value) noexcept
-    {
-        cpu_.model = static_cast<std::uint8_t>(value);
-    }
+    std::string to_string() const;
 
-    std::uint16_t pc() const noexcept { return cpu_.PC; }
-    void pc(std::uint16_t value) noexcept { cpu_.PC = value; }
+    qe6502_t& raw_cpu() noexcept;
+    const qe6502_t& raw_cpu() const noexcept;
 
-    std::uint8_t s() const noexcept { return cpu_.S; }
-    void s(std::uint8_t value) noexcept { cpu_.S = value; }
-
-    std::uint8_t a() const noexcept { return cpu_.A; }
-    void a(std::uint8_t value) noexcept { cpu_.A = value; }
-
-    std::uint8_t x() const noexcept { return cpu_.X; }
-    void x(std::uint8_t value) noexcept { cpu_.X = value; }
-
-    std::uint8_t y() const noexcept { return cpu_.Y; }
-    void y(std::uint8_t value) noexcept { cpu_.Y = value; }
-
-    std::uint8_t p() const noexcept { return cpu_.P; }
-    void p(std::uint8_t value) noexcept { cpu_.P = value; }
-
-    qe6502_t& raw_cpu() noexcept
-    {
-        return cpu_;
-    }
-
-    const qe6502_t& raw_cpu() const noexcept
-    {
-        return cpu_;
-    }
-
-    qe6502_tick_t& raw_tick() noexcept
-    {
-        return tick_;
-    }
-
-    const qe6502_tick_t& raw_tick() const noexcept
-    {
-        return tick_;
-    }
+    qe6502_tick_t& raw_tick() noexcept;
+    const qe6502_tick_t& raw_tick() const noexcept;
 
 private:
     qe6502_t cpu_{};
     qe6502_tick_t tick_{};
+    std::uint64_t user_data_{};
 };
+
+inline const qe6502_tick_t& cpu::tick(std::uint8_t input) noexcept
+{
+    tick_ = qe6502_tick(&cpu_, input);
+    return tick_;
+}
+
+inline std::uint16_t cpu::bus_address() const noexcept
+{
+    return tick_.address;
+}
+
+inline std::uint8_t cpu::bus_data() const noexcept
+{
+    return tick_.bus;
+}
+
+inline std::uint8_t cpu::bus_status() const noexcept
+{
+    return tick_.status;
+}
+
+inline bool cpu::is_write() const noexcept
+{
+    return (tick_.status & qe6502_status_writing) != 0u;
+}
+
+inline bool cpu::is_opcode_fetch() const noexcept
+{
+    return (tick_.status & qe6502_status_opcode_fetch) != 0u;
+}
+
+inline bool cpu::is_jammed() const noexcept
+{
+    return (tick_.status & qe6502_status_cpu_jammed) != 0u;
+}
 
 } // namespace qe6502
 

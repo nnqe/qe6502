@@ -240,7 +240,7 @@ std::uint8_t next_read_byte(rng32& rng, bool opcode_fetch, const options& opts)
 
 bus_request qe_bus(const qe6502::cpu& cpu)
 {
-    return bus_request{cpu.writing(), cpu.address(), cpu.data()};
+    return bus_request{cpu.is_write(), cpu.bus_address(), cpu.bus_data()};
 }
 
 bus_request perfect_bus(state_t* state)
@@ -304,8 +304,8 @@ void dump_qe_state(const char* label, const qe6502::cpu& qe)
     print_bus("  qe bus:", qe_bus(qe));
     print_registers("  qe regs:", qe_registers(qe));
     std::fprintf(stderr, "  qe status: 0x%02X%s%s\n",
-        static_cast<unsigned>(qe.status()),
-        qe.fetching() ? " fetch" : "",
+        static_cast<unsigned>(qe.bus_status()),
+        qe.is_opcode_fetch() ? " fetch" : "",
         qe_jammed(qe) ? " jammed" : "");
 }
 
@@ -411,7 +411,7 @@ bool report_jammed(std::uint32_t seed, const counters& counts, bool fetch_cycle,
 
 bool qe_jammed(const qe6502::cpu& qe)
 {
-    return (qe.status() & qe6502_status_cpu_jammed) != 0u;
+    return (qe.bus_status() & qe6502_status_cpu_jammed) != 0u;
 }
 
 bool compare_bus_request(
@@ -549,7 +549,7 @@ bool sync_qe_to_perfect_fetch(qe6502::cpu& qe, state_t* perfect)
 
     const register_state regs = perfect_registers(perfect);
 
-    qe.go_to(regs.pc);
+    qe.jump_to(regs.pc);
     qe.a(regs.a);
     qe.x(regs.x);
     qe.y(regs.y);
@@ -557,7 +557,7 @@ bool sync_qe_to_perfect_fetch(qe6502::cpu& qe, state_t* perfect)
     qe.p(regs.p);
     qe.pc(regs.pc);
 
-    if (!qe.fetching()) {
+    if (!qe.is_opcode_fetch()) {
         std::fprintf(stderr, "netlist_lockstep: qe6502 goto did not produce an opcode-fetch request\n");
         print_bus("qe6502:", qe_bus(qe));
         return false;
@@ -625,7 +625,7 @@ bool run_lockstep(const options& opts)
                 counts.instructions);
         }
 
-        const bool fetch_cycle = qe.fetching();
+        const bool fetch_cycle = qe.is_opcode_fetch();
         const bus_request qe_current = qe_bus(qe);
         const bus_request perfect_current = perfect_bus(perfect);
 
@@ -708,12 +708,12 @@ bool run_lockstep(const options& opts)
                     fetch_cycle ? " fetch" : "");
             }
         }
-        qe.step(qe_input);
+        qe.tick(qe_input);
         if (opts.verbose) {
             dump_qe_state("qe6502 dump after tick", qe);
         }
 
-        if (qe.fetching()) {
+        if (qe.is_opcode_fetch()) {
             pending_registers.valid = true;
             pending_registers.qe_regs = qe_registers(qe);
             pending_registers.cycle = counts.cycles;
@@ -746,7 +746,7 @@ bool run_lockstep(const options& opts)
         counts.cycles++;
 
         if (qe_jammed(qe)) {
-            const bool next_fetch_cycle = qe.fetching();
+            const bool next_fetch_cycle = qe.is_opcode_fetch();
             if (opts.verbose) {
                 mark_first_problem(problem, counts, "qe6502 jammed after CPU-half");
                 report_jammed(seed, counts, next_fetch_cycle, qe_bus(qe), perfect_bus(perfect));
