@@ -1,3 +1,5 @@
+enable_language(CXX)
+
 set(target singlestep)
 
 add_executable(${target}

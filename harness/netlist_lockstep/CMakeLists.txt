@@ -1,3 +1,5 @@
+enable_language(CXX)
+
 set(target netlist_lockstep)
 
 add_executable(${target}

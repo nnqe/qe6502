@@ -1,3 +1,5 @@
+enable_language(CXX)
+
 set(QE6502_CPP_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/cpu.hpp
 )
