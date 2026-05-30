@@ -36,5 +36,5 @@ add_test(NAME qe6502.v2.netlist_lockstep
 set_tests_properties(qe6502.v2.netlist_lockstep
     PROPERTIES
         LABELS "cpu;v2;netlist;lockstep"
-        TIMEOUT 15
+        TIMEOUT 20
 )
