@@ -613,9 +613,7 @@ static qe6502_tick_t mc_stack_pull_read(qe6502_t* cpu, uint8_t bus)
 /* service_handler; role=restart_dummy; action=read_restart_dummy_address */
 static qe6502_tick_t mc_restart_read_00ff(qe6502_t* cpu, uint8_t bus)
 {
-    (void)bus;
-
-    return read(cpu, 0x00ffu);
+    return read(cpu, (uint16_t)((bus << 8u) | 0x00ff));
 }
 
 static inline qe6502_tick_t reset_stack_read(qe6502_t* cpu)
