@@ -1,6 +1,6 @@
 # qe6502
 
-`qe6502` is a cycle-oriented 6502/65C02 CPU emulator core. It provides a small native C API, a stable shared-library ABI surface, a C++17 wrapper, and optional JavaScript/WebAssembly bindings.
+`qe6502` is a cycle-exact 6502/65C02 CPU emulator core with a cycle-oriented bus interface. It provides a small native C API, a stable shared-library ABI surface, a C++17 wrapper, and optional JavaScript/WebAssembly bindings.
 
 The core is organized around explicit bus ticks. The caller owns memory and devices, services one bus request at a time, and passes the read byte back to the CPU on the next tick. `qe6502` is a CPU core, not a complete machine emulator.
 
@@ -111,15 +111,15 @@ Available installed targets depend on the build options:
 
 ## Build options
 
-| Option | Default | Meaning |
-|---|---:|---|
-| `QE6502_BUILD_STATIC` | `ON` | Build the fast static C library. |
-| `QE6502_BUILD_SHARED` | `ON` | Build the stable shared ABI library. |
-| `QE6502_BUILD_CPP` | `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`. |
-| `QE6502_BUILD_TESTS` | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build tests and harnesses. Turn this off for dependency/package builds. |
-| `QE6502_BUILD_WASM` | `OFF` | Enable the WebAssembly build mode. |
-| `QE6502_ENABLE_WERROR` | `OFF` | Treat warnings as errors. Intended for maintainer/CI builds, not package consumers. |
-| `QE6502_INSTALL` | `ON` top-level, `OFF` as subproject | Install headers, libraries, CMake package files, and pkg-config files. |
+| Option                 |                                           Default | Meaning                                                                             |
+| ---------------------- | ------------------------------------------------: | ----------------------------------------------------------------------------------- |
+| `QE6502_BUILD_STATIC`  |                                              `ON` | Build the fast static C library.                                                    |
+| `QE6502_BUILD_SHARED`  |                                              `ON` | Build the stable shared ABI library.                                                |
+| `QE6502_BUILD_CPP`     |                                              `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`.               |
+| `QE6502_BUILD_TESTS`   | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build tests and harnesses. Turn this off for dependency/package builds.             |
+| `QE6502_BUILD_WASM`    |                                             `OFF` | Enable the WebAssembly build mode.                                                  |
+| `QE6502_ENABLE_WERROR` |                                             `OFF` | Treat warnings as errors. Intended for maintainer/CI builds, not package consumers. |
+| `QE6502_INSTALL`       |               `ON` top-level, `OFF` as subproject | Install headers, libraries, CMake package files, and pkg-config files.              |
 
 For a dependency-style build without harnesses:
 
