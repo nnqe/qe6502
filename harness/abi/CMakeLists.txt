@@ -4,12 +4,6 @@ add_executable(${surface_target}
     surface.c
 )
 
-target_compile_definitions(${surface_target}
-    PRIVATE
-        QE6502_ABI_HEADER_PATH="${PROJECT_SOURCE_DIR}/cpu/include/qe6502/qe6502_abi.h"
-        QE6502_ABI_SOURCE_PATH="${PROJECT_SOURCE_DIR}/cpu/src/qe6502_abi.c"
-)
-
 if(MSVC)
     target_compile_options(${surface_target} PRIVATE /W4 /WX /we4505)
 else()
@@ -23,8 +17,14 @@ endif()
 
 target_compile_features(${surface_target} PUBLIC c_std_11)
 
+target_link_libraries(${surface_target}
+    PRIVATE ${CMAKE_DL_LIBS}
+)
+
+add_dependencies(${surface_target} qe6502_shared)
+
 add_test(NAME qe6502.abi.surface
-    COMMAND ${surface_target}
+    COMMAND ${surface_target} $<TARGET_FILE:qe6502_shared>
 )
 
 set(snapshot_target qe6502_abi_snapshot)
