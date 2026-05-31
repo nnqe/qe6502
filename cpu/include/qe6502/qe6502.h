@@ -107,6 +107,8 @@ typedef struct qe6502_tick_result
     uint8_t  status;
 } qe6502_tick_t;
 
+#define QE6502_SNAPSHOT_SIZE (64u)
+
 enum
 {
     /* Processor status register flags. */
@@ -173,6 +175,12 @@ uint8_t qe6502_get_irq(const qe6502_t *cpu);
 
 /* Trigger NMI. */
 void qe6502_nmi(qe6502_t *cpu);
+
+void qe6502_save(const qe6502_t *cpu,
+                 qe6502_tick_t tick,
+                 uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
+qe6502_tick_t qe6502_load(qe6502_t *ctx,
+                          const uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
 
 /* Execute one CPU bus phase and return the next bus request. */
 static inline QE6502_MAYBE_UNUSED

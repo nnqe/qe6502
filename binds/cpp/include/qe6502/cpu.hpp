@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace qe6502 {
 
@@ -25,14 +26,12 @@ inline constexpr std::uint8_t flag_un = qe6502_flag_UN;
 inline constexpr std::uint8_t flag_v  = qe6502_flag_V;
 inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 
-struct state {
-    qe6502_t cpu{};
-    qe6502_tick_t tick{};
-};
+using state = std::vector<std::uint8_t>;
 
 class cpu {
 public:
     explicit cpu(model cpu_model = model::nmos) noexcept;
+    explicit cpu(const state& snapshot);
 
     void restart() noexcept;
     void reset() noexcept;
@@ -52,8 +51,8 @@ public:
     bool is_opcode_fetch() const noexcept;
     bool is_jammed() const noexcept;
 
-    state save() const noexcept;
-    const qe6502_tick_t& load(const state& value) noexcept;
+    state save() const;
+    const qe6502_tick_t& load(const state& value);
 
     model cpu_model() const noexcept;
 

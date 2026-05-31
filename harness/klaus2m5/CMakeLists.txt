@@ -67,3 +67,47 @@ set_tests_properties(
         LABELS "cpu;v2;klaus;functional"
         TIMEOUT 30
 )
+
+enable_language(CXX)
+
+set(save_load_target klaus2m5_save_load)
+
+add_executable(${save_load_target}
+    save_load.cpp
+    test_roms.c
+)
+
+target_link_libraries(${save_load_target}
+    PRIVATE qe6502_cpp
+)
+
+if(MSVC)
+    target_compile_options(${save_load_target} PRIVATE /W4 /WX /we4505)
+else()
+    target_compile_options(${save_load_target} PRIVATE
+        -Wall -Wextra -Wpedantic -Werror
+        -Wconversion -Wsign-conversion -Wshadow
+        -Wdouble-promotion -Wformat=2 -Wundef
+        -Wunused-function -Werror=unused-function
+    )
+endif()
+
+target_compile_features(${save_load_target} PUBLIC cxx_std_17)
+
+add_test(NAME qe6502.v2.save_load.klaus2m5.rw.extended
+    COMMAND ${save_load_target} klaus-rw-extended
+)
+
+add_test(NAME qe6502.v2.save_load.nes.functional
+    COMMAND ${save_load_target} nes-functional
+)
+
+set_tests_properties(qe6502.v2.save_load.klaus2m5.rw.extended PROPERTIES
+    LABELS "cpu;v2;klaus;save_load;functional"
+    TIMEOUT 30
+)
+
+set_tests_properties(qe6502.v2.save_load.nes.functional PROPERTIES
+    LABELS "cpu;v2;nes;save_load;functional"
+    TIMEOUT 30
+)

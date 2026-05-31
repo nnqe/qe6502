@@ -1,6 +1,7 @@
 #include <qe6502/cpu.hpp>
 
 #include <cstdint>
+#include <stdexcept>
 
 namespace {
 
@@ -44,11 +45,19 @@ int test_save_load_mid_instruction()
     failures += expect_bool(cpu.is_write(), false);
 
     const qe6502::state snapshot = cpu.save();
+    failures += expect_bool(snapshot.size() == QE6502_SNAPSHOT_SIZE, true);
 
     const qe6502_tick_t next_tick = cpu.tick(0x11u);
     failures += expect_u8(cpu.x(), 0x11u);
     failures += expect_u16(cpu.pc(), 0x8002u);
     failures += expect_bool(cpu.is_opcode_fetch(), true);
+
+    qe6502::cpu restored_cpu(snapshot);
+    failures += expect_tick(restored_cpu.raw_tick(), operand_tick);
+    failures += expect_u16(restored_cpu.bus_address(), 0x8001u);
+    failures += expect_u8(restored_cpu.x(), 0x00u);
+    failures += expect_u16(restored_cpu.pc(), 0x8002u);
+    failures += expect_bool(restored_cpu.is_opcode_fetch(), false);
 
     const qe6502_tick_t& restored_tick = cpu.load(snapshot);
     failures += expect_tick(restored_tick, operand_tick);
@@ -100,6 +109,23 @@ int test_save_load_public_registers_and_model()
     return failures;
 }
 
+int test_load_rejects_invalid_snapshot_size()
+{
+    int failures = 0;
+    qe6502::cpu cpu(qe6502::model::nmos);
+    qe6502::state invalid(QE6502_SNAPSHOT_SIZE - 1u);
+
+    bool threw = false;
+    try {
+        static_cast<void>(cpu.load(invalid));
+    } catch (const std::invalid_argument&) {
+        threw = true;
+    }
+
+    failures += expect_bool(threw, true);
+    return failures;
+}
+
 } // namespace
 
 int main()
@@ -108,6 +134,7 @@ int main()
 
     failures += test_save_load_mid_instruction();
     failures += test_save_load_public_registers_and_model();
+    failures += test_load_rejects_invalid_snapshot_size();
 
     return failures == 0 ? 0 : 1;
 }

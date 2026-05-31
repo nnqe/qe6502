@@ -1,6 +1,7 @@
 #include <qe6502/cpu.hpp>
 
 #include <cstdio>
+#include <stdexcept>
 
 namespace qe6502 {
 
@@ -9,6 +10,12 @@ cpu::cpu(model cpu_model) noexcept
     , tick_{}
 {
     cpu_.model = static_cast<std::uint8_t>(cpu_model);
+}
+
+cpu::cpu(const state& snapshot)
+    : cpu{}
+{
+    load(snapshot);
 }
 
 void cpu::restart() noexcept
@@ -41,15 +48,20 @@ void cpu::nmi() noexcept
     qe6502_nmi(&cpu_);
 }
 
-state cpu::save() const noexcept
+state cpu::save() const
 {
-    return state{cpu_, tick_};
+    state snapshot(QE6502_SNAPSHOT_SIZE);
+    qe6502_save(&cpu_, tick_, snapshot.data());
+    return snapshot;
 }
 
-const qe6502_tick_t& cpu::load(const state& value) noexcept
+const qe6502_tick_t& cpu::load(const state& value)
 {
-    cpu_ = value.cpu;
-    tick_ = value.tick;
+    if (value.size() != QE6502_SNAPSHOT_SIZE) {
+        throw std::invalid_argument("qe6502 snapshot has invalid size");
+    }
+
+    tick_ = qe6502_load(&cpu_, value.data());
     return tick_;
 }
 

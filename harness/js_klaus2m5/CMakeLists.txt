@@ -39,4 +39,34 @@ if(QE6502_NODE_EXECUTABLE)
             TIMEOUT 180
         )
     endforeach()
+
+
+    add_test(
+        NAME qe6502.js.save_load.klaus2m5.rw.extended
+        COMMAND
+            "${QE6502_NODE_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/js_save_load_klaus2m5.mjs"
+            "$<TARGET_FILE:qe6502_js>"
+            "${CMAKE_SOURCE_DIR}/harness/klaus2m5"
+    )
+
+    add_test(
+        NAME qe6502.js.save_load.nes.functional
+        COMMAND
+            "${QE6502_NODE_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/js_save_load_functional.mjs"
+            "$<TARGET_FILE:qe6502_js>"
+    )
+
+    set_tests_properties(qe6502.js.save_load.klaus2m5.rw.extended PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        LABELS "js;wasm;v2;klaus;save_load;functional"
+        TIMEOUT 180
+    )
+
+    set_tests_properties(qe6502.js.save_load.nes.functional PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        LABELS "js;wasm;v2;nes;save_load;functional"
+        TIMEOUT 30
+    )
 endif()
