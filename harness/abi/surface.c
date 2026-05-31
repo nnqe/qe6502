@@ -41,12 +41,28 @@ static int qe6502abi_is_ident(char ch)
            (ch == '_');
 }
 
+static int open_file(FILE **out, const char *path, const char *mode)
+{
+    if (out == 0) {
+        return 0;
+    }
+
+    *out = 0;
+
+#if defined(_WIN32)
+    return fopen_s(out, path, mode) == 0 && *out != 0;
+#else
+    *out = fopen(path, mode);
+    return *out != 0;
+#endif
+}
+
 static int qe6502abi_read_file(const char *path, char *buffer, size_t buffer_size)
 {
     FILE *file;
     size_t read_count;
 
-    if(fopen_s(&file, path, "rb") != 0) {
+    if(open_file(&file, path, "rb") != 0) {
         file = NULL;
     }
 
