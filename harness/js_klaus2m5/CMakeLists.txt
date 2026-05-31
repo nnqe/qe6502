@@ -1,5 +1,9 @@
 find_program(QE6502_NODE_EXECUTABLE node)
 
+if(NOT QE6502_NODE_EXECUTABLE)
+    message(FATAL_ERROR "qe6502 JS Klaus2m5 tests require Node.js when QE6502_BUILD_WASM and BUILD_TESTING are enabled")
+endif()
+
 if(QE6502_NODE_EXECUTABLE)
     set(QE6502_JS_KLAUS2M5_TESTS
         nmos standard
@@ -35,6 +39,4 @@ if(QE6502_NODE_EXECUTABLE)
             TIMEOUT 180
         )
     endforeach()
-else()
-    message(STATUS "Skipping qe6502 JS Klaus2m5 tests: node executable not found")
 endif()

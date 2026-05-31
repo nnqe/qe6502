@@ -53,6 +53,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Node.js for WASM tests
+        if: contains(matrix.preset, 'wasm')
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Install LLVM for WASM on Ubuntu
         if: runner.os == 'Linux' && contains(matrix.preset, 'wasm')
         run: |
@@ -114,7 +120,6 @@ jobs:
           if-no-files-found: error
 
       - name: Test
-        if: contains(matrix.preset, 'wasm') == false
         run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure --verbose
 
       - name: Install smoke test
