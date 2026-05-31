@@ -27,7 +27,7 @@ struct run_result {
     const char* message = "CPU Error";
     std::uint64_t bus_ticks = 0;
     std::uint64_t opcode_cycles = 0;
-    qe6502::snapshot state{};
+    qe6502::cpu_snapshot state{};
     memory_t memory{};
 };
 
@@ -122,7 +122,7 @@ int compare_results(const run_result& expected, const run_result& actual)
 
 void checkpoint_reload(qe6502::cpu& cpu, qe6502_tick_t& tick)
 {
-    const qe6502::snapshot snapshot = cpu.save();
+    const qe6502::cpu_snapshot snapshot = cpu.save();
     poison_cpu(cpu);
     cpu.load(snapshot);
     tick = cpu.raw_tick();

@@ -26,12 +26,12 @@ inline constexpr std::uint8_t flag_un = qe6502_flag_UN;
 inline constexpr std::uint8_t flag_v  = qe6502_flag_V;
 inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 
-using snapshot = std::vector<std::uint8_t>;
+using cpu_snapshot = std::vector<std::uint8_t>;
 
 class cpu {
 public:
     explicit cpu(model cpu_model = model::nmos) noexcept;
-    explicit cpu(const snapshot& snapshot);
+    explicit cpu(const cpu_snapshot& snapshot);
 
     void restart() noexcept;
     void reset() noexcept;
@@ -51,8 +51,8 @@ public:
     bool is_opcode_fetch() const noexcept;
     bool is_jammed() const noexcept;
 
-    snapshot save() const;
-    const qe6502_tick_t& load(const snapshot& value);
+    cpu_snapshot save() const;
+    const qe6502_tick_t& load(const cpu_snapshot& value);
 
     model cpu_model() const noexcept;
 
