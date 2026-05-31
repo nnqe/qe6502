@@ -6,6 +6,8 @@ The core is organized around explicit bus ticks. The caller owns memory and devi
 
 The fast native C API keeps the complete CPU state in a 16-byte `qe6502_t`. The stable ABI API uses a fixed 64-byte opaque context, and save/load snapshots are also fixed at 64 bytes.
 
+`qe6502` has no hidden mutable global state and performs no memory/device I/O internally; independent CPU contexts are suitable for multithreaded use.
+
 ## CPU models
 
 The public model constants cover:
@@ -311,3 +313,7 @@ ctest --test-dir build/release_wasm --output-on-failure
 ```
 
 Package users should normally keep `QE6502_BUILD_TESTS=OFF` and `QE6502_ENABLE_WERROR=OFF`.
+
+## License
+
+`qe6502` is distributed under the MIT License. See [LICENSE](LICENSE) for details.
