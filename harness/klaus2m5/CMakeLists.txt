@@ -13,16 +13,7 @@ target_link_libraries(${target}
     PRIVATE qe6502::static
 )
 
-if(MSVC)
-    target_compile_options(${target} PRIVATE /W4 /WX /we4505)
-else()
-    target_compile_options(${target} PRIVATE
-        -Wall -Wextra -Wpedantic -Werror
-        -Wconversion -Wsign-conversion -Wshadow
-        -Wdouble-promotion -Wformat=2 -Wundef
-        -Wunused-function -Werror=unused-function
-    )
-endif()
+qe6502_configure_warnings(${target})
 
 target_compile_features(${target} PUBLIC c_std_11)
 
@@ -81,16 +72,7 @@ target_link_libraries(${save_load_target}
     PRIVATE qe6502_cpp
 )
 
-if(MSVC)
-    target_compile_options(${save_load_target} PRIVATE /W4 /WX /we4505)
-else()
-    target_compile_options(${save_load_target} PRIVATE
-        -Wall -Wextra -Wpedantic -Werror
-        -Wconversion -Wsign-conversion -Wshadow
-        -Wdouble-promotion -Wformat=2 -Wundef
-        -Wunused-function -Werror=unused-function
-    )
-endif()
+qe6502_configure_warnings(${save_load_target})
 
 target_compile_features(${save_load_target} PUBLIC cxx_std_17)
 

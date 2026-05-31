@@ -17,15 +17,6 @@ target_include_directories(${target}
         ${PROJECT_SOURCE_DIR}/binds/cpp/include
 )
 
-if(MSVC)
-    target_compile_options(${target} PRIVATE /W4 /WX /we4505)
-else()
-    target_compile_options(${target} PRIVATE
-        -Wall -Wextra -Wpedantic -Werror
-        -Wconversion -Wsign-conversion -Wshadow
-        -Wdouble-promotion -Wformat=2 -Wundef
-        -Wunused-function -Werror=unused-function
-    )
-endif()
+qe6502_configure_warnings(${target})
 
 target_compile_features(${target} PUBLIC cxx_std_17)

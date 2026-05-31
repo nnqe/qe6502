@@ -16,20 +16,29 @@ target_link_libraries(qe6502_cpp_static
 target_include_directories(qe6502_cpp_static
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-if(MSVC)
-    target_compile_options(qe6502_cpp_static PRIVATE /W4 /WX /we4505)
-else()
-    target_compile_options(qe6502_cpp_static PRIVATE
-        -Wall -Wextra -Wpedantic -Werror
-        -Wconversion -Wsign-conversion -Wshadow
-        -Wdouble-promotion -Wformat=2 -Wundef
-        -Wunused-function -Werror=unused-function
-    )
-endif()
-
+qe6502_configure_warnings(qe6502_cpp_static)
 target_compile_features(qe6502_cpp_static PUBLIC cxx_std_17)
 
+set_target_properties(qe6502_cpp_static PROPERTIES
+    EXPORT_NAME cpp
+)
+
 add_library(qe6502_cpp ALIAS qe6502_cpp_static)
+add_library(qe6502::cpp ALIAS qe6502_cpp_static)
+
+if(QE6502_INSTALL)
+    install(TARGETS qe6502_cpp_static
+        EXPORT qe6502Targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+endif()

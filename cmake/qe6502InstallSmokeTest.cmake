@@ -21,15 +21,18 @@ endif()
 
 file(WRITE "${qe6502_consumer_src}/CMakeLists.txt" [=[
 cmake_minimum_required(VERSION 3.15)
-project(qe6502_install_smoke LANGUAGES C)
+project(qe6502_install_smoke LANGUAGES C CXX)
 
-find_package(qe6502 CONFIG REQUIRED)
+find_package(qe6502 CONFIG REQUIRED COMPONENTS C Static ABI CXX)
 
 add_executable(use_static use_static.c)
 target_link_libraries(use_static PRIVATE qe6502::static)
 
 add_executable(use_shared use_shared.c)
 target_link_libraries(use_shared PRIVATE qe6502::shared)
+
+add_executable(use_cpp use_cpp.cpp)
+target_link_libraries(use_cpp PRIVATE qe6502::cpp)
 ]=])
 
 file(WRITE "${qe6502_consumer_src}/use_static.c" [=[
@@ -52,6 +55,17 @@ int main(void)
     qe6502abi_context_t cpu;
     qe6502abi_setup(&cpu, QE6502_ABI_MODEL_NMOS);
     return qe6502abi_version() == QE6502_ABI_VERSION ? 0 : 1;
+}
+]=])
+
+file(WRITE "${qe6502_consumer_src}/use_cpp.cpp" [=[
+#include <qe6502/cpu.hpp>
+
+int main()
+{
+    qe6502::cpu cpu(qe6502::model::nmos);
+    cpu.restart();
+    return cpu.cpu_model() == qe6502::model::nmos ? 0 : 1;
 }
 ]=])
 
@@ -85,6 +99,14 @@ execute_process(
 )
 if(NOT qe6502_shared_result EQUAL 0)
     message(FATAL_ERROR "install smoke shared executable failed")
+endif()
+
+execute_process(
+    COMMAND "${qe6502_consumer_build}/use_cpp"
+    RESULT_VARIABLE qe6502_cpp_result
+)
+if(NOT qe6502_cpp_result EQUAL 0)
+    message(FATAL_ERROR "install smoke C++ executable failed")
 endif()
 
 message(STATUS "Install smoke test passed")

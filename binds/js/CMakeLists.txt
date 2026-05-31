@@ -7,11 +7,9 @@ target_compile_features(qe6502_js PRIVATE c_std_11)
 target_compile_options(qe6502_js PRIVATE
     -ffreestanding
     -fno-builtin
-    -Wall -Wextra -Wpedantic -Werror
-    -Wconversion -Wsign-conversion -Wshadow
-    -Wdouble-promotion -Wformat=2 -Wundef
-    -Wunused-function -Werror=unused-function
 )
+
+qe6502_configure_warnings(qe6502_js)
 
 target_link_libraries(qe6502_js
     PRIVATE
