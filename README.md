@@ -66,6 +66,16 @@ target_link_libraries(my_emulator PRIVATE qe6502::static)
 # target_link_libraries(my_emulator PRIVATE qe6502::cpp)
 ```
 
+## Status
+
+`qe6502` is pre-1.0 and under active development.
+
+The first official public release is currently targeted for October 2026, subject to
+API/ABI stabilization and completion of the current correctness baseline.
+
+The core project currently includes C, C++, ABI, and WebAssembly integration
+surfaces. Additional Python, C#, and Rust bindings are planned/in progress.
+
 ## Build from source
 
 Native debug build:
