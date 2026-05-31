@@ -12,7 +12,7 @@ cpu::cpu(model cpu_model) noexcept
     cpu_.model = static_cast<std::uint8_t>(cpu_model);
 }
 
-cpu::cpu(const state& snapshot)
+cpu::cpu(const snapshot& snapshot)
     : cpu{}
 {
     load(snapshot);
@@ -48,14 +48,14 @@ void cpu::nmi() noexcept
     qe6502_nmi(&cpu_);
 }
 
-state cpu::save() const
+snapshot cpu::save() const
 {
-    state snapshot(QE6502_SNAPSHOT_SIZE);
+    snapshot snapshot(QE6502_SNAPSHOT_SIZE);
     qe6502_save(&cpu_, tick_, snapshot.data());
     return snapshot;
 }
 
-const qe6502_tick_t& cpu::load(const state& value)
+const qe6502_tick_t& cpu::load(const snapshot& value)
 {
     if (value.size() != QE6502_SNAPSHOT_SIZE) {
         throw std::invalid_argument("qe6502 snapshot has invalid size");
