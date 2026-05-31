@@ -46,7 +46,10 @@ static int qe6502abi_read_file(const char *path, char *buffer, size_t buffer_siz
     FILE *file;
     size_t read_count;
 
-    file = fopen(path, "rb");
+    if(fopen_s(&file, path, "rb") != 0) {
+        file = NULL;
+    }
+
     if(file == NULL) {
         fprintf(stderr, "failed to open %s\n", path);
         return 1;

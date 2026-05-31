@@ -15,6 +15,12 @@
 extern "C" {
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+# define QE6502_MAYBE_UNUSED __attribute__((unused))
+#else
+# define QE6502_MAYBE_UNUSED
+#endif
+
 /* Model identifiers. */
 enum
 {
@@ -101,44 +107,46 @@ typedef struct qe6502_tick_result
     uint8_t  status;
 } qe6502_tick_t;
 
-/* Processor status register flags. */
-static const uint8_t qe6502_flag_C  = (1u << 0);
-static const uint8_t qe6502_flag_Z  = (1u << 1);
-static const uint8_t qe6502_flag_I  = (1u << 2);
-static const uint8_t qe6502_flag_D  = (1u << 3);
-static const uint8_t qe6502_flag_B  = (1u << 4);
-static const uint8_t qe6502_flag_UN = (1u << 5);
-static const uint8_t qe6502_flag_V  = (1u << 6);
-static const uint8_t qe6502_flag_N  = (1u << 7);
+enum
+{
+    /* Processor status register flags. */
+    qe6502_flag_C  = (1u << 0),
+    qe6502_flag_Z  = (1u << 1),
+    qe6502_flag_I  = (1u << 2),
+    qe6502_flag_D  = (1u << 3),
+    qe6502_flag_B  = (1u << 4),
+    qe6502_flag_UN = (1u << 5),
+    qe6502_flag_V  = (1u << 6),
+    qe6502_flag_N  = (1u << 7),
 
-/* Tick status flags. */
+    /* Tick status flags. */
 
-/* Tick requests a memory write; clear means memory read. */
-static const uint8_t qe6502_status_writing = (1u << 0);
+    /* Tick requests a memory write; clear means memory read. */
+    qe6502_status_writing = (1u << 0),
 
-/* Tick is an opcode fetch boundary. */
-static const uint8_t qe6502_status_opcode_fetch = (1u << 1);
+    /* Tick is an opcode fetch boundary. */
+    qe6502_status_opcode_fetch = (1u << 1),
 
-/* NMI is acknowledged by the core on this tick. */
-static const uint8_t qe6502_status_nmi_ack = (1u << 2);
+    /* NMI is acknowledged by the core on this tick. */
+    qe6502_status_nmi_ack = (1u << 2),
 
-/* IRQ is acknowledged by the core on this tick. */
-static const uint8_t qe6502_status_irq_ack = (1u << 3);
+    /* IRQ is acknowledged by the core on this tick. */
+    qe6502_status_irq_ack = (1u << 3),
 
-/* CPU is jammed after a KIL opcode. */
-static const uint8_t qe6502_status_cpu_jammed = (1u << 7);
+    /* CPU is jammed after a KIL opcode. */
+    qe6502_status_cpu_jammed = (1u << 7),
 
-/* Interrupt state flags. */
+    /* Interrupt state flags. */
 
-/* NMI accept latched. */
-static const uint8_t qe6502_interrupt_accepted_nmi  = (1u << 0);
+    /* NMI accept latched. */
+    qe6502_interrupt_accepted_nmi  = (1u << 0),
 
-/* IRQ accept latched. */
-static const uint8_t qe6502_interrupt_accepted_irq  = (1u << 1);
+    /* IRQ accept latched. */
+    qe6502_interrupt_accepted_irq  = (1u << 1),
 
-/* NMI|IRQ accept latched. */
-static const uint8_t qe6502_interrupt_accepted_mask = (uint8_t)(qe6502_interrupt_accepted_nmi | qe6502_interrupt_accepted_irq);
-
+    /* NMI|IRQ accept latched. */
+    qe6502_interrupt_accepted_mask = (uint8_t)(qe6502_interrupt_accepted_nmi | qe6502_interrupt_accepted_irq)
+};
 
 /* Microcode entry. */
 typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
@@ -167,8 +175,8 @@ uint8_t qe6502_get_irq(const qe6502_t *cpu);
 void qe6502_nmi(qe6502_t *cpu);
 
 /* Execute one CPU bus phase and return the next bus request. */
-static inline qe6502_tick_t
-qe6502_tick(qe6502_t *cpu, uint8_t bus)
+static inline QE6502_MAYBE_UNUSED
+qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
     cpu->microcode++;

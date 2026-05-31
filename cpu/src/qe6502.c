@@ -61,9 +61,8 @@ typedef enum service_slot
 QE6502_STATIC_ASSERT((unsigned int)service_slot_count_used <= service_slot_count,
                  "service slot index space overflow");
 
-
-#define IDX(model, slot, cycle) ((((model) & 0x0Fu) << 12u) + (((slot) & 0x1FFu) << 3u) + (cycle))
-#define SERVICE_SLOT_IDX(model, service, cycle) IDX((model), (service_slot_base + (service)), (cycle))
+#define IDX(model, slot, cycle) ((((uint32_t)(model) & 0x0Fu) << 12u) + ((((uint32_t)(slot)) & 0x1FFu) << 3u) + (uint32_t)(cycle))
+#define SERVICE_SLOT_IDX(model, service, cycle) IDX((model), ((uint32_t)service_slot_base + (uint32_t)(service)), (cycle))
 
 static inline void enter_service_slot(qe6502_t* cpu, service_slot_t slot)
 {
