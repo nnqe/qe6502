@@ -501,7 +501,7 @@ state_t *
 setupNodesAndTransistors(netlist_transdefs *transdefs, BOOL *node_is_pullup, nodenum_t nodes, nodenum_t transistors, nodenum_t vss, nodenum_t vcc)
 {
 	/* allocate state */
-	state_t *state = malloc(sizeof(state_t));
+    state_t *state = calloc(1, sizeof(*state));
 	state->nodes = nodes;
 	state->transistors = transistors;
 	state->vss = vss;
@@ -516,7 +516,8 @@ setupNodesAndTransistors(netlist_transdefs *transdefs, BOOL *node_is_pullup, nod
  
     /* group content depends on active state, not easy to predict actual size needed */
 	state->group = calloc(state->nodes, sizeof(*state->group));
-    
+    state->groupcount = 0;
+
     /* ping pong state buffers */
 	state->list1 = calloc(state->nodes, sizeof(*state->list1));
 	state->list2 = calloc(state->nodes, sizeof(*state->list2));
@@ -732,6 +733,8 @@ destroyNodesAndTransistors(state_t *state)
     free(state->nodes_value);
     free(state->nodes_c1c2s);
     free(state->nodes_c1c2offset);
+    free(state->nodes_dependant);
+    free(state->nodes_left_dependant);
     free(state->dependent_block);
     free(state->list1);
     free(state->list2);
