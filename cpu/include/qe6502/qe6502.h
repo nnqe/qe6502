@@ -68,7 +68,7 @@ QE6502_STATIC_ASSERT((qe6502_microcode_per_slot & (qe6502_microcode_per_slot - 1
 QE6502_STATIC_ASSERT((qe6502_slots_per_model & (qe6502_slots_per_model - 1u)) == 0u,
                      "qe6502_slots_per_model must be a power of two");
 QE6502_STATIC_ASSERT(qe6502_control_store_size ==
-                     (qe6502_microcode_per_model * qe6502_supported_models_count),
+                     ((int)qe6502_microcode_per_model * (int)qe6502_supported_models_count),
                      "qe6502 control-store size mismatch");
 
 /* CPU state. */
