@@ -70,9 +70,20 @@ static inline void enter_service_slot(qe6502_t* cpu, service_slot_t slot)
     cpu->microcode = (uint16_t)SERVICE_SLOT_IDX(cpu->model, slot, 0u);
 }
 
+static inline void next_enter_service_slot(qe6502_t* cpu, service_slot_t slot)
+{
+    enter_service_slot(cpu, slot);
+    cpu->microcode--;
+}
+
 static inline void enter_service_slot_cycle(qe6502_t* cpu, service_slot_t slot, unsigned cycle)
 {
     cpu->microcode = (uint16_t)SERVICE_SLOT_IDX(cpu->model, slot, cycle);
+}
+
+static inline void loop_here(qe6502_t* cpu)
+{
+    cpu->microcode--;
 }
 
 static inline uint8_t current_opcode_slot(const qe6502_t* cpu)
@@ -124,20 +135,20 @@ static inline qe6502_tick_t write_zero(const qe6502_t* cpu, uint16_t address)
  */
 static inline qe6502_tick_t fetch(qe6502_t* cpu)
 {
-    if (cpu->interrupts)
-    {
-        if (cpu->interrupts & qe6502_interrupt_accepted_nmi)
-        {
-            cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
-            cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 0u) - 1u);
-            return read(cpu, cpu->PC);
-        }
-        else if(((cpu->P & flag_I) == 0u) && (cpu->interrupts & qe6502_interrupt_accepted_irq))
-        {
-            cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_irq, 0u) - 1u);
-            return read(cpu, cpu->PC);
-        }
-    }
+    // if (cpu->interrupts)
+    // {
+    //     if (cpu->interrupts & qe6502_interrupt_accepted_nmi)
+    //     {
+    //         cpu->interrupts = (uint8_t)(cpu->interrupts & (~qe6502_interrupt_accepted_nmi));
+    //         cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_nmi, 0u) - 1u);
+    //         return read(cpu, cpu->PC);
+    //     }
+    //     else if(((cpu->P & flag_I) == 0u) && (cpu->interrupts & qe6502_interrupt_accepted_irq))
+    //     {
+    //         cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_irq, 0u) - 1u);
+    //         return read(cpu, cpu->PC);
+    //     }
+    // }
 
     qe6502_tick_t tick = read(cpu, cpu->PC);
     tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
@@ -498,8 +509,7 @@ static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t 
     (void)bus;
 
     cpu->status = (uint8_t)(cpu->status | qe6502_status_cpu_jammed);
-    cpu->microcode--;
-
+    loop_here(cpu);
     return (qe6502_tick_t){
         .address = 0xffffu,
         .bus = 0xffu,
@@ -528,7 +538,7 @@ static qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    cpu->microcode = (uint16_t)(SERVICE_SLOT_IDX(cpu->model, service_slot_illegal_ext, 0u) - 1u);
+    next_enter_service_slot(cpu, service_slot_illegal_ext);
     return fetch(cpu);
 }
 
@@ -3190,7 +3200,7 @@ static void qe6502abi_clear_cpu(qe6502_t *cpu)
     cpu->microcode = 0u;
     cpu->latch_addr = 0u;
     cpu->latch_data = 0u;
-    cpu->reserved_for_extension = 0u;
+    cpu->hijack_microcode = 0u;
     cpu->PC = 0u;
     cpu->S = 0u;
     cpu->A = 0u;
@@ -3207,7 +3217,7 @@ static void qe6502abi_write_cpu(uint8_t *dst, const qe6502_t *cpu)
     qe6502abi_write_u16(&dst[2], cpu->microcode);
     qe6502abi_write_u16(&dst[4], cpu->latch_addr);
     dst[6] = cpu->latch_data;
-    dst[7] = cpu->reserved_for_extension;
+    dst[7] = cpu->hijack_microcode;
     qe6502abi_write_u16(&dst[8], cpu->PC);
     dst[10] = cpu->S;
     dst[11] = cpu->A;
@@ -3224,7 +3234,7 @@ static void qe6502abi_read_cpu(qe6502_t *cpu, const uint8_t *src)
     cpu->microcode = qe6502abi_read_u16(&src[2]);
     cpu->latch_addr = qe6502abi_read_u16(&src[4]);
     cpu->latch_data = src[6];
-    cpu->reserved_for_extension = src[7];
+    cpu->hijack_microcode = src[7];
     cpu->PC = qe6502abi_read_u16(&src[8]);
     cpu->S = src[10];
     cpu->A = src[11];

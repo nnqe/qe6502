@@ -83,8 +83,8 @@ typedef struct qe6502_cpu
     uint16_t latch_addr;
     uint8_t  latch_data;
 
-    /* Reserved for future extensions. */
-    uint8_t  reserved_for_extension;
+    /* Intercepts normal microcode execution. */
+    uint8_t  hijack_microcode;
 
     /* CPU registers. */
     uint16_t PC;
@@ -186,10 +186,16 @@ qe6502_tick_t qe6502_load(qe6502_t *ctx,
 static inline QE6502_MAYBE_UNUSED
 qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
+    if( cpu->hijack_microcode != 0 )
+    {
+        return qe6502_control_store[cpu->hijack_microcode](cpu, bus);
+    }
+
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
     cpu->microcode++;
     return tick;
 }
+
 
 #ifdef __cplusplus
 }
