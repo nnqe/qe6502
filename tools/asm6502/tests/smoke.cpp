@@ -177,6 +177,11 @@ void test_undocumented_nmos_api()
             .lxa(0x25)
             .axs(0x26)
             .sbc_unofficial(0x27)
+            .sbc_opcode(0xe9, 0x28)
+            .sbc_opcode(0xeb, 0x29)
+            .sbc_opcode(0xeb, imm, "zp_symbol")
+            .kil_opcode(0x02)
+            .jam_opcode(0x12)
 
             .slo(izx, 0x30)
             .slo(zp, 0x31)
@@ -289,6 +294,11 @@ void test_undocumented_nmos_api()
         0xab, 0x25,
         0xcb, 0x26,
         0xeb, 0x27,
+        0xe9, 0x28,
+        0xeb, 0x29,
+        0xeb, 0x80,
+        0x02,
+        0x12,
 
         0x03, 0x30,
         0x07, 0x31,
@@ -371,6 +381,10 @@ void test_undocumented_nmos_api()
     expect_invalid_argument([] { Asm6502::New().begin().nop_opcode(0x04); });
     expect_invalid_argument([] { Asm6502::New().begin().nop_opcode(0x02, 0x12); });
     expect_invalid_argument([] { Asm6502::New().begin().anc_opcode(0x6b, 0x12); });
+    expect_invalid_argument([] { Asm6502::New().begin().sbc_opcode(0xe5, 0x12); });
+    expect_invalid_argument([] { Asm6502::New().begin().sbc_opcode(0xeb, zp, 0x12); });
+    expect_invalid_argument([] { Asm6502::New().begin().kil_opcode(0xea); });
+    expect_invalid_argument([] { Asm6502::New().begin().jam_opcode(0xea); });
 }
 
 } // namespace

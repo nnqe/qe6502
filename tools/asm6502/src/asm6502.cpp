@@ -488,12 +488,20 @@ Asm6502& Asm6502::sax_impl(address_mode mode, link_target target)
     return emit_addressed("SAX", mode, std::move(target), table, TABLE_SIZE(table));
 }
 
-Asm6502& Asm6502::sbc_unofficial_impl(address_mode mode, link_target target)
+Asm6502& Asm6502::sbc_opcode_impl(std::uint8_t opcode, address_mode mode, link_target target)
 {
-    static constexpr mode_opcode table[] = {
-        {address_mode_id::imm, 0xebu, false}
+    if (opcode != 0xe9u && opcode != 0xebu)
+        throw std::invalid_argument("unsupported SBC immediate opcode " + hex8(opcode));
+
+    const mode_opcode table[] = {
+        {address_mode_id::imm, opcode, false}
     };
     return emit_addressed("SBC", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::sbc_unofficial_impl(address_mode mode, link_target target)
+{
+    return sbc_opcode_impl(0xebu, mode, std::move(target));
 }
 
 Asm6502& Asm6502::shx_impl(address_mode mode, link_target target)
@@ -740,8 +748,10 @@ Asm6502& Asm6502::dcp(address_mode mode, std::uint16_t operand) { return dcp_imp
 Asm6502& Asm6502::dcp(address_mode mode, std::string label, int displacement) { return dcp_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
 Asm6502& Asm6502::isc(address_mode mode, std::uint16_t operand) { return isc_impl(mode, link_target{operand}); }
 Asm6502& Asm6502::isc(address_mode mode, std::string label, int displacement) { return isc_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
-Asm6502& Asm6502::jam(std::uint8_t opcode) { return kil(opcode); }
-Asm6502& Asm6502::kil(std::uint8_t opcode)
+Asm6502& Asm6502::jam(std::uint8_t opcode) { return jam_opcode(opcode); }
+Asm6502& Asm6502::jam_opcode(std::uint8_t opcode) { return kil_opcode(opcode); }
+Asm6502& Asm6502::kil(std::uint8_t opcode) { return kil_opcode(opcode); }
+Asm6502& Asm6502::kil_opcode(std::uint8_t opcode)
 {
     if (!is_kil_jam_opcode(opcode))
         throw std::invalid_argument("unsupported KIL/JAM opcode " + hex8(opcode));
@@ -774,6 +784,8 @@ Asm6502& Asm6502::rra(address_mode mode, std::uint16_t operand) { return rra_imp
 Asm6502& Asm6502::rra(address_mode mode, std::string label, int displacement) { return rra_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
 Asm6502& Asm6502::sax(address_mode mode, std::uint16_t operand) { return sax_impl(mode, link_target{operand}); }
 Asm6502& Asm6502::sax(address_mode mode, std::string label, int displacement) { return sax_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::sbc_opcode(std::uint8_t opcode, address_mode mode, std::uint16_t operand) { return sbc_opcode_impl(opcode, mode, link_target{operand}); }
+Asm6502& Asm6502::sbc_opcode(std::uint8_t opcode, address_mode mode, std::string label, int displacement) { return sbc_opcode_impl(opcode, mode, link_target{symbol_ref{std::move(label), displacement}}); }
 Asm6502& Asm6502::sbc_unofficial(address_mode mode, std::uint16_t operand) { return sbc_unofficial_impl(mode, link_target{operand}); }
 Asm6502& Asm6502::sbc_unofficial(address_mode mode, std::string label, int displacement) { return sbc_unofficial_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
 Asm6502& Asm6502::shx(address_mode mode, std::uint16_t operand) { return shx_impl(mode, link_target{operand}); }

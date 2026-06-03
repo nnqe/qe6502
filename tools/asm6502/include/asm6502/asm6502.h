@@ -238,7 +238,8 @@ public:
      * Methods use the common mnemonics from qe6502/cpu/src/control_store/nmos_block.inc.
      * For duplicated opcodes with the same mnemonic/addressing mode, the normal mnemonic
      * helper emits the first opcode in the control store; *_opcode helpers let callers
-     * select an exact encoding.
+     * select an exact encoding. Exact selectors exist for all qe6502 duplicate
+     * encodings: NOP, ANC, SBC #imm ($E9/$EB), and KIL/JAM.
      */
 
     /// Emit AHX using (zp),Y or abs,Y addressing. Unstable NMOS store instruction.
@@ -327,8 +328,14 @@ public:
     /// Emit JAM/KIL. Defaults to opcode $02; accepts every qe6502 NMOS KIL/JAM opcode.
     Asm6502& jam(std::uint8_t opcode = 0x02u);
 
+    /// Emit JAM/KIL with an exact opcode. Synonym for jam(opcode), provided for selector symmetry.
+    Asm6502& jam_opcode(std::uint8_t opcode);
+
     /// Emit KIL/JAM. Defaults to opcode $02; accepts every qe6502 NMOS KIL/JAM opcode.
     Asm6502& kil(std::uint8_t opcode = 0x02u);
+
+    /// Emit KIL/JAM with an exact opcode. Synonym for kil(opcode), provided for selector symmetry.
+    Asm6502& kil_opcode(std::uint8_t opcode);
 
     /// Emit LAS abs,Y.
     Asm6502& las(address_mode mode, std::uint16_t operand);
@@ -388,11 +395,24 @@ public:
     /// Emit SAX using an explicit memory addressing mode and a label operand.
     Asm6502& sax(address_mode mode, std::string label, int displacement = 0);
 
+    /// Emit SBC #imm with an exact immediate opcode: official $E9 or undocumented duplicate $EB.
+    template<class T>
+    Asm6502& sbc_opcode(std::uint8_t opcode, T value)
+    {
+        return sbc_opcode_impl(opcode, imm, direct_byte_target(value, "SBC immediate"));
+    }
+
+    /// Emit SBC using immediate addressing and an exact opcode: official $E9 or undocumented duplicate $EB.
+    Asm6502& sbc_opcode(std::uint8_t opcode, address_mode mode, std::uint16_t operand);
+
+    /// Emit SBC using immediate addressing, an exact opcode, and a label operand: $E9 or $EB.
+    Asm6502& sbc_opcode(std::uint8_t opcode, address_mode mode, std::string label, int displacement = 0);
+
     /// Emit undocumented SBC #imm using opcode $EB.
     template<class T>
     Asm6502& sbc_unofficial(T value)
     {
-        return sbc_unofficial_impl(imm, direct_byte_target(value, "SBC unofficial immediate"));
+        return sbc_opcode_impl(0xebu, imm, direct_byte_target(value, "SBC unofficial immediate"));
     }
 
     /// Emit undocumented SBC using immediate addressing and opcode $EB.
@@ -938,6 +958,7 @@ private:
     Asm6502& rla_impl(address_mode mode, link_target target);
     Asm6502& rra_impl(address_mode mode, link_target target);
     Asm6502& sax_impl(address_mode mode, link_target target);
+    Asm6502& sbc_opcode_impl(std::uint8_t opcode, address_mode mode, link_target target);
     Asm6502& sbc_unofficial_impl(address_mode mode, link_target target);
     Asm6502& shx_impl(address_mode mode, link_target target);
     Asm6502& shy_impl(address_mode mode, link_target target);
