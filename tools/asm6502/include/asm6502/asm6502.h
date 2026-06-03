@@ -190,6 +190,9 @@ public:
     /// Set the current output address and define a label at that address.
     Asm6502& org(std::uint16_t address, std::string name);
 
+    /// Set the current output address at that label address.
+    Asm6502& org(std::string name);
+
     /// Define a label at the current PC, like `label:` in assembler source.
     Asm6502& label(std::string name);
 

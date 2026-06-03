@@ -114,6 +114,25 @@ Asm6502& Asm6502::org(std::uint16_t address, std::string name)
     return org(address).label(std::move(name));
 }
 
+Asm6502& Asm6502::org(std::string name)
+{
+    commands_.push_back(asm_command{
+        [](asm_context&) {
+            return false;
+        },
+        [](asm_context&) {},
+        [name = std::move(name)](asm_context& ctx) {
+            const auto it = ctx.symbols.find(name);
+            if (it == ctx.symbols.end())
+                throw std::runtime_error("undefined symbol in org(): " + name);
+
+            ctx.pc = it->second;
+        }
+    });
+
+    return *this;
+}
+
 Asm6502& Asm6502::label(std::string name)
 {
     commands_.push_back(asm_command{
