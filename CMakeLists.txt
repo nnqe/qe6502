@@ -78,6 +78,7 @@ message(STATUS "  QE6502_INSTALL           = ${QE6502_INSTALL}")
 
 add_subdirectory(cpu)
 add_subdirectory(binds)
+add_subdirectory(tools)
 
 if(QE6502_BUILD_TESTS)
     enable_testing()
