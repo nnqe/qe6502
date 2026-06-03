@@ -290,6 +290,256 @@ Asm6502& Asm6502::emit_addressed(const char* mnemonic, address_mode mode, link_t
 
 #define TABLE_SIZE(table) (sizeof(table) / sizeof((table)[0]))
 
+bool Asm6502::is_kil_jam_opcode(std::uint8_t opcode)
+{
+    switch (opcode)
+    {
+    case 0x02u: case 0x12u: case 0x22u: case 0x32u:
+    case 0x42u: case 0x52u: case 0x62u: case 0x72u:
+    case 0x92u: case 0xb2u: case 0xd2u: case 0xf2u:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Asm6502::is_nop_implied_opcode(std::uint8_t opcode)
+{
+    switch (opcode)
+    {
+    case 0x1au: case 0x3au: case 0x5au: case 0x7au:
+    case 0xdau: case 0xeau: case 0xfau:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Asm6502::is_nop_byte_operand_opcode(std::uint8_t opcode)
+{
+    switch (opcode)
+    {
+    case 0x04u: case 0x14u: case 0x34u: case 0x44u:
+    case 0x54u: case 0x64u: case 0x74u: case 0x80u:
+    case 0x82u: case 0x89u: case 0xc2u: case 0xd4u:
+    case 0xe2u: case 0xf4u:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Asm6502::is_nop_word_operand_opcode(std::uint8_t opcode)
+{
+    switch (opcode)
+    {
+    case 0x0cu: case 0x1cu: case 0x3cu: case 0x5cu:
+    case 0x7cu: case 0xdcu: case 0xfcu:
+        return true;
+    default:
+        return false;
+    }
+}
+
+Asm6502& Asm6502::ahx_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::izy, 0x93u, false}, {address_mode_id::aby, 0x9fu, true}
+    };
+    return emit_addressed("AHX", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::alr_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0x4bu, false}
+    };
+    return emit_addressed("ALR", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::anc_impl(std::uint8_t opcode, address_mode mode, link_target target)
+{
+    if (opcode != 0x0bu && opcode != 0x2bu)
+        throw std::invalid_argument("unsupported ANC opcode " + hex8(opcode));
+
+    const mode_opcode table[] = {
+        {address_mode_id::imm, opcode, false}
+    };
+    return emit_addressed("ANC", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::arr_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0x6bu, false}
+    };
+    return emit_addressed("ARR", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::axs_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0xcbu, false}
+    };
+    return emit_addressed("AXS", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::illegal_rmw_impl(const char* mnemonic, address_mode mode, link_target target,
+                                   std::uint8_t izx_opcode, std::uint8_t zp_opcode,
+                                   std::uint8_t zpx_opcode, std::uint8_t abs_opcode,
+                                   std::uint8_t abx_opcode, std::uint8_t aby_opcode,
+                                   std::uint8_t izy_opcode)
+{
+    const mode_opcode table[] = {
+        {address_mode_id::izx, izx_opcode, false}, {address_mode_id::zp,  zp_opcode,  false},
+        {address_mode_id::zpx, zpx_opcode, false}, {address_mode_id::abs, abs_opcode, true },
+        {address_mode_id::abx, abx_opcode, true }, {address_mode_id::aby, aby_opcode, true },
+        {address_mode_id::izy, izy_opcode, false}
+    };
+    return emit_addressed(mnemonic, mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::dcp_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("DCP", mode, std::move(target),
+                            0xc3u, 0xc7u, 0xd7u, 0xcfu, 0xdfu, 0xdbu, 0xd3u);
+}
+
+Asm6502& Asm6502::isc_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("ISC", mode, std::move(target),
+                            0xe3u, 0xe7u, 0xf7u, 0xefu, 0xffu, 0xfbu, 0xf3u);
+}
+
+Asm6502& Asm6502::las_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::aby, 0xbbu, true}
+    };
+    return emit_addressed("LAS", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::lax_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::izx, 0xa3u, false}, {address_mode_id::zp,  0xa7u, false},
+        {address_mode_id::zpy, 0xb7u, false}, {address_mode_id::abs, 0xafu, true },
+        {address_mode_id::aby, 0xbfu, true }, {address_mode_id::izy, 0xb3u, false}
+    };
+    return emit_addressed("LAX", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::lxa_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0xabu, false}
+    };
+    return emit_addressed("LXA", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::nop_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0x80u, false}, {address_mode_id::zp,  0x04u, false},
+        {address_mode_id::zpx, 0x14u, false}, {address_mode_id::abs, 0x0cu, true },
+        {address_mode_id::abx, 0x1cu, true }
+    };
+    return emit_addressed("NOP", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::nop_opcode_impl(std::uint8_t opcode, link_target target)
+{
+    if (is_nop_byte_operand_opcode(opcode))
+    {
+        add_byte(opcode);
+        return add_low(std::move(target));
+    }
+
+    if (is_nop_word_operand_opcode(opcode))
+    {
+        add_byte(opcode);
+        return add_word(std::move(target));
+    }
+
+    if (is_nop_implied_opcode(opcode))
+        throw std::invalid_argument("NOP opcode " + hex8(opcode) + " does not take an operand");
+
+    throw std::invalid_argument("unsupported NOP opcode " + hex8(opcode));
+}
+
+Asm6502& Asm6502::rla_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("RLA", mode, std::move(target),
+                            0x23u, 0x27u, 0x37u, 0x2fu, 0x3fu, 0x3bu, 0x33u);
+}
+
+Asm6502& Asm6502::rra_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("RRA", mode, std::move(target),
+                            0x63u, 0x67u, 0x77u, 0x6fu, 0x7fu, 0x7bu, 0x73u);
+}
+
+Asm6502& Asm6502::sax_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::izx, 0x83u, false}, {address_mode_id::zp,  0x87u, false},
+        {address_mode_id::zpy, 0x97u, false}, {address_mode_id::abs, 0x8fu, true }
+    };
+    return emit_addressed("SAX", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::sbc_unofficial_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0xebu, false}
+    };
+    return emit_addressed("SBC", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::shx_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::aby, 0x9eu, true}
+    };
+    return emit_addressed("SHX", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::shy_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::abx, 0x9cu, true}
+    };
+    return emit_addressed("SHY", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::slo_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("SLO", mode, std::move(target),
+                            0x03u, 0x07u, 0x17u, 0x0fu, 0x1fu, 0x1bu, 0x13u);
+}
+
+Asm6502& Asm6502::sre_impl(address_mode mode, link_target target)
+{
+    return illegal_rmw_impl("SRE", mode, std::move(target),
+                            0x43u, 0x47u, 0x57u, 0x4fu, 0x5fu, 0x5bu, 0x53u);
+}
+
+Asm6502& Asm6502::tas_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::aby, 0x9bu, true}
+    };
+    return emit_addressed("TAS", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
+Asm6502& Asm6502::xaa_impl(address_mode mode, link_target target)
+{
+    static constexpr mode_opcode table[] = {
+        {address_mode_id::imm, 0x8bu, false}
+    };
+    return emit_addressed("XAA", mode, std::move(target), table, TABLE_SIZE(table));
+}
+
 Asm6502& Asm6502::adc_impl(address_mode mode, link_target target)
 {
     static constexpr mode_opcode table[] = {
@@ -472,6 +722,72 @@ Asm6502& Asm6502::sty_impl(address_mode mode, link_target target)
 }
 
 #undef TABLE_SIZE
+
+// Public undocumented/illegal wrappers.
+Asm6502& Asm6502::ahx(address_mode mode, std::uint16_t operand) { return ahx_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::ahx(address_mode mode, std::string label, int displacement) { return ahx_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::alr(address_mode mode, std::uint16_t operand) { return alr_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::alr(address_mode mode, std::string label, int displacement) { return alr_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::anc(address_mode mode, std::uint16_t operand) { return anc_impl(0x0bu, mode, link_target{operand}); }
+Asm6502& Asm6502::anc(address_mode mode, std::string label, int displacement) { return anc_impl(0x0bu, mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::anc_opcode(std::uint8_t opcode, address_mode mode, std::uint16_t operand) { return anc_impl(opcode, mode, link_target{operand}); }
+Asm6502& Asm6502::anc_opcode(std::uint8_t opcode, address_mode mode, std::string label, int displacement) { return anc_impl(opcode, mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::arr(address_mode mode, std::uint16_t operand) { return arr_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::arr(address_mode mode, std::string label, int displacement) { return arr_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::axs(address_mode mode, std::uint16_t operand) { return axs_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::axs(address_mode mode, std::string label, int displacement) { return axs_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::dcp(address_mode mode, std::uint16_t operand) { return dcp_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::dcp(address_mode mode, std::string label, int displacement) { return dcp_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::isc(address_mode mode, std::uint16_t operand) { return isc_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::isc(address_mode mode, std::string label, int displacement) { return isc_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::jam(std::uint8_t opcode) { return kil(opcode); }
+Asm6502& Asm6502::kil(std::uint8_t opcode)
+{
+    if (!is_kil_jam_opcode(opcode))
+        throw std::invalid_argument("unsupported KIL/JAM opcode " + hex8(opcode));
+
+    return emit_implied(opcode);
+}
+Asm6502& Asm6502::las(address_mode mode, std::uint16_t operand) { return las_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::las(address_mode mode, std::string label, int displacement) { return las_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::lax(address_mode mode, std::uint16_t operand) { return lax_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::lax(address_mode mode, std::string label, int displacement) { return lax_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::lxa(address_mode mode, std::uint16_t operand) { return lxa_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::lxa(address_mode mode, std::string label, int displacement) { return lxa_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::nop(address_mode mode, std::uint16_t operand) { return nop_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::nop(address_mode mode, std::string label, int displacement) { return nop_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::nop_opcode(std::uint8_t opcode)
+{
+    if (is_nop_implied_opcode(opcode))
+        return emit_implied(opcode);
+
+    if (is_nop_byte_operand_opcode(opcode) || is_nop_word_operand_opcode(opcode))
+        throw std::invalid_argument("NOP opcode " + hex8(opcode) + " requires an operand");
+
+    throw std::invalid_argument("unsupported NOP opcode " + hex8(opcode));
+}
+Asm6502& Asm6502::nop_opcode(std::uint8_t opcode, std::uint16_t operand) { return nop_opcode_impl(opcode, link_target{operand}); }
+Asm6502& Asm6502::nop_opcode(std::uint8_t opcode, std::string label, int displacement) { return nop_opcode_impl(opcode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::rla(address_mode mode, std::uint16_t operand) { return rla_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::rla(address_mode mode, std::string label, int displacement) { return rla_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::rra(address_mode mode, std::uint16_t operand) { return rra_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::rra(address_mode mode, std::string label, int displacement) { return rra_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::sax(address_mode mode, std::uint16_t operand) { return sax_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::sax(address_mode mode, std::string label, int displacement) { return sax_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::sbc_unofficial(address_mode mode, std::uint16_t operand) { return sbc_unofficial_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::sbc_unofficial(address_mode mode, std::string label, int displacement) { return sbc_unofficial_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::shx(address_mode mode, std::uint16_t operand) { return shx_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::shx(address_mode mode, std::string label, int displacement) { return shx_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::shy(address_mode mode, std::uint16_t operand) { return shy_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::shy(address_mode mode, std::string label, int displacement) { return shy_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::slo(address_mode mode, std::uint16_t operand) { return slo_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::slo(address_mode mode, std::string label, int displacement) { return slo_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::sre(address_mode mode, std::uint16_t operand) { return sre_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::sre(address_mode mode, std::string label, int displacement) { return sre_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::tas(address_mode mode, std::uint16_t operand) { return tas_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::tas(address_mode mode, std::string label, int displacement) { return tas_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
+Asm6502& Asm6502::xaa(address_mode mode, std::uint16_t operand) { return xaa_impl(mode, link_target{operand}); }
+Asm6502& Asm6502::xaa(address_mode mode, std::string label, int displacement) { return xaa_impl(mode, link_target{symbol_ref{std::move(label), displacement}}); }
 
 // Public addressed wrappers.
 Asm6502& Asm6502::adc(address_mode mode, std::uint16_t operand) { return adc_impl(mode, link_target{operand}); }

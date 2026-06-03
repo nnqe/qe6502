@@ -172,7 +172,7 @@ enum class target_platform
     generic_6502
 };
 
-/// Fluent assembler for the official NMOS 6502 instruction set.
+/// Fluent assembler for the official and undocumented NMOS 6502 instruction sets.
 class Asm6502
 {
 public:
@@ -232,6 +232,217 @@ public:
         (add_dw_argument(std::forward<T>(values)), ...);
         return *this;
     }
+
+    /* Undocumented/illegal NMOS 6502 helpers implemented by qe6502's NMOS control store.
+     *
+     * Methods use the common mnemonics from qe6502/cpu/src/control_store/nmos_block.inc.
+     * For duplicated opcodes with the same mnemonic/addressing mode, the normal mnemonic
+     * helper emits the first opcode in the control store; *_opcode helpers let callers
+     * select an exact encoding.
+     */
+
+    /// Emit AHX using (zp),Y or abs,Y addressing. Unstable NMOS store instruction.
+    Asm6502& ahx(address_mode mode, std::uint16_t operand);
+
+    /// Emit AHX using (zp),Y or abs,Y addressing and a label operand.
+    Asm6502& ahx(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit ALR #imm.
+    template<class T>
+    Asm6502& alr(T value)
+    {
+        return alr_impl(imm, direct_byte_target(value, "ALR immediate"));
+    }
+
+    /// Emit ALR using immediate addressing.
+    Asm6502& alr(address_mode mode, std::uint16_t operand);
+
+    /// Emit ALR using immediate addressing and a label operand.
+    Asm6502& alr(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit ANC #imm using opcode $0B. Use anc_opcode($2B, ...) for the alternate encoding.
+    template<class T>
+    Asm6502& anc(T value)
+    {
+        return anc_impl(0x0bu, imm, direct_byte_target(value, "ANC immediate"));
+    }
+
+    /// Emit ANC using immediate addressing and opcode $0B.
+    Asm6502& anc(address_mode mode, std::uint16_t operand);
+
+    /// Emit ANC using immediate addressing, opcode $0B, and a label operand.
+    Asm6502& anc(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit ANC #imm with an exact opcode: $0B or $2B.
+    template<class T>
+    Asm6502& anc_opcode(std::uint8_t opcode, T value)
+    {
+        return anc_impl(opcode, imm, direct_byte_target(value, "ANC immediate"));
+    }
+
+    /// Emit ANC with an exact opcode: $0B or $2B.
+    Asm6502& anc_opcode(std::uint8_t opcode, address_mode mode, std::uint16_t operand);
+
+    /// Emit ANC with an exact opcode and label operand: $0B or $2B.
+    Asm6502& anc_opcode(std::uint8_t opcode, address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit ARR #imm.
+    template<class T>
+    Asm6502& arr(T value)
+    {
+        return arr_impl(imm, direct_byte_target(value, "ARR immediate"));
+    }
+
+    /// Emit ARR using immediate addressing.
+    Asm6502& arr(address_mode mode, std::uint16_t operand);
+
+    /// Emit ARR using immediate addressing and a label operand.
+    Asm6502& arr(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit AXS #imm.
+    template<class T>
+    Asm6502& axs(T value)
+    {
+        return axs_impl(imm, direct_byte_target(value, "AXS immediate"));
+    }
+
+    /// Emit AXS using immediate addressing.
+    Asm6502& axs(address_mode mode, std::uint16_t operand);
+
+    /// Emit AXS using immediate addressing and a label operand.
+    Asm6502& axs(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit DCP using an explicit memory addressing mode.
+    Asm6502& dcp(address_mode mode, std::uint16_t operand);
+
+    /// Emit DCP using an explicit memory addressing mode and a label operand.
+    Asm6502& dcp(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit ISC using an explicit memory addressing mode.
+    Asm6502& isc(address_mode mode, std::uint16_t operand);
+
+    /// Emit ISC using an explicit memory addressing mode and a label operand.
+    Asm6502& isc(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit JAM/KIL. Defaults to opcode $02; accepts every qe6502 NMOS KIL/JAM opcode.
+    Asm6502& jam(std::uint8_t opcode = 0x02u);
+
+    /// Emit KIL/JAM. Defaults to opcode $02; accepts every qe6502 NMOS KIL/JAM opcode.
+    Asm6502& kil(std::uint8_t opcode = 0x02u);
+
+    /// Emit LAS abs,Y.
+    Asm6502& las(address_mode mode, std::uint16_t operand);
+
+    /// Emit LAS abs,Y with a label operand.
+    Asm6502& las(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit LAX using an explicit memory addressing mode.
+    Asm6502& lax(address_mode mode, std::uint16_t operand);
+
+    /// Emit LAX using an explicit memory addressing mode and a label operand.
+    Asm6502& lax(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit LXA #imm.
+    template<class T>
+    Asm6502& lxa(T value)
+    {
+        return lxa_impl(imm, direct_byte_target(value, "LXA immediate"));
+    }
+
+    /// Emit LXA using immediate addressing.
+    Asm6502& lxa(address_mode mode, std::uint16_t operand);
+
+    /// Emit LXA using immediate addressing and a label operand.
+    Asm6502& lxa(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit an undocumented NOP variant using the canonical opcode for the requested mode.
+    Asm6502& nop(address_mode mode, std::uint16_t operand);
+
+    /// Emit an undocumented NOP variant using the canonical opcode for the requested mode and a label operand.
+    Asm6502& nop(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit an exact implied NOP opcode, including undocumented implied NOPs.
+    Asm6502& nop_opcode(std::uint8_t opcode);
+
+    /// Emit an exact operand-taking NOP opcode, including undocumented NOPs.
+    Asm6502& nop_opcode(std::uint8_t opcode, std::uint16_t operand);
+
+    /// Emit an exact operand-taking NOP opcode with a label operand.
+    Asm6502& nop_opcode(std::uint8_t opcode, std::string label, int displacement = 0);
+
+    /// Emit RLA using an explicit memory addressing mode.
+    Asm6502& rla(address_mode mode, std::uint16_t operand);
+
+    /// Emit RLA using an explicit memory addressing mode and a label operand.
+    Asm6502& rla(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit RRA using an explicit memory addressing mode.
+    Asm6502& rra(address_mode mode, std::uint16_t operand);
+
+    /// Emit RRA using an explicit memory addressing mode and a label operand.
+    Asm6502& rra(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit SAX using an explicit memory addressing mode.
+    Asm6502& sax(address_mode mode, std::uint16_t operand);
+
+    /// Emit SAX using an explicit memory addressing mode and a label operand.
+    Asm6502& sax(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit undocumented SBC #imm using opcode $EB.
+    template<class T>
+    Asm6502& sbc_unofficial(T value)
+    {
+        return sbc_unofficial_impl(imm, direct_byte_target(value, "SBC unofficial immediate"));
+    }
+
+    /// Emit undocumented SBC using immediate addressing and opcode $EB.
+    Asm6502& sbc_unofficial(address_mode mode, std::uint16_t operand);
+
+    /// Emit undocumented SBC using immediate addressing, opcode $EB, and a label operand.
+    Asm6502& sbc_unofficial(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit SHX abs,Y. Unstable NMOS store instruction.
+    Asm6502& shx(address_mode mode, std::uint16_t operand);
+
+    /// Emit SHX abs,Y with a label operand.
+    Asm6502& shx(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit SHY abs,X. Unstable NMOS store instruction.
+    Asm6502& shy(address_mode mode, std::uint16_t operand);
+
+    /// Emit SHY abs,X with a label operand.
+    Asm6502& shy(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit SLO using an explicit memory addressing mode.
+    Asm6502& slo(address_mode mode, std::uint16_t operand);
+
+    /// Emit SLO using an explicit memory addressing mode and a label operand.
+    Asm6502& slo(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit SRE using an explicit memory addressing mode.
+    Asm6502& sre(address_mode mode, std::uint16_t operand);
+
+    /// Emit SRE using an explicit memory addressing mode and a label operand.
+    Asm6502& sre(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit TAS abs,Y. Unstable NMOS store instruction.
+    Asm6502& tas(address_mode mode, std::uint16_t operand);
+
+    /// Emit TAS abs,Y with a label operand.
+    Asm6502& tas(address_mode mode, std::string label, int displacement = 0);
+
+    /// Emit XAA #imm.
+    template<class T>
+    Asm6502& xaa(T value)
+    {
+        return xaa_impl(imm, direct_byte_target(value, "XAA immediate"));
+    }
+
+    /// Emit XAA using immediate addressing.
+    Asm6502& xaa(address_mode mode, std::uint16_t operand);
+
+    /// Emit XAA using immediate addressing and a label operand.
+    Asm6502& xaa(address_mode mode, std::string label, int displacement = 0);
 
     /// Emit ADC #imm.
     template<class T>
@@ -701,6 +912,39 @@ private:
     Asm6502& emit_branch(std::uint8_t opcode, std::string label, int displacement);
     Asm6502& emit_addressed(const char* mnemonic, address_mode mode, link_target target,
                             const mode_opcode* table, std::size_t table_size);
+
+    static bool is_kil_jam_opcode(std::uint8_t opcode);
+    static bool is_nop_implied_opcode(std::uint8_t opcode);
+    static bool is_nop_byte_operand_opcode(std::uint8_t opcode);
+    static bool is_nop_word_operand_opcode(std::uint8_t opcode);
+
+    Asm6502& ahx_impl(address_mode mode, link_target target);
+    Asm6502& alr_impl(address_mode mode, link_target target);
+    Asm6502& anc_impl(std::uint8_t opcode, address_mode mode, link_target target);
+    Asm6502& arr_impl(address_mode mode, link_target target);
+    Asm6502& axs_impl(address_mode mode, link_target target);
+    Asm6502& dcp_impl(address_mode mode, link_target target);
+    Asm6502& illegal_rmw_impl(const char* mnemonic, address_mode mode, link_target target,
+                              std::uint8_t izx_opcode, std::uint8_t zp_opcode,
+                              std::uint8_t zpx_opcode, std::uint8_t abs_opcode,
+                              std::uint8_t abx_opcode, std::uint8_t aby_opcode,
+                              std::uint8_t izy_opcode);
+    Asm6502& isc_impl(address_mode mode, link_target target);
+    Asm6502& las_impl(address_mode mode, link_target target);
+    Asm6502& lax_impl(address_mode mode, link_target target);
+    Asm6502& lxa_impl(address_mode mode, link_target target);
+    Asm6502& nop_impl(address_mode mode, link_target target);
+    Asm6502& nop_opcode_impl(std::uint8_t opcode, link_target target);
+    Asm6502& rla_impl(address_mode mode, link_target target);
+    Asm6502& rra_impl(address_mode mode, link_target target);
+    Asm6502& sax_impl(address_mode mode, link_target target);
+    Asm6502& sbc_unofficial_impl(address_mode mode, link_target target);
+    Asm6502& shx_impl(address_mode mode, link_target target);
+    Asm6502& shy_impl(address_mode mode, link_target target);
+    Asm6502& slo_impl(address_mode mode, link_target target);
+    Asm6502& sre_impl(address_mode mode, link_target target);
+    Asm6502& tas_impl(address_mode mode, link_target target);
+    Asm6502& xaa_impl(address_mode mode, link_target target);
 
     Asm6502& adc_impl(address_mode mode, link_target target);
     Asm6502& and_impl(address_mode mode, link_target target);
