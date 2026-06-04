@@ -2468,10 +2468,6 @@ QE6502_STATIC_ASSERT(sizeof(qe6502abi_impl_t) == QE6502_ABI_CONTEXT_SIZE,
 QE6502_STATIC_ASSERT(QE6502_ABI_SNAPSHOT_SIZE == QE6502_SNAPSHOT_SIZE,
                      "qe6502 Snapshot must be 64 bytes");
 
-
-QE6502_STATIC_ASSERT(sizeof(qe6502abi_impl_t) == QE6502_ABI_CONTEXT_SIZE,
-                     "qe6502 snapshot context must be 64 bytes");
-
 static inline qe6502abi_impl_t *qe6502abi_impl(qe6502abi_context_t *ctx)
 {
     return (qe6502abi_impl_t *)(void *)ctx;
