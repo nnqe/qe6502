@@ -57,7 +57,7 @@ extern "C" {
  */
 
 #define QE6502_ABI_VERSION_MAJOR 0u
-#define QE6502_ABI_VERSION_MINOR 3u
+#define QE6502_ABI_VERSION_MINOR 4u
 #define QE6502_ABI_VERSION \
     ((QE6502_ABI_VERSION_MAJOR << 16u) | QE6502_ABI_VERSION_MINOR)
 
@@ -101,28 +101,20 @@ typedef uint32_t qe6502abi_tick_t;
 #define QE6502_ABI_FLAG_V  (1u << 6u)
 #define QE6502_ABI_FLAG_N  (1u << 7u)
 
-#define QE6502_ABI_STATUS_WRITING    (1u << 0u)
-#define QE6502_ABI_STATUS_FETCH      (1u << 1u)
-#define QE6502_ABI_STATUS_NMI_ACK    (1u << 2u)
-#define QE6502_ABI_STATUS_IRQ_ACK    (1u << 3u)
-#define QE6502_ABI_STATUS_CPU_JAMMED (1u << 7u)
-
 /* Packed tick layout: address bits 0..15, bus bits 16..23, status bits 24..31. */
 #define QE6502_ABI_TICK_ADDRESS_SHIFT 0u
 #define QE6502_ABI_TICK_BUS_SHIFT     16u
 #define QE6502_ABI_TICK_STATUS_SHIFT  24u
 
-#define QE6502_ABI_TICK_WRITING_SHIFT    24u
-#define QE6502_ABI_TICK_FETCH_SHIFT      25u
-#define QE6502_ABI_TICK_NMI_ACK_SHIFT    26u
-#define QE6502_ABI_TICK_IRQ_ACK_SHIFT    27u
-#define QE6502_ABI_TICK_CPU_JAMMED_SHIFT 31u
+#define QE6502_ABI_TICK_WRITING_SHIFT        24u
+#define QE6502_ABI_TICK_FETCH_SHIFT          25u
+#define QE6502_ABI_TICK_INTERNAL_RESET_SHIFT 30u
+#define QE6502_ABI_TICK_CPU_JAMMED_SHIFT     31u
 
-#define QE6502_ABI_TICK_WRITING    (UINT32_C(1) << QE6502_ABI_TICK_WRITING_SHIFT)
-#define QE6502_ABI_TICK_FETCH      (UINT32_C(1) << QE6502_ABI_TICK_FETCH_SHIFT)
-#define QE6502_ABI_TICK_NMI_ACK    (UINT32_C(1) << QE6502_ABI_TICK_NMI_ACK_SHIFT)
-#define QE6502_ABI_TICK_IRQ_ACK    (UINT32_C(1) << QE6502_ABI_TICK_IRQ_ACK_SHIFT)
-#define QE6502_ABI_TICK_CPU_JAMMED (UINT32_C(1) << QE6502_ABI_TICK_CPU_JAMMED_SHIFT)
+#define QE6502_ABI_TICK_WRITING        (UINT32_C(1) << QE6502_ABI_TICK_WRITING_SHIFT)
+#define QE6502_ABI_TICK_FETCH          (UINT32_C(1) << QE6502_ABI_TICK_FETCH_SHIFT)
+#define QE6502_ABI_TICK_INTERNAL_RESET (UINT32_C(1) << QE6502_ABI_TICK_INTERNAL_RESET_SHIFT)
+#define QE6502_ABI_TICK_CPU_JAMMED     (UINT32_C(1) << QE6502_ABI_TICK_CPU_JAMMED_SHIFT)
 
 #define QE6502_ABI_TICK_ADDRESS(tick) \
     ((uint16_t)(((uint32_t)(tick) >> QE6502_ABI_TICK_ADDRESS_SHIFT) & 0xffffu))
@@ -140,16 +132,16 @@ QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx);
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_tick(qe6502abi_context_t *ctx, uint32_t bus);
 
 /* Additional execution control. */
-QE6502_ABI_API qe6502abi_tick_t qe6502abi_reset(qe6502abi_context_t *ctx);
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_goto(qe6502abi_context_t *ctx, uint32_t address);
 
+/* Interrupts assert/deassert. */
 QE6502_ABI_API void qe6502abi_nmi_assert(qe6502abi_context_t *ctx, uint8_t assert_nmi);
 QE6502_ABI_API void qe6502abi_irq_assert(qe6502abi_context_t *ctx, uint8_t assert_irq);
 
+/* Interrupts pins state. */
 QE6502_ABI_API uint8_t qe6502abi_is_nmi_asserted(const qe6502abi_context_t *ctx);
 QE6502_ABI_API uint8_t qe6502abi_is_irq_asserted(const qe6502abi_context_t *ctx);
 
-/* Execution functions return ticks but do not store them in the ABI context. */
 
 /*
  * Save and restore the portable 64-byte ABI context snapshot.

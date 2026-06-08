@@ -64,7 +64,7 @@ typedef struct qe6502_cpu
     uint8_t  model;
 
     /* Internal execution state. */
-    uint8_t  status;
+    uint8_t  reserved_extension;
     uint16_t microcode;
     uint16_t latch_addr;
     uint8_t  latch_data;
@@ -115,11 +115,8 @@ enum
     /* Tick is an opcode fetch boundary. */
     qe6502_status_opcode_fetch = (1u << 1),
 
-    /* NMI is acknowledged by the core on this tick. */
-    qe6502_status_nmi_ack = (1u << 2),
-
-    /* IRQ is acknowledged by the core on this tick. */
-    qe6502_status_irq_ack = (1u << 3),
+    /* Internal reset procedure ticks. */
+    qe6502_status_internal_reset = (1u << 6),
 
     /* CPU is jammed after a KIL opcode. */
     qe6502_status_cpu_jammed = (1u << 7),
@@ -131,13 +128,17 @@ enum
 
     qe6502_interrupt_nmi_inv_pin  = (1u << 1),
 
-    qe6502_interrupt_nmi_edge = (1u << 2),
+    qe6502_interrupt_nmi_inv_last_sampled_pin  = (1u << 2),
 
-    qe6502_interrupt_nmi_taken = (1u << 3),
+    qe6502_interrupt_nmi_edge = (1u << 3),
 
-    qe6502_interrupt_irq_inv_pin  = (1u << 4),
+    qe6502_interrupt_nmi_taken = (1u << 4),
 
-    qe6502_interrupt_irq_taken  = (1u << 5),
+    qe6502_interrupt_irq_inv_pin  = (1u << 5),
+
+    qe6502_interrupt_irq_taken  = (1u << 6),
+
+    qe6502_interrupt_sampling_off  = (1u << 7),
 };
 
 /* Microcode entry. */
@@ -150,9 +151,6 @@ extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size]
 
 /* Restart the CPU context and return an initial dummy read request at address 0x00ff. */
 qe6502_tick_t qe6502_restart(qe6502_t *cpu);
-
-/* Enter reset-vector service and return the first bus request. */
-qe6502_tick_t qe6502_reset(qe6502_t *cpu);
 
 /* Enter execution at address and return the first bus request. */
 qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address);
@@ -175,7 +173,7 @@ qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
     if( cpu->hijack_microcode != 0 )
     {
-        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(cpu->model, 0x100, cpu->hijack_microcode)](cpu, bus);
+        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(0, 0x100, 0)](cpu, bus);
     }
 
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
