@@ -67,7 +67,7 @@ jobs:
         if: contains(matrix.preset, 'native')
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: "25"
 
       - name: Setup Node.js for WASM tests
