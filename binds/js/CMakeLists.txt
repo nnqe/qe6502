@@ -21,7 +21,7 @@ target_link_libraries(qe6502_js
 target_link_options(qe6502_js PRIVATE
     -nostdlib
     LINKER:--no-entry
-    LINKER:--export-memory
+    ${QE6502_WASM_EXPORT_MEMORY_LINK_OPTION}
     LINKER:--export=qe6502js_context_pool_reset
     LINKER:--export=qe6502js_context_alloc
     LINKER:--export=qe6502js_context_free

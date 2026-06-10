@@ -89,6 +89,23 @@ message(STATUS "  QE6502_ENABLE_WERROR     = ${QE6502_ENABLE_WERROR}")
 message(STATUS "  QE6502_GENERATE_ASSEMBLY = ${QE6502_GENERATE_ASSEMBLY}")
 message(STATUS "  QE6502_INSTALL           = ${QE6502_INSTALL}")
 
+set(QE6502_WASM_EXPORT_MEMORY_LINK_OPTION)
+if(QE6502_BUILD_WASM)
+    execute_process(
+        COMMAND "${CMAKE_LINKER}" --help
+        OUTPUT_VARIABLE QE6502_WASM_LD_HELP
+        ERROR_VARIABLE QE6502_WASM_LD_HELP_ERROR
+        RESULT_VARIABLE QE6502_WASM_LD_HELP_RESULT
+    )
+
+    if(QE6502_WASM_LD_HELP MATCHES "--export-memory" OR QE6502_WASM_LD_HELP_ERROR MATCHES "--export-memory")
+        list(APPEND QE6502_WASM_EXPORT_MEMORY_LINK_OPTION LINKER:--export-memory)
+        message(STATUS "  QE6502_WASM_EXPORT_MEMORY = ON")
+    else()
+        message(STATUS "  QE6502_WASM_EXPORT_MEMORY = OFF (linker does not support --export-memory)")
+    endif()
+endif()
+
 add_subdirectory(cpu)
 add_subdirectory(binds)
 

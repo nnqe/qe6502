@@ -109,7 +109,7 @@ if(QE6502_BUILD_SHARED)
         target_link_options(qe6502_shared PRIVATE
             -nostdlib
             LINKER:--no-entry
-            LINKER:--export-memory
+            ${QE6502_WASM_EXPORT_MEMORY_LINK_OPTION}
             LINKER:--export=qe6502abi_version
             LINKER:--export=qe6502abi_setup
             LINKER:--export=qe6502abi_restart
