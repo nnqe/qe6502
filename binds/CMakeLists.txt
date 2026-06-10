@@ -8,4 +8,8 @@ else()
     if(QE6502_BUILD_CSHARP)
         add_subdirectory(csharp)
     endif()
+
+    if(QE6502_BUILD_PYTHON)
+        add_subdirectory(python)
+    endif()
 endif()

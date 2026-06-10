@@ -2637,8 +2637,8 @@ static qe6502_tick_t op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr_prefetch(
 static inline qe6502abi_tick_t pack_tick(qe6502_tick_t tick)
 {
     return ((uint32_t)tick.address << QE6502_ABI_TICK_ADDRESS_SHIFT) |
-           ((uint32_t)tick.bus << QE6502_ABI_TICK_BUS_SHIFT) |
-           ((uint32_t)tick.status << QE6502_ABI_TICK_STATUS_SHIFT);
+           ((uint32_t)tick.status << QE6502_ABI_TICK_STATUS_SHIFT) |
+           ((uint32_t)tick.bus << QE6502_ABI_TICK_BUS_SHIFT);
 }
 
 static inline qe6502_tick_t unpack_tick(qe6502abi_tick_t tick)

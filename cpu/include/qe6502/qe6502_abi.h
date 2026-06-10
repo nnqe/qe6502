@@ -57,7 +57,7 @@ extern "C" {
  */
 
 #define QE6502_ABI_VERSION_MAJOR 0u
-#define QE6502_ABI_VERSION_MINOR 4u
+#define QE6502_ABI_VERSION_MINOR 5u
 #define QE6502_ABI_VERSION \
     ((QE6502_ABI_VERSION_MAJOR << 16u) | QE6502_ABI_VERSION_MINOR)
 
@@ -101,15 +101,15 @@ typedef uint32_t qe6502abi_tick_t;
 #define QE6502_ABI_FLAG_V  (1u << 6u)
 #define QE6502_ABI_FLAG_N  (1u << 7u)
 
-/* Packed tick layout: address bits 0..15, bus bits 16..23, status bits 24..31. */
+/* Packed tick layout: address bits 0..15, status bits 16..23, bus bits 24..31. */
 #define QE6502_ABI_TICK_ADDRESS_SHIFT 0u
-#define QE6502_ABI_TICK_BUS_SHIFT     16u
-#define QE6502_ABI_TICK_STATUS_SHIFT  24u
+#define QE6502_ABI_TICK_STATUS_SHIFT  16u
+#define QE6502_ABI_TICK_BUS_SHIFT     24u
 
-#define QE6502_ABI_TICK_WRITING_SHIFT        24u
-#define QE6502_ABI_TICK_FETCH_SHIFT          25u
-#define QE6502_ABI_TICK_INTERNAL_RESET_SHIFT 30u
-#define QE6502_ABI_TICK_CPU_JAMMED_SHIFT     31u
+#define QE6502_ABI_TICK_WRITING_SHIFT        16u
+#define QE6502_ABI_TICK_FETCH_SHIFT          17u
+#define QE6502_ABI_TICK_INTERNAL_RESET_SHIFT 22u
+#define QE6502_ABI_TICK_CPU_JAMMED_SHIFT     23u
 
 #define QE6502_ABI_TICK_WRITING        (UINT32_C(1) << QE6502_ABI_TICK_WRITING_SHIFT)
 #define QE6502_ABI_TICK_FETCH          (UINT32_C(1) << QE6502_ABI_TICK_FETCH_SHIFT)

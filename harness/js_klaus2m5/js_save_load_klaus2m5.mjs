@@ -10,8 +10,8 @@ const EXTENDED_SUCCESS_ADDRESS = 0x24f1;
 const EXTENDED_EXPECTED_CYCLES = 21986985n;
 const MEMORY_SIZE = 0x10000;
 const ADDRESS_MASK = 0xffff;
-const BUS_SHIFT = 16;
-const STATUS_SHIFT = 24;
+const STATUS_SHIFT = 16;
+const BUS_SHIFT = 24;
 const defaultWasmUrl = new URL("../../build/release_wasm/binds/js/qe6502_js.wasm", import.meta.url);
 const defaultRomDirUrl = new URL("../klaus2m5/", import.meta.url);
 

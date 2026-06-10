@@ -54,19 +54,19 @@ namespace Qe6502
         public ushort Address { get { return (ushort)_tick; } }
 
         /// <summary>The bus data byte from the last CPU cycle.</summary>
-        public byte Data { get { return (byte)(_tick >> 16); } }
+        public byte Data { get { return (byte)(_tick >> 24); } }
 
         /// <summary>True when the current bus cycle writes Data to Address; otherwise the cycle reads from Address.</summary>
-        public bool IsWrite { get { return (_tick & 0x01000000u) != 0u; } }
+        public bool IsWrite { get { return (_tick & 0x00010000u) != 0u; } }
 
         /// <summary>True when the current bus cycle is an opcode fetch.</summary>
-        public bool IsOpcodeFetch { get { return (_tick & 0x02000000u) != 0u; } }
+        public bool IsOpcodeFetch { get { return (_tick & 0x00020000u) != 0u; } }
 
         /// <summary>True while the CPU is performing the internal reset sequence.</summary>
-        public bool IsInternalReset { get { return (_tick & 0x40000000u) != 0u; } }
+        public bool IsInternalReset { get { return (_tick & 0x00400000u) != 0u; } }
 
         /// <summary>True when the CPU is jammed by a KIL/JAM opcode.</summary>
-        public bool IsJammed { get { return (_tick & 0x80000000u) != 0u; } }
+        public bool IsJammed { get { return (_tick & 0x00800000u) != 0u; } }
 
         /// <summary>Program counter register.</summary>
         public ushort PC

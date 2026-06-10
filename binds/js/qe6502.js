@@ -24,12 +24,12 @@ export const Status = Object.freeze({
   cpuJammed: 1 << 7,
 });
 
-const ABI_VERSION = 0x00000004;
+const ABI_VERSION = 0x00000005;
 const SNAPSHOT_SIZE = 64;
 
 const TICK_ADDRESS_MASK = 0xffff;
-const TICK_BUS_SHIFT = 16;
-const TICK_STATUS_SHIFT = 24;
+const TICK_STATUS_SHIFT = 16;
+const TICK_BUS_SHIFT = 24;
 
 const REQUIRED_EXPORTS = [
   "qe6502js_context_pool_reset",

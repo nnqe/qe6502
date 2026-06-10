@@ -8,8 +8,8 @@ const CHECKPOINT_INTERVAL = 3;
 const MAX_OPCODE_CYCLES = 200n;
 const MEMORY_SIZE = 0x10000;
 const ADDRESS_MASK = 0xffff;
-const BUS_SHIFT = 16;
-const STATUS_SHIFT = 24;
+const STATUS_SHIFT = 16;
+const BUS_SHIFT = 24;
 const defaultWasmUrl = new URL("../../build/release_wasm/binds/js/qe6502_js.wasm", import.meta.url);
 
 function usage(scriptName) {
