@@ -56,3 +56,26 @@ for (int i = 0; i < 1000000; ++i) {
 ```
 
 Use `NmiAsserted` and `IrqAsserted` to control the logical interrupt assertion state.
+
+## Klaus2m5 harness
+
+When `QE6502_BUILD_TESTS` is enabled, CMake also builds a C# Klaus2m5 console harness and registers the default supported model/test matrix with CTest:
+
+```sh
+cmake --build build --target qe6502_cs_klaus2m5
+ctest --test-dir build -R qe6502.cs.klaus2m5 --output-on-failure
+```
+
+The same harness can be run directly through CMake to see the full default-suite output:
+
+```sh
+cmake --build build --target qe6502_cs_klaus2m5_run
+```
+
+The harness copies the existing `harness/klaus2m5` ROM fixtures next to the executable at build time. It can also be run manually from its output directory:
+
+```sh
+dotnet Qe6502.CsKlaus2m5.dll
+dotnet Qe6502.CsKlaus2m5.dll nmos standard
+dotnet Qe6502.CsKlaus2m5.dll /path/to/harness/klaus2m5 rw extended
+```
