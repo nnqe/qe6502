@@ -90,6 +90,16 @@ static inline qe6502_tick_t read(const qe6502_t* cpu, uint16_t address)
     };
 }
 
+static inline qe6502_tick_t reset_read(const qe6502_t* cpu, uint16_t address)
+{
+    (void)cpu;
+
+    return (qe6502_tick_t){
+        .address = address,
+        .status = (uint8_t)(qe6502_status_internal_reset)
+    };
+}
+
 static inline qe6502_tick_t write(const qe6502_t* cpu, uint16_t address, uint8_t data)
 {
     (void)cpu;
@@ -104,13 +114,15 @@ static inline qe6502_tick_t write(const qe6502_t* cpu, uint16_t address, uint8_t
 static inline qe6502_tick_t fetch(qe6502_t* cpu)
 {
     qe6502_tick_t tick = read(cpu, cpu->PC);
-    tick.status = (uint8_t)(tick.status | qe6502_status_opcode_fetch);
+    tick.status = (uint8_t)(qe6502_status_opcode_fetch);
     return tick;
 }
 
-static inline qe6502_tick_t fake_fetch(qe6502_t* cpu)
+static inline qe6502_tick_t reset_fetch(qe6502_t* cpu)
 {
-    return fetch(cpu);
+    qe6502_tick_t tick = read(cpu, cpu->PC);
+    tick.status = (uint8_t)(qe6502_status_opcode_fetch | qe6502_status_internal_reset);
+    return tick;
 }
 
 static inline qe6502_tick_t stack_write(qe6502_t* cpu, uint8_t data)
@@ -662,28 +674,26 @@ static qe6502_tick_t mc_internal_reset(qe6502_t* cpu, uint8_t bus)
     }
     /* else */
     loop_here(cpu);
-    qe6502_tick_t tick = read(cpu, cpu->PC);
-    tick.status = flag_on(tick.status, qe6502_status_internal_reset);
-    return tick;
+    return reset_read(cpu, cpu->PC);
 }
 
 static qe6502_tick_t mc_restart_read_hhff(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = calculate_reset_pc(cpu->PC, bus);
-    return read(cpu, cpu->PC);
+    return reset_read(cpu, cpu->PC);
 }
 
 static qe6502_tick_t mc_restart_read_zzhh_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = calculate_reset_pc(cpu->PC, bus);
-    return fake_fetch(cpu);
+    return reset_fetch(cpu);
 }
 
 static qe6502_tick_t mc_restart_read_zzhh(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return read(cpu, cpu->PC);
+    return reset_read(cpu, cpu->PC);
 }
 
 /* service_handler; role=reset_stack_read; action=read_stack_current_s_and_decrement_s */
@@ -693,7 +703,7 @@ static qe6502_tick_t mc_reset_stack_read(qe6502_t* cpu, uint8_t bus)
 
     const uint16_t address = (uint16_t)(0x0100u | cpu->S);
     cpu->S--;
-    return read(cpu, address);
+    return reset_read(cpu, address);
 }
 
 /* service_handler; role=vec_lo; action=read_reset_vector_low */
@@ -701,7 +711,7 @@ static qe6502_tick_t mc_reset_vec_lo(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
-    return read(cpu, 0xfffcu);
+    return reset_read(cpu, 0xfffcu);
 }
 
 /* service_handler; role=vec_hi; action=consume_reset_vector_low_set_interrupt_disable_and_read_reset_vector_high */
@@ -709,7 +719,7 @@ static qe6502_tick_t mc_reset_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = flag_on(cpu->P, flag_B | flag_I );
-    return read(cpu, 0xfffdu);
+    return reset_read(cpu, 0xfffdu);
 }
 
 /* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
@@ -2988,9 +2998,7 @@ qe6502_tick_t qe6502_restart(qe6502_t *cpu)
     enter_service_slot(cpu, service_slot_internal_reset, 0);
 
     cpu->latch_data = 0;
-    qe6502_tick_t tick = read(cpu, 0x00ff);
-    tick.status = flag_on(tick.status, qe6502_status_internal_reset);
-    return tick;
+    return reset_read(cpu, 0x00ff);
 }
 
 void qe6502_save(const qe6502_t *cpu,
