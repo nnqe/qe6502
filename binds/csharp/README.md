@@ -11,9 +11,9 @@ cmake -S . -B build
 cmake --build build --target qe6502_csharp
 ```
 
-The C# project uses `DllImport("qe6502")`, so the native shared library must be named as follows:
+The C# project uses `DllImport("libqe6502")`, so the native shared library must be named as follows:
 
-- Windows: `qe6502.dll`
+- Windows: `libqe6502.dll`
 - Linux: `libqe6502.so`
 - macOS: `libqe6502.dylib`
 

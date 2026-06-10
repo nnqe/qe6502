@@ -19,7 +19,7 @@ namespace Qe6502
 
     internal static class NativeMethods
     {
-        internal const string LibraryName = "qe6502";
+        internal const string LibraryName = "libqe6502";
         internal const uint ExpectedAbiVersion = 0x00000004u;
         internal const int ContextSize = 64;
         internal const int SnapshotSize = 64;
