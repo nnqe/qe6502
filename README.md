@@ -115,8 +115,8 @@ var cpu = new Cpu(Model.Nmos);
 Use the **Java binding** when integrating the ABI-backed CPU core from Java 25+ via the Foreign Function & Memory API.
 
 ```java
-import com.egt.qe6502.Cpu;
-import com.egt.qe6502.Model;
+import qe6502.Cpu;
+import qe6502.Model;
 
 try (Cpu cpu = new Cpu(Model.NMOS)) {
     cpu.jumpTo(0x8000);
@@ -368,8 +368,8 @@ The C# binding uses the stable shared ABI and exposes the same cycle-by-cycle ex
 ## Minimal Java example
 
 ```java
-import com.egt.qe6502.Cpu;
-import com.egt.qe6502.Model;
+import qe6502.Cpu;
+import qe6502.Model;
 
 byte[] memory = new byte[65536];
 memory[0x8000] = (byte)0xEA; // NOP
@@ -388,7 +388,7 @@ try (Cpu cpu = new Cpu(Model.NMOS)) {
 }
 ```
 
-The Java binding uses Java 25+ FFM over the stable shared ABI. Development-tree runs use `--enable-native-access=ALL-UNNAMED` and pass the native library through `-Dqe6502.native.path=...`; CMake run targets and CTest entries do this automatically.
+The Java binding uses Java 25+ FFM over the stable shared ABI. Development-tree runs use `--enable-native-access=ALL-UNNAMED`. Java harness output directories contain the harness jar, `qe6502-java.jar`, and the native shared library, so the harnesses can also be run directly with `java --enable-native-access=ALL-UNNAMED -jar ...`. CMake run targets and CTest entries still pass `-Dqe6502.native.path=...` explicitly.
 
 ## Minimal Python example
 

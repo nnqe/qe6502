@@ -1,4 +1,4 @@
-package com.egt.qe6502;
+package qe6502;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;

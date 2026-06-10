@@ -1,4 +1,4 @@
-package com.egt.qe6502;
+package qe6502;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
@@ -6,6 +6,7 @@ import java.lang.foreign.Linker;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
@@ -208,14 +209,26 @@ final class NativeLibrary implements AutoCloseable {
             return SymbolLookup.libraryLookup(Path.of(nativePath), arena);
         }
 
+        Path localLibrary = Path.of(platformLibraryFileName()).toAbsolutePath();
+        if (Files.isRegularFile(localLibrary)) {
+            return SymbolLookup.libraryLookup(localLibrary, arena);
+        }
+
         return SymbolLookup.libraryLookup(defaultLibraryName(), arena);
     }
 
-    private static String defaultLibraryName() {
+    private static String platformLibraryFileName() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         if (osName.contains("win")) {
-            return "qe6502";
+            return "qe6502.dll";
         }
+        if (osName.contains("mac") || osName.contains("darwin")) {
+            return "libqe6502.dylib";
+        }
+        return "libqe6502.so";
+    }
+
+    private static String defaultLibraryName() {
         return "qe6502";
     }
 

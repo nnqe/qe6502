@@ -1,7 +1,7 @@
-package com.egt.qe6502.smoke;
+package qe6502.smoke;
 
-import com.egt.qe6502.Cpu;
-import com.egt.qe6502.Model;
+import qe6502.Cpu;
+import qe6502.Model;
 
 public final class Main {
     private static final int PROGRAM_ADDRESS = 0x8000;

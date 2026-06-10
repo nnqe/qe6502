@@ -1,4 +1,4 @@
-package com.egt.qe6502;
+package qe6502;
 
 /** Supported qe6502 CPU models. */
 public enum Model {

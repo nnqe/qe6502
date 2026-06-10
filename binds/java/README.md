@@ -32,10 +32,17 @@ native access, run Java code with:
 --enable-native-access=ALL-UNNAMED
 ```
 
-Development harnesses pass the native library path explicitly via:
+The binding first checks `-Dqe6502.native.path=/absolute/path/to/library` when it
+is provided. If that property is absent, it tries to load the platform native
+library from the current working directory before falling back to the normal
+system library lookup.
+
+Development harness output directories contain the harness jar, `qe6502-java.jar`,
+and the native shared library. From a harness output directory, the smoke and
+Klaus harnesses can be started with normal jar commands, for example:
 
 ```sh
--Dqe6502.native.path=/absolute/path/to/libqe6502.dylib
+java --enable-native-access=ALL-UNNAMED -jar qe6502-java-smoke.jar
+java --enable-native-access=ALL-UNNAMED -jar qe6502-java-klaus2m5.jar
+java --enable-native-access=ALL-UNNAMED -jar qe6502-java-klaus2m5.jar nmos standard
 ```
-
-or the platform equivalent.

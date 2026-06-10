@@ -1,7 +1,7 @@
-package com.egt.qe6502.klaus2m5;
+package qe6502.klaus2m5;
 
-import com.egt.qe6502.Cpu;
-import com.egt.qe6502.Model;
+import qe6502.Cpu;
+import qe6502.Model;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,8 +81,8 @@ public final class Main {
     }
 
     private static void printUsage() {
-        System.err.println("Usage: java com.egt.qe6502.klaus2m5.Main [<rom-dir>] [<model> <test>]");
-        System.err.println("       java com.egt.qe6502.klaus2m5.Main <model> <test>");
+        System.err.println("Usage: java qe6502.klaus2m5.Main [<rom-dir>] [<model> <test>]");
+        System.err.println("       java qe6502.klaus2m5.Main <model> <test>");
         System.err.println();
         System.err.println("With no model/test arguments, runs the default v2 Klaus suite.");
         System.err.println("With no rom-dir, uses ./klaus2m5 next to the executable.");
