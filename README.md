@@ -2,7 +2,7 @@
 
 `qe6502` is a small, embeddable 6502/65C02 CPU emulator core built around an explicit external bus interface. The host owns memory and devices, services one bus request at a time, and feeds read data back on the following tick.
 
-The core focuses on deterministic bus-level behavior, low integration overhead, and stable integration surfaces for C, C++, JavaScript/WebAssembly, and other FFI users. `qe6502` is a CPU core, not a complete machine emulator.
+The core focuses on deterministic bus-level behavior, low integration overhead, and stable integration surfaces for C, C++, C#, JavaScript/WebAssembly, and other FFI users. `qe6502` is a CPU core, not a complete machine emulator.
 
 The fast native C API keeps the complete CPU state in a 16-byte `qe6502_t`. The stable ABI API uses a fixed 64-byte opaque context, and save/load snapshots are also fixed at 64 bytes.
 
@@ -104,6 +104,14 @@ Use the **C++ wrapper** when writing C++17 code and you want a small RAII-style 
 target_link_libraries(my_program PRIVATE qe6502::cpp)
 ```
 
+Use the **C# binding** when integrating the ABI-backed CPU core from .NET or Mono code.
+
+```csharp
+using Qe6502;
+
+var cpu = new Cpu(Model.Nmos);
+```
+
 Use the **JavaScript/WebAssembly binding** when running the ABI-backed CPU core from Node.js or a browser.
 
 ```js
@@ -176,6 +184,7 @@ Available installed targets depend on the build options:
 | `QE6502_BUILD_STATIC` | `ON` | Build the fast static C library. |
 | `QE6502_BUILD_SHARED` | `ON` | Build the stable shared ABI library. |
 | `QE6502_BUILD_CPP` | `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`. |
+| `QE6502_BUILD_CSHARP` | `ON` | Build the C# binding when the .NET SDK is available. |
 | `QE6502_BUILD_TESTS` | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build tests and harnesses. Turn this off for dependency/package builds. |
 | `QE6502_BUILD_WASM` | `OFF` | Enable the WebAssembly build mode. |
 | `QE6502_ENABLE_WERROR` | `OFF` | Treat warnings as errors. Intended for maintainer/CI builds, not package consumers. |
@@ -307,11 +316,38 @@ cpu.nmiAssert(false); // deassert the NMI line
 
 `nmiAssert()` is a pin-level API, not a one-shot pulse helper. Keep the line asserted for as long as your emulated device drives it active, then deassert it.
 
+## Minimal C# example
+
+```csharp
+using Qe6502;
+
+byte MemoryRead(ushort address) => 0;
+void MemoryWrite(ushort address, byte value) {}
+
+var cpu = new Cpu(Model.Nmos);
+cpu.Restart();
+
+for (;;)
+{
+    if (cpu.IsWrite)
+    {
+        MemoryWrite(cpu.Address, cpu.Data);
+        cpu.Tick();
+    }
+    else
+    {
+        cpu.Tick(MemoryRead(cpu.Address));
+    }
+}
+```
+
+The C# binding uses the stable shared ABI and exposes the same cycle-by-cycle external bus model as the native APIs.
+
 ## Save/load snapshots
 
 `qe6502` supports a stable fixed-size 64-byte save/load snapshot format. A snapshot captures the complete CPU state, including the current internal bus-cycle phase, so restored execution resumes deterministically rather than only restoring the visible registers.
 
-The same snapshot format is exposed through the native C API, the stable ABI API, the C++ wrapper, and the JavaScript/WASM binding, so snapshots can be shared between bindings that use the same snapshot format.
+The same snapshot format is exposed through the native C API, the stable ABI API, the C++ wrapper, the C# binding, and the JavaScript/WASM binding, so snapshots can be shared between bindings that use the same snapshot format.
 
 A small C++ wrapper example:
 
@@ -328,7 +364,7 @@ qe6502::cpu restored(snapshot);
 
 ## Testing
 
-The repository includes regression harnesses for instruction behavior, bus timing, save/load replay, JavaScript/WASM bindings, ABI surface stability, and NMOS interrupt lockstep scenarios.
+The repository includes regression harnesses for instruction behavior, bus timing, save/load replay, C# and JavaScript/WASM bindings, ABI surface stability, and NMOS interrupt lockstep scenarios.
 
 The NMOS interrupt implementation is checked against `perfect6502` through lockstep tests that compare externally visible bus behavior tick by tick. These tests cover IRQ/NMI timing, I-flag windows, interrupt arbitration, hijacking cases, and lost-NMI scenarios.
 
@@ -344,6 +380,15 @@ ctest --test-dir build/debug_native --output-on-failure
 cmake --preset release_native
 cmake --build --preset release_native
 ctest --test-dir build/release_native --output-on-failure
+```
+
+For C# harnesses, when the .NET SDK is available:
+
+```sh
+cmake --build --preset release_native --target qe6502_cs_smoke
+cmake --build --preset release_native --target qe6502_cs_klaus2m5
+cmake --build --preset release_native --target qe6502_cs_smoke_run
+cmake --build --preset release_native --target qe6502_cs_klaus2m5_run
 ```
 
 For WebAssembly/JavaScript harnesses:
@@ -380,7 +425,7 @@ The exact performance numbers in that repository should be read as measurements 
 
 The first official public release is currently targeted for October 2026, subject to API/ABI stabilization and completion of the current correctness baseline.
 
-The core project currently includes C, C++, ABI, and WebAssembly integration surfaces. Additional Python, C#, and Rust bindings are planned/in progress.
+The core project currently includes C, C++, stable ABI, C#, and JavaScript/WebAssembly integration surfaces. Additional Python and Rust bindings are planned/in progress.
 
 ## License
 
