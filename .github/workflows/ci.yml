@@ -55,7 +55,7 @@ jobs:
 
       - name: Setup Java 25 for native Java binding
         if: contains(matrix.preset, 'native')
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "25"
