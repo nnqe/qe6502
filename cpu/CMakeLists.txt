@@ -88,6 +88,7 @@ if(QE6502_BUILD_SHARED)
 
     set_target_properties(qe6502_shared PROPERTIES
         EXPORT_NAME shared
+        OUTPUT_NAME qe6502
         C_VISIBILITY_PRESET hidden
     )
 
