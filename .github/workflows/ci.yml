@@ -49,6 +49,16 @@ jobs:
           - debug_wasm
           - release_wasm
 
+        include:
+          - os: ubuntu-24.04-arm
+            preset: release_native
+          - os: macos-13
+            preset: release_native
+          - os: macos-14-arm64
+            preset: release_native
+          - os: windows-11-arm
+            preset: release_native
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
