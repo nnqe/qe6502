@@ -53,6 +53,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Java 25 for native Java binding
+        if: contains(matrix.preset, 'native')
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+
       - name: Setup Node.js for WASM tests
         if: contains(matrix.preset, 'wasm')
         uses: actions/setup-node@v6
@@ -95,8 +102,12 @@ jobs:
           echo "llvm bin:"
           ls -la "$(brew --prefix llvm)/bin" || true
 
-      - name: Configure
-        if: runner.os != 'macOS' || contains(matrix.preset, 'wasm') == false
+      - name: Configure native
+        if: contains(matrix.preset, 'native')
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON
+
+      - name: Configure WASM
+        if: contains(matrix.preset, 'wasm') && runner.os != 'macOS'
         run: cmake --preset ${{ matrix.preset }}
 
       - name: Configure WASM on macOS

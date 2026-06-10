@@ -12,4 +12,8 @@ else()
     if(QE6502_BUILD_PYTHON)
         add_subdirectory(python)
     endif()
+
+    if(QE6502_BUILD_JAVA)
+        add_subdirectory(java)
+    endif()
 endif()
