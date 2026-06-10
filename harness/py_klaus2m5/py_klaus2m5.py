@@ -147,7 +147,7 @@ def parse_command_line(argv: list[str]) -> tuple[Path, tuple[tuple[str, str], ..
     script_name = argv[0] if argv else "py_klaus2m5.py"
     args = argv[1:]
 
-    default_rom_dir = Path(__file__).resolve().parents[1] / "klaus2m5"
+    default_rom_dir = Path(__file__).resolve().parent / "roms"
 
     if not args:
         return default_rom_dir, DEFAULT_SUITE
