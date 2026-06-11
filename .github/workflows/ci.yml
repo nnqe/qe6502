@@ -76,6 +76,19 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Setup .NET 8 for Windows ARM64 native C# tests
+        if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+          architecture: arm64
+
+      - name: Setup MSVC for Windows ARM64 native build
+        if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: arm64
+
       - name: Install LLVM for WASM on Ubuntu
         if: runner.os == 'Linux' && contains(matrix.preset, 'wasm')
         run: |
