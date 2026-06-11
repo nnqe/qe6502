@@ -30,6 +30,9 @@ on:
           - "false"
           - "true"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: ${{ matrix.os }} / ${{ matrix.preset }}
