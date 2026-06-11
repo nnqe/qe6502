@@ -38,7 +38,7 @@ struct RunResult {
 static void load_program(ICpu& cpu)
 {
     auto* m = cpu.memory();
-    std::fill(m, m + 65536u, 0xea); // NOP-fill for easier debugging.
+    std::fill(m, m + 65536u, static_cast<std::uint8_t>(0xea)); // NOP-fill for easier debugging.
 
     constexpr std::uint16_t base = 0x0400;
     const std::uint8_t program[] = {
