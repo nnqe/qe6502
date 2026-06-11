@@ -92,6 +92,12 @@ if(QE6502_BUILD_SHARED)
         C_VISIBILITY_PRESET hidden
     )
 
+    if(WIN32)
+        set_target_properties(qe6502_shared PROPERTIES
+            PREFIX "lib"
+        )
+    endif()
+
     if(NOT QE6502_BUILD_WASM)
         set_target_properties(qe6502_shared PROPERTIES
             VERSION ${PROJECT_VERSION}

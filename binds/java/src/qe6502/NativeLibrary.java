@@ -220,7 +220,7 @@ final class NativeLibrary implements AutoCloseable {
     private static String platformLibraryFileName() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         if (osName.contains("win")) {
-            return "qe6502.dll";
+            return "libqe6502.dll";
         }
         if (osName.contains("mac") || osName.contains("darwin")) {
             return "libqe6502.dylib";
