@@ -52,7 +52,7 @@ find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
     add_custom_target(qe6502_rust_package_stage
         COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_SOURCE_DIR}/tools/package_rust_crate.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/package_crate.py"
             --repo-root "${CMAKE_SOURCE_DIR}"
             --out "${QE6502_RUST_PACKAGE_DIR}"
         COMMENT "Staging self-contained qe6502 Rust crate"
