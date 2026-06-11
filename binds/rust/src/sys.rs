@@ -5,7 +5,6 @@ pub(crate) const MODEL_NES: u8 = 1;
 pub(crate) const MODEL_WDC: u8 = 2;
 pub(crate) const MODEL_RW: u8 = 3;
 pub(crate) const MODEL_ST: u8 = 4;
-pub(crate) const MODEL_COUNT: u8 = 5;
 
 pub(crate) const FLAG_C: u8 = 1 << 0;
 pub(crate) const FLAG_Z: u8 = 1 << 1;
