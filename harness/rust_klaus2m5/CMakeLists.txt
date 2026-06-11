@@ -8,8 +8,8 @@ if(NOT CARGO_EXECUTABLE)
     return()
 endif()
 
-if(NOT TARGET qe6502_rust_next)
-    message(STATUS "qe6502_rust_next target is not available; skipping qe6502 Rust Klaus2m5 harness")
+if(NOT TARGET qe6502_rust)
+    message(STATUS "qe6502_rust target is not available; skipping qe6502 Rust Klaus2m5 harness")
     return()
 endif()
 
@@ -51,7 +51,7 @@ add_custom_target(qe6502_rust_klaus2m5 ALL
         "${QE6502_RUST_KLAUS2M5_EXTENDED_ROM}"
         "${QE6502_RUST_KLAUS2M5_EXE_ROM_OUTPUT_DIR}/65C02_extended_opcodes_test.hex"
     DEPENDS
-        qe6502_rust_next
+        qe6502_rust
         "${QE6502_RUST_KLAUS2M5_STANDARD_ROM}"
         "${QE6502_RUST_KLAUS2M5_EXTENDED_ROM}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"

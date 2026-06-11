@@ -28,22 +28,22 @@ if(NOT CARGO_EXECUTABLE)
     if(QE6502_REQUIRE_RUST)
         message(FATAL_ERROR "cargo not found but QE6502_REQUIRE_RUST is ON")
     endif()
-    message(STATUS "cargo not found; skipping qe6502 Rust next binding")
+    message(STATUS "cargo not found; skipping qe6502 Rust binding")
     return()
 endif()
 
-set(QE6502_RUST_NEXT_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml")
-set(QE6502_RUST_NEXT_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
+set(QE6502_RUST_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml")
+set(QE6502_RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 
-add_custom_target(qe6502_rust_next ALL
+add_custom_target(qe6502_rust ALL
     COMMAND "${CARGO_EXECUTABLE}" build
-        --manifest-path "${QE6502_RUST_NEXT_MANIFEST}"
-        --target-dir "${QE6502_RUST_NEXT_TARGET_DIR}"
+        --manifest-path "${QE6502_RUST_MANIFEST}"
+        --target-dir "${QE6502_RUST_TARGET_DIR}"
         --profile $<IF:$<CONFIG:Debug>,dev,release>
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Building qe6502 Rust next binding"
+    COMMENT "Building qe6502 Rust binding"
     VERBATIM
 )
 
-set(QE6502_RUST_NEXT_MANIFEST "${QE6502_RUST_NEXT_MANIFEST}" CACHE INTERNAL "qe6502 Rust next binding manifest")
-set(QE6502_RUST_NEXT_TARGET_DIR "${QE6502_RUST_NEXT_TARGET_DIR}" CACHE INTERNAL "qe6502 Rust next binding target directory")
+set(QE6502_RUST_MANIFEST "${QE6502_RUST_MANIFEST}" CACHE INTERNAL "qe6502 Rust binding manifest")
+set(QE6502_RUST_TARGET_DIR "${QE6502_RUST_TARGET_DIR}" CACHE INTERNAL "qe6502 Rust binding target directory")

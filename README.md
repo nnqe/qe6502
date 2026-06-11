@@ -213,8 +213,8 @@ Available installed targets depend on the build options:
 | `QE6502_BUILD_SHARED` | `ON` | Build the stable shared ABI library. |
 | `QE6502_BUILD_CPP` | `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`. |
 | `QE6502_BUILD_CSHARP` | `ON` | Build the C# binding when the .NET SDK is available. |
-| `QE6502_BUILD_RUST` | `ON` | Build the Rust binding when Cargo and rustc are available. Requires `QE6502_BUILD_STATIC=ON`. |
-| `QE6502_REQUIRE_RUST` | `OFF` | Fail configure if `QE6502_BUILD_RUST=ON` but Cargo or rustc is unavailable. Intended for CI. |
+| `QE6502_BUILD_RUST` | `ON` | Build the Rust binding with Cargo. The Rust crate vendors and statically builds its own C core. |
+| `QE6502_REQUIRE_RUST` | `OFF` | Fail configure if `QE6502_BUILD_RUST=ON` but Cargo is unavailable. Intended for CI. |
 | `QE6502_BUILD_JAVA` | `ON` | Build the Java binding when JDK 25+ development tools are available. |
 | `QE6502_REQUIRE_JAVA` | `OFF` | Fail configure if `QE6502_BUILD_JAVA=ON` but JDK 25+ is unavailable. Intended for CI. |
 | `QE6502_BUILD_PYTHON` | `ON` | Build the CPython binding when Python development headers are available. |

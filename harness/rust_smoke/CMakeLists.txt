@@ -8,8 +8,8 @@ if(NOT CARGO_EXECUTABLE)
     return()
 endif()
 
-if(NOT TARGET qe6502_rust_next)
-    message(STATUS "qe6502_rust_next target is not available; skipping qe6502 Rust smoke harness")
+if(NOT TARGET qe6502_rust)
+    message(STATUS "qe6502_rust target is not available; skipping qe6502 Rust smoke harness")
     return()
 endif()
 
@@ -21,7 +21,7 @@ add_custom_target(qe6502_rust_smoke ALL
         --manifest-path "${QE6502_RUST_SMOKE_MANIFEST}"
         --target-dir "${QE6502_RUST_SMOKE_TARGET_DIR}"
         --profile $<IF:$<CONFIG:Debug>,dev,release>
-    DEPENDS qe6502_rust_next
+    DEPENDS qe6502_rust
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMENT "Building qe6502 Rust smoke harness"
     VERBATIM
