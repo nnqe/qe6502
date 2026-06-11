@@ -381,10 +381,15 @@ static PyTypeObject Qe6502CPUType = {
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_doc = "qe6502 CPU ABI context",
     .tp_init = (initproc)CPU_init,
-    .tp_new = PyType_GenericNew,
     .tp_methods = CPU_methods,
     .tp_getset = CPU_getset,
 };
+
+static void
+CPU_type_init_runtime_slots(void)
+{
+    Qe6502CPUType.tp_new = PyType_GenericNew;
+}
 
 static PyObject*
 module_version(PyObject* Py_UNUSED(self), PyObject* Py_UNUSED(ignored))
@@ -469,6 +474,8 @@ PyInit__qe6502(void)
     if (check_abi_version() < 0) {
         return NULL;
     }
+
+    CPU_type_init_runtime_slots();
 
     if (PyType_Ready(&Qe6502CPUType) < 0) {
         return NULL;
