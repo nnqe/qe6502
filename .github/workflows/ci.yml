@@ -83,6 +83,13 @@ jobs:
           dotnet-version: 8.0.x
           architecture: arm64
 
+      - name: Setup Python for Windows ARM64 native Python binding
+        if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+          architecture: arm64
+
       - name: Setup MSVC for Windows ARM64 native build
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
         uses: ilammy/msvc-dev-cmd@v1
@@ -125,8 +132,12 @@ jobs:
           echo "llvm bin:"
           ls -la "$(brew --prefix llvm)/bin" || true
 
+      - name: Configure native on Windows ARM64
+        if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+
       - name: Configure native
-        if: contains(matrix.preset, 'native')
+        if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
         run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON
 
       - name: Configure WASM
