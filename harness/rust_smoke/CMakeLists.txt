@@ -37,7 +37,7 @@ add_custom_target(qe6502_rust_smoke ALL
         ${CARGO_EXECUTABLE} build
             --manifest-path ${QE6502_RUST_SMOKE_MANIFEST}
             --target-dir ${QE6502_RUST_SMOKE_TARGET_DIR}
-            $<$<NOT:$<CONFIG:Debug>>:--release>
+            --profile $<IF:$<CONFIG:Debug>,dev,release>
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_RUST_SMOKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${QE6502_RUST_SMOKE_EXECUTABLE}

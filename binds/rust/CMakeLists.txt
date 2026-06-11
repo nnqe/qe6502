@@ -66,7 +66,7 @@ add_custom_target(qe6502_rust ALL
         ${CARGO_EXECUTABLE} build
             --manifest-path ${QE6502_RUST_MANIFEST}
             --target-dir ${QE6502_RUST_TARGET_DIR}
-            $<$<NOT:$<CONFIG:Debug>>:--release>
+            --profile $<IF:$<CONFIG:Debug>,dev,release>
     DEPENDS qe6502_static
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Building qe6502 Rust binding"
