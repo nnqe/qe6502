@@ -2,7 +2,13 @@
 name = "qe6502"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.70"
 license = "MIT"
+description = "Safe Rust bindings for the qe6502 6502/65C02 CPU core"
+repository = "https://github.com/nikolaynedelchev/qe6502"
+keywords = ["6502", "65c02", "emulator"]
+categories = ["emulators", "api-bindings"]
+links = "qe6502"
 publish = false
 
 [build-dependencies]
