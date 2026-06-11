@@ -34,6 +34,8 @@ endif()
 
 set(QE6502_RUST_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml")
 set(QE6502_RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
+set(QE6502_RUST_PACKAGE_DIR "${CMAKE_BINARY_DIR}/rust-package/qe6502")
+set(QE6502_RUST_PACKAGE_MANIFEST "${QE6502_RUST_PACKAGE_DIR}/Cargo.toml")
 
 add_custom_target(qe6502_rust ALL
     COMMAND "${CARGO_EXECUTABLE}" build
@@ -45,5 +47,43 @@ add_custom_target(qe6502_rust ALL
     VERBATIM
 )
 
+find_package(Python3 COMPONENTS Interpreter QUIET)
+
+if(Python3_Interpreter_FOUND)
+    add_custom_target(qe6502_rust_package_stage
+        COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_SOURCE_DIR}/tools/package_rust_crate.py"
+            --repo-root "${CMAKE_SOURCE_DIR}"
+            --out "${QE6502_RUST_PACKAGE_DIR}"
+        COMMENT "Staging self-contained qe6502 Rust crate"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_rust_package_check
+        COMMAND "${CARGO_EXECUTABLE}" package
+            --manifest-path "${QE6502_RUST_PACKAGE_MANIFEST}"
+            --allow-dirty
+        WORKING_DIRECTORY "${QE6502_RUST_PACKAGE_DIR}"
+        COMMENT "Checking qe6502 Rust crate package"
+        DEPENDS qe6502_rust_package_stage
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_rust_publish_dry_run
+        COMMAND "${CARGO_EXECUTABLE}" publish
+            --manifest-path "${QE6502_RUST_PACKAGE_MANIFEST}"
+            --dry-run
+            --allow-dirty
+        WORKING_DIRECTORY "${QE6502_RUST_PACKAGE_DIR}"
+        COMMENT "Dry-running qe6502 Rust crate publish"
+        DEPENDS qe6502_rust_package_check
+        VERBATIM
+    )
+else()
+    message(STATUS "Python3 interpreter not found; skipping qe6502 Rust package staging targets")
+endif()
+
 set(QE6502_RUST_MANIFEST "${QE6502_RUST_MANIFEST}" CACHE INTERNAL "qe6502 Rust binding manifest")
 set(QE6502_RUST_TARGET_DIR "${QE6502_RUST_TARGET_DIR}" CACHE INTERNAL "qe6502 Rust binding target directory")
+set(QE6502_RUST_PACKAGE_DIR "${QE6502_RUST_PACKAGE_DIR}" CACHE INTERNAL "qe6502 Rust generated package directory")
+set(QE6502_RUST_PACKAGE_MANIFEST "${QE6502_RUST_PACKAGE_MANIFEST}" CACHE INTERNAL "qe6502 Rust generated package manifest")

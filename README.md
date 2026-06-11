@@ -519,6 +519,21 @@ cmake --build --preset release_native --target qe6502_rust_smoke_run
 cmake --build --preset release_native --target qe6502_rust_klaus2m5_run
 ```
 
+For Rust packaging checks, when Cargo and Python 3 are available, CMake can generate
+a self-contained crate staging tree and run package/publish dry-run validation without
+publishing anything:
+
+```sh
+cmake --build --preset release_native --target qe6502_rust_package_stage
+cmake --build --preset release_native --target qe6502_rust_package_check
+cmake --build --preset release_native --target qe6502_rust_publish_dry_run
+```
+
+The generated crate is staged under the CMake build directory at
+`rust-package/qe6502/`. It contains a generated `native/` tree copied from the
+canonical `cpu/` sources so the package is self-contained, while the repository
+source tree still keeps only one committed native source of truth.
+
 For WebAssembly/JavaScript harnesses:
 
 ```sh
