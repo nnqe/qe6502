@@ -59,7 +59,13 @@ impl Default for CpuContext {
     }
 }
 
-use crate::Tick;
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct Tick {
+    pub(crate) address: u16,
+    pub(crate) data: u8,
+    pub(crate) flags: u8,
+}
 
 unsafe extern "C" {
     pub(crate) fn qe6502_restart(cpu: *mut CpuContext) -> Tick;

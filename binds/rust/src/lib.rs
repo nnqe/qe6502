@@ -1,22 +1,7 @@
-use std::fmt;
-
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct Tick {
-    pub address: u16,
-    pub data: u8,
-    pub flags: u8,
-}
-
 mod sys;
 
 pub const SNAPSHOT_SIZE: usize = sys::SNAPSHOT_SIZE;
 pub type Snapshot = [u8; SNAPSHOT_SIZE];
-
-pub const TICK_WRITE: u8 = sys::STATUS_WRITING;
-pub const TICK_OPCODE_FETCH: u8 = sys::STATUS_OPCODE_FETCH;
-pub const TICK_INTERNAL_RESET: u8 = sys::STATUS_INTERNAL_RESET;
-pub const TICK_CPU_JAMMED: u8 = sys::STATUS_CPU_JAMMED;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -28,40 +13,20 @@ pub enum Model {
     St = sys::MODEL_ST,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Error {
-    InvalidModel(u8),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Error::InvalidModel(model) => write!(f, "unsupported qe6502 CPU model {model}"),
-        }
-    }
-}
-
-impl std::error::Error for Error {}
-
 pub struct Cpu {
     ctx: sys::CpuContext,
-    tick: Tick,
+    tick: sys::Tick,
 }
 
 impl Cpu {
-    pub fn new(model: Model) -> Result<Self, Error> {
-        let model = model as u8;
-        if model >= sys::MODEL_COUNT {
-            return Err(Error::InvalidModel(model));
-        }
-
+    pub fn new(model: Model) -> Self {
         let mut ctx = sys::CpuContext::default();
-        ctx.model = model;
+        ctx.model = model as u8;
 
-        Ok(Self {
+        Self {
             ctx,
-            tick: Tick::default(),
-        })
+            tick: sys::Tick::default(),
+        }
     }
 
     pub fn restart(&mut self) {
@@ -73,14 +38,43 @@ impl Cpu {
     }
 
     #[inline(always)]
-    pub fn tick(&mut self, bus: u8) -> Tick {
+    pub fn tick(&mut self, bus: u8) {
         self.tick = unsafe { sys::qe6502_tick_exported(&mut self.ctx, bus) };
-        self.tick
     }
 
     #[inline(always)]
-    pub fn last_tick(&self) -> Tick {
-        self.tick
+    pub fn is_read(&self) -> bool {
+        !self.is_write()
+    }
+
+    #[inline(always)]
+    pub fn is_write(&self) -> bool {
+        (self.tick.flags & sys::STATUS_WRITING) != 0
+    }
+
+    #[inline(always)]
+    pub fn is_opcode_fetch(&self) -> bool {
+        (self.tick.flags & sys::STATUS_OPCODE_FETCH) != 0
+    }
+
+    #[inline(always)]
+    pub fn is_internal_reset(&self) -> bool {
+        (self.tick.flags & sys::STATUS_INTERNAL_RESET) != 0
+    }
+
+    #[inline(always)]
+    pub fn is_jammed(&self) -> bool {
+        (self.tick.flags & sys::STATUS_CPU_JAMMED) != 0
+    }
+
+    #[inline(always)]
+    pub fn bus_address(&self) -> u16 {
+        self.tick.address
+    }
+
+    #[inline(always)]
+    pub fn bus_data(&self) -> u8 {
+        self.tick.data
     }
 
     #[inline(always)]
@@ -247,9 +241,8 @@ impl Cpu {
         snapshot
     }
 
-    pub fn load(&mut self, snapshot: &Snapshot) -> Tick {
+    pub fn load(&mut self, snapshot: &Snapshot) {
         self.tick = unsafe { sys::qe6502_load(&mut self.ctx, snapshot.as_ptr()) };
-        self.tick
     }
 
     #[inline(always)]

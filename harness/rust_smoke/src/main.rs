@@ -1,4 +1,4 @@
-use qe6502::{Cpu, Model, Tick, TICK_OPCODE_FETCH, TICK_WRITE};
+use qe6502::{Cpu, Model};
 
 const PROGRAM_ADDRESS: u16 = 0x8000;
 const STORE_ADDRESS: u16 = 0x0200;
@@ -16,7 +16,7 @@ fn main() {
 fn run_smoke() -> Result<(), Box<dyn std::error::Error>> {
     println!("qe6502 Rust smoke: starting");
 
-    let mut cpu = Cpu::new(Model::Nmos)?;
+    let mut cpu = Cpu::new(Model::Nmos);
     let mut memory = [0u8; 65_536];
 
     memory[0x8000] = 0xA9; // LDA #$42
@@ -29,20 +29,22 @@ fn run_smoke() -> Result<(), Box<dyn std::error::Error>> {
     memory[0x8007] = 0x80;
 
     cpu.jump_to(PROGRAM_ADDRESS);
-    let tick = cpu.last_tick();
     println!(
-        "Initial tick: address=0x{:04X} data=0x{:02X} write={}",
-        tick.address,
-        tick.data,
-        is_write(tick)
+        "Initial bus: address=0x{:04X} data=0x{:02X} write={}",
+        cpu.bus_address(),
+        cpu.bus_data(),
+        cpu.is_write()
     );
 
     require(
-        tick.address == PROGRAM_ADDRESS,
+        cpu.bus_address() == PROGRAM_ADDRESS,
         "JumpTo did not produce the expected fetch address.",
     )?;
-    require(!is_write(tick), "Initial JumpTo tick must be a read cycle.")?;
-    require(is_opcode_fetch(tick), "Initial JumpTo tick must be an opcode fetch.")?;
+    require(!cpu.is_write(), "Initial JumpTo bus cycle must be a read cycle.")?;
+    require(
+        cpu.is_opcode_fetch(),
+        "Initial JumpTo bus cycle must be an opcode fetch.",
+    )?;
 
     run_bus_cycles(&mut cpu, &mut memory, 32);
 
@@ -68,16 +70,15 @@ fn run_smoke() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn run_bus_cycles(cpu: &mut Cpu, memory: &mut [u8; 65_536], cycle_count: usize) {
-    let mut tick = cpu.last_tick();
     for _ in 0..cycle_count {
-        let address = tick.address as usize;
-        let data = if is_write(tick) {
-            memory[address] = tick.data;
+        let address = cpu.bus_address() as usize;
+        let data = if cpu.is_write() {
+            memory[address] = cpu.bus_data();
             0
         } else {
             memory[address]
         };
-        tick = cpu.tick(data);
+        cpu.tick(data);
     }
 }
 
@@ -164,37 +165,44 @@ fn check_save_load(cpu: &mut Cpu) -> Result<(), String> {
     let snapshot = cpu.save();
     let saved_a = cpu.a();
     let saved_pc = cpu.pc();
-    let saved_tick = cpu.last_tick();
+    let saved_address = cpu.bus_address();
+    let saved_data = cpu.bus_data();
+    let saved_is_write = cpu.is_write();
+    let saved_is_opcode_fetch = cpu.is_opcode_fetch();
 
     cpu.set_a(0x00);
     cpu.set_pc(0x1234);
-    let loaded_tick = cpu.load(&snapshot);
+    cpu.load(&snapshot);
 
     require(cpu.a() == saved_a, "Save/Load did not restore A.")?;
     require(cpu.pc() == saved_pc, "Save/Load did not restore PC.")?;
-    require(loaded_tick == saved_tick, "Load did not return the saved tick.")?;
-    require(cpu.last_tick() == saved_tick, "Save/Load did not restore the last tick.")?;
+    require(
+        cpu.bus_address() == saved_address,
+        "Save/Load did not restore the bus address.",
+    )?;
+    require(
+        cpu.bus_data() == saved_data,
+        "Save/Load did not restore the bus data.",
+    )?;
+    require(
+        cpu.is_write() == saved_is_write,
+        "Save/Load did not restore the bus write state.",
+    )?;
+    require(
+        cpu.is_opcode_fetch() == saved_is_opcode_fetch,
+        "Save/Load did not restore the opcode-fetch state.",
+    )?;
 
     println!(
-        "Snapshot restore: A=0x{:02X} PC=0x{:04X} tick={{address=0x{:04X}, data=0x{:02X}, flags=0x{:02X}}}",
+        "Snapshot restore: A=0x{:02X} PC=0x{:04X} bus={{address=0x{:04X}, data=0x{:02X}, write={}}}",
         cpu.a(),
         cpu.pc(),
-        loaded_tick.address,
-        loaded_tick.data,
-        loaded_tick.flags
+        cpu.bus_address(),
+        cpu.bus_data(),
+        cpu.is_write()
     );
 
     Ok(())
-}
-
-#[inline(always)]
-fn is_write(tick: Tick) -> bool {
-    (tick.flags & TICK_WRITE) != 0
-}
-
-#[inline(always)]
-fn is_opcode_fetch(tick: Tick) -> bool {
-    (tick.flags & TICK_OPCODE_FETCH) != 0
 }
 
 fn require(condition: bool, message: &str) -> Result<(), String> {

@@ -1,4 +1,4 @@
-use qe6502::{Cpu, Model, Tick, TICK_OPCODE_FETCH, TICK_WRITE};
+use qe6502::{Cpu, Model};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -236,19 +236,18 @@ fn select_test_image(roms: &RomSet, test_name: &str, model: ModelInfo) -> Result
 
 fn run_klaus_test(model: Model, test_image: TestImage) -> Result<RunResult, String> {
     let mut memory = test_image.image;
-    let mut cpu = Cpu::new(model).map_err(|err| err.to_string())?;
+    let mut cpu = Cpu::new(model);
     let mut opcode_cycles = 0u64;
     let mut bus_ticks = 0u64;
 
     cpu.restart();
     cpu.jump_to(START_ADDRESS);
     let start = Instant::now();
-    let mut tick = cpu.last_tick();
 
     let (passed, message) = loop {
-        let address = tick.address as usize;
-        let data = if is_write(tick) {
-            tick.data
+        let address = cpu.bus_address() as usize;
+        let data = if cpu.is_write() {
+            cpu.bus_data()
         } else {
             memory[address]
         };
@@ -257,14 +256,14 @@ fn run_klaus_test(model: Model, test_image: TestImage) -> Result<RunResult, Stri
             break (true, "OK");
         }
 
-        if is_write(tick) {
+        if cpu.is_write() {
             memory[address] = data;
         }
 
-        tick = cpu.tick(data);
+        cpu.tick(data);
         bus_ticks += 1;
 
-        if is_opcode_fetch(tick) {
+        if cpu.is_opcode_fetch() {
             opcode_cycles += 1;
             if opcode_cycles > 2 * test_image.expected_cycles {
                 break (false, "Test fail, takes too many cycles!");
@@ -290,12 +289,3 @@ fn emulated_mhz(bus_ticks: u64, seconds: f64) -> f64 {
     }
 }
 
-#[inline(always)]
-fn is_write(tick: Tick) -> bool {
-    (tick.flags & TICK_WRITE) != 0
-}
-
-#[inline(always)]
-fn is_opcode_fetch(tick: Tick) -> bool {
-    (tick.flags & TICK_OPCODE_FETCH) != 0
-}

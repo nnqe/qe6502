@@ -131,12 +131,12 @@ import qe6502
 cpu = qe6502.CPU(qe6502.MODEL_NMOS)
 ```
 
-Use the **Rust binding** when using `qe6502` from Rust. The Cargo-managed crate stages the native C core during the Cargo build and statically builds it into the Rust package. In the repository build, the staged source is copied from the canonical `cpu/` tree; packaged crates may carry a generated `native/` staging source tree. The Rust CPU object is stateful and `tick()` returns a 32-bit `Tick` value matching the native bus tick layout.
+Use the **Rust binding** when using `qe6502` from Rust. The Cargo-managed crate stages the native C core during the Cargo build and statically builds it into the Rust package. In the repository build, the staged source is copied from the canonical `cpu/` tree; packaged crates may carry a generated `native/` staging source tree. The Rust CPU object is stateful: `tick()` advances the CPU and leaves the current bus pins available through `Cpu` methods such as `is_write()`, `bus_address()`, and `bus_data()`.
 
 ```rust
 use qe6502::{Cpu, Model};
 
-let mut cpu = Cpu::new(Model::Nmos)?;
+let mut cpu = Cpu::new(Model::Nmos);
 cpu.jump_to(0x8000);
 ```
 
@@ -314,33 +314,31 @@ int main()
 ## Minimal Rust example
 
 ```rust
-use qe6502::{Cpu, Model, TICK_WRITE};
+use qe6502::{Cpu, Model};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     let mut memory = [0u8; 65_536];
     memory[0x8000] = 0xEA; // NOP
 
-    let mut cpu = Cpu::new(Model::Nmos)?;
+    let mut cpu = Cpu::new(Model::Nmos);
     cpu.jump_to(0x8000);
 
-    let mut tick = cpu.last_tick();
+    let mut input = 0u8;
 
     for _ in 0..1_000_000 {
-        let data = if (tick.flags & TICK_WRITE) != 0 {
-            memory[tick.address as usize] = tick.data;
-            tick.data
+        if cpu.is_write() {
+            memory[cpu.bus_address() as usize] = cpu.bus_data();
+            input = 0;
         } else {
-            memory[tick.address as usize]
-        };
+            input = memory[cpu.bus_address() as usize];
+        }
 
-        tick = cpu.tick(data);
+        cpu.tick(input);
     }
-
-    Ok(())
 }
 ```
 
-The Rust binding stages the native C core during the Cargo build and statically links the Cargo-built native object into the Rust crate. Repository builds stage from the canonical `cpu/` source tree rather than a committed copy under `binds/rust/`. `Cpu` keeps the active CPU state and the last bus tick internally, while hot loops can keep the returned `Tick` in a local variable and test `tick.flags` directly.
+The Rust binding stages the native C core during the Cargo build and statically links the Cargo-built native object into the Rust crate. Repository builds stage from the canonical `cpu/` source tree rather than a committed copy under `binds/rust/`. `Cpu` keeps the active CPU state and current bus pins internally; the public hot path uses `Cpu` methods directly rather than exposing a public tick object.
 
 ## Minimal JavaScript / WebAssembly example
 
