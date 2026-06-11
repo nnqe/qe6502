@@ -25,5 +25,7 @@ fn main() {
         .file(source_file)
         .include(include_dir)
         .include(source_dir)
+        .define("QE6502_STATIC", "1")
+        .std("c11")
         .compile("qe6502");
 }
