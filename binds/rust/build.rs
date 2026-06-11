@@ -1,14 +1,29 @@
 use std::env;
+use std::path::PathBuf;
 
 fn main() {
-    println!("cargo:rerun-if-env-changed=QE6502_RUST_NATIVE_LIBRARY_DIR");
-    println!("cargo:rerun-if-env-changed=QE6502_RUST_NATIVE_LIBRARY_LINK_NAME");
+    let manifest_dir = PathBuf::from(
+        env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is set by Cargo"),
+    );
+    let native_dir = manifest_dir.join("native");
+    let source_file = native_dir.join("src").join("qe6502.c");
+    let include_dir = native_dir.join("include");
+    let source_dir = native_dir.join("src");
 
-    let library_dir = env::var("QE6502_RUST_NATIVE_LIBRARY_DIR")
-        .expect("QE6502_RUST_NATIVE_LIBRARY_DIR must be set by CMake");
-    let library_link_name = env::var("QE6502_RUST_NATIVE_LIBRARY_LINK_NAME")
-        .expect("QE6502_RUST_NATIVE_LIBRARY_LINK_NAME must be set by CMake");
+    println!("cargo:rerun-if-changed={}", source_file.display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        include_dir.join("qe6502").join("qe6502.h").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        include_dir.join("qe6502").join("qe6502_abi.h").display()
+    );
+    println!("cargo:rerun-if-changed={}", source_dir.join("control_store").display());
 
-    println!("cargo:rustc-link-search=native={library_dir}");
-    println!("cargo:rustc-link-lib=static={library_link_name}");
+    cc::Build::new()
+        .file(source_file)
+        .include(include_dir)
+        .include(source_dir)
+        .compile("qe6502");
 }

@@ -28,51 +28,22 @@ if(NOT CARGO_EXECUTABLE)
     if(QE6502_REQUIRE_RUST)
         message(FATAL_ERROR "cargo not found but QE6502_REQUIRE_RUST is ON")
     endif()
-    message(STATUS "cargo not found; skipping qe6502 Rust binding")
+    message(STATUS "cargo not found; skipping qe6502 Rust next binding")
     return()
 endif()
 
-find_program(RUSTC_EXECUTABLE
-    NAMES rustc rustc.exe
-    HINTS ${QE6502_RUST_TOOL_HINTS}
-)
+set(QE6502_RUST_NEXT_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml")
+set(QE6502_RUST_NEXT_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 
-if(NOT RUSTC_EXECUTABLE)
-    if(QE6502_REQUIRE_RUST)
-        message(FATAL_ERROR "rustc not found but QE6502_REQUIRE_RUST is ON")
-    endif()
-    message(STATUS "rustc not found; skipping qe6502 Rust binding")
-    return()
-endif()
-
-if(NOT TARGET qe6502_static)
-    if(QE6502_REQUIRE_RUST)
-        message(FATAL_ERROR "qe6502_static target is not available but QE6502_REQUIRE_RUST is ON")
-    endif()
-    message(STATUS "qe6502_static target is not available; skipping qe6502 Rust binding")
-    return()
-endif()
-
-set(QE6502_RUST_MANIFEST ${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml)
-set(QE6502_RUST_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/target)
-set(QE6502_RUST_PROFILE "$<IF:$<CONFIG:Debug>,debug,release>")
-
-set(QE6502_RUST_NATIVE_LIBRARY_LINK_NAME "qe6502_static")
-
-add_custom_target(qe6502_rust ALL
-    COMMAND ${CMAKE_COMMAND} -E env
-        "QE6502_RUST_NATIVE_LIBRARY_DIR=$<TARGET_LINKER_FILE_DIR:qe6502_static>"
-        "QE6502_RUST_NATIVE_LIBRARY_LINK_NAME=${QE6502_RUST_NATIVE_LIBRARY_LINK_NAME}"
-        ${CARGO_EXECUTABLE} build
-            --manifest-path ${QE6502_RUST_MANIFEST}
-            --target-dir ${QE6502_RUST_TARGET_DIR}
-            --profile $<IF:$<CONFIG:Debug>,dev,release>
-    DEPENDS qe6502_static
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building qe6502 Rust binding"
+add_custom_target(qe6502_rust_next ALL
+    COMMAND "${CARGO_EXECUTABLE}" build
+        --manifest-path "${QE6502_RUST_NEXT_MANIFEST}"
+        --target-dir "${QE6502_RUST_NEXT_TARGET_DIR}"
+        --profile $<IF:$<CONFIG:Debug>,dev,release>
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Building qe6502 Rust next binding"
     VERBATIM
 )
 
-set(QE6502_RUST_MANIFEST ${QE6502_RUST_MANIFEST} CACHE INTERNAL "qe6502 Rust binding manifest")
-set(QE6502_RUST_TARGET_DIR ${QE6502_RUST_TARGET_DIR} CACHE INTERNAL "qe6502 Rust binding target directory")
-set(QE6502_RUST_NATIVE_LIBRARY_LINK_NAME ${QE6502_RUST_NATIVE_LIBRARY_LINK_NAME} CACHE INTERNAL "qe6502 Rust native library link name")
+set(QE6502_RUST_NEXT_MANIFEST "${QE6502_RUST_NEXT_MANIFEST}" CACHE INTERNAL "qe6502 Rust next binding manifest")
+set(QE6502_RUST_NEXT_TARGET_DIR "${QE6502_RUST_NEXT_TARGET_DIR}" CACHE INTERNAL "qe6502 Rust next binding target directory")
