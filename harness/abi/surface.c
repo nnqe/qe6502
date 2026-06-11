@@ -168,7 +168,7 @@ static void qe6502abi_symbol_set_free(qe6502abi_symbol_set_t *set)
 
 static int qe6502abi_read_file(qe6502abi_file_t *file, const char *path)
 {
-    FILE *fp;
+    FILE *fp = NULL;
     long length;
     size_t read_length;
 
@@ -179,7 +179,13 @@ static int qe6502abi_read_file(qe6502abi_file_t *file, const char *path)
     file->data = NULL;
     file->size = 0u;
 
+#if defined(_WIN32)
+    if(fopen_s(&fp, path, "rb") != 0) {
+        fp = NULL;
+    }
+#else
     fp = fopen(path, "rb");
+#endif
     if(fp == NULL) {
         fprintf(stderr, "failed to open ABI library for export scan: %s\n", path);
         return 1;
