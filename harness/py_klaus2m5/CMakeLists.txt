@@ -1,15 +1,15 @@
+if(NOT QE6502_BUILD_PYTHON)
+    message(STATUS "QE6502_BUILD_PYTHON is OFF; skipping qe6502 Python Klaus2m5 harness")
+    return()
+endif()
+
 if(QE6502_REQUIRE_PYTHON)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
 else()
     find_package(Python3 COMPONENTS Interpreter)
 endif()
 
-if(NOT QE6502_BUILD_PYTHON)
-    message(STATUS "QE6502_BUILD_PYTHON is OFF; skipping qe6502 Python Klaus2m5 harness")
-    return()
-endif()
-
-if(NOT Python3_FOUND)
+if(NOT Python3_Interpreter_FOUND)
     message(STATUS "Python3 interpreter not found; skipping qe6502 Python Klaus2m5 harness")
     return()
 endif()
