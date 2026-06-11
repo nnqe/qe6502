@@ -92,6 +92,12 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Verify Rust toolchain for native Rust binding
+        if: contains(matrix.preset, 'native')
+        run: |
+          rustc --version
+          cargo --version
+
       - name: Setup Python 3.13 for Windows ARM64 native Python binding
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
         uses: actions/setup-python@v6
@@ -143,11 +149,11 @@ jobs:
 
       - name: Configure native on Windows ARM64
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DQE6502_REQUIRE_RUST=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
 
       - name: Configure native
         if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DQE6502_REQUIRE_RUST=ON
 
       - name: Configure WASM
         if: contains(matrix.preset, 'wasm') && runner.os != 'macOS'

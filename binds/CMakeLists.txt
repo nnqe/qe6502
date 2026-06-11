@@ -16,4 +16,8 @@ else()
     if(QE6502_BUILD_JAVA)
         add_subdirectory(java)
     endif()
+
+    if(QE6502_BUILD_RUST)
+        add_subdirectory(rust)
+    endif()
 endif()

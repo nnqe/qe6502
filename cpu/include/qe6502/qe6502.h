@@ -155,6 +155,9 @@ qe6502_tick_t qe6502_restart(qe6502_t *cpu);
 /* Enter execution at address and return the first bus request. */
 qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address);
 
+/* Execute one CPU bus phase through an exported native C function. */
+qe6502_tick_t qe6502_tick_exported(qe6502_t *cpu, uint8_t bus);
+
 void qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi);
 void qe6502_irq_assert(qe6502_t *cpu, uint8_t assert_irq);
 

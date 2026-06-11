@@ -2943,6 +2943,11 @@ qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address)
     return qe6502_tick(cpu, 0u);
 }
 
+qe6502_tick_t qe6502_tick_exported(qe6502_t *cpu, uint8_t bus)
+{
+    return qe6502_tick(cpu, bus);
+}
+
 void qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi)
 {
     cpu->interrupts = flag_off(cpu->interrupts, qe6502_interrupt_sampling);
