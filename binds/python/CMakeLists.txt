@@ -1,4 +1,8 @@
-find_package(Python3 COMPONENTS Interpreter Development.Module)
+if(QE6502_REQUIRE_PYTHON)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+else()
+    find_package(Python3 COMPONENTS Interpreter Development.Module)
+endif()
 
 if(NOT Python3_FOUND)
     message(STATUS "Python3 development module not found; skipping qe6502 Python binding")

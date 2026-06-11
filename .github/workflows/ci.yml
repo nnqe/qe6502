@@ -83,11 +83,17 @@ jobs:
           dotnet-version: 8.0.x
           architecture: arm64
 
-      - name: Setup Python for Windows ARM64 native Python binding
+      - name: Setup Python 3.13 for native Python binding
+        if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Setup Python 3.13 for Windows ARM64 native Python binding
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.13'
           architecture: arm64
 
       - name: Setup MSVC for Windows ARM64 native build
@@ -134,11 +140,11 @@ jobs:
 
       - name: Configure native on Windows ARM64
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
 
       - name: Configure native
         if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON
+        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON
 
       - name: Configure WASM
         if: contains(matrix.preset, 'wasm') && runner.os != 'macOS'
@@ -155,6 +161,22 @@ jobs:
       - name: Build verbose
         if: inputs.verbose_build == 'true'
         run: cmake --build --preset ${{ matrix.preset }} --verbose
+
+      - name: Diagnose Windows ARM64 native artifacts
+        if: always() && matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
+        shell: pwsh
+        run: |
+          dotnet --info
+          python --version
+          where.exe dotnet
+          where.exe python
+          Get-ChildItem -Recurse build/${{ matrix.preset }} -Include "libqe6502.dll", "Qe6502.dll", "*.pyd" |
+            Select-Object FullName, Length
+          $nativeDll = "build/${{ matrix.preset }}/cpu/libqe6502.dll"
+          if (Test-Path $nativeDll) {
+            dumpbin /headers $nativeDll | Select-String "machine"
+          }
+
 
       - name: Upload build folder
         if: inputs.upload_build_folder == 'true'

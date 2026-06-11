@@ -207,6 +207,7 @@ Available installed targets depend on the build options:
 | `QE6502_BUILD_JAVA` | `ON` | Build the Java binding when JDK 25+ development tools are available. |
 | `QE6502_REQUIRE_JAVA` | `OFF` | Fail configure if `QE6502_BUILD_JAVA=ON` but JDK 25+ is unavailable. Intended for CI. |
 | `QE6502_BUILD_PYTHON` | `ON` | Build the CPython binding when Python development headers are available. |
+| `QE6502_REQUIRE_PYTHON` | `OFF` | Fail configure if `QE6502_BUILD_PYTHON=ON` but Python development headers are unavailable. Intended for CI. |
 | `QE6502_BUILD_TESTS` | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build tests and harnesses. Turn this off for dependency/package builds. |
 | `QE6502_BUILD_WASM` | `OFF` | Enable the WebAssembly build mode. |
 | `QE6502_ENABLE_WERROR` | `OFF` | Treat warnings as errors. Intended for maintainer/CI builds, not package consumers. |

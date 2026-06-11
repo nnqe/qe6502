@@ -25,6 +25,8 @@ endif()
 add_custom_target(qe6502_csharp ALL
     COMMAND ${DOTNET_EXECUTABLE} build ${QE6502_CSHARP_PROJECT}
         --configuration ${QE6502_CSHARP_CONFIGURATION}
+        -p:Platform=AnyCPU
+        -p:PlatformTarget=AnyCPU
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CSHARP_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

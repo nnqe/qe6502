@@ -229,6 +229,10 @@ final class NativeLibrary implements AutoCloseable {
     }
 
     private static String defaultLibraryName() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        if (osName.contains("win")) {
+            return "libqe6502";
+        }
         return "qe6502";
     }
 

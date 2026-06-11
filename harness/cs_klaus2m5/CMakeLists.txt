@@ -46,6 +46,8 @@ set(QE6502_CS_KLAUS2M5_EXTENDED_ROM ${CMAKE_SOURCE_DIR}/harness/klaus2m5/65C02_e
 add_custom_target(qe6502_cs_klaus2m5 ALL
     COMMAND ${DOTNET_EXECUTABLE} build ${QE6502_CS_KLAUS2M5_PROJECT}
         --configuration ${QE6502_CS_KLAUS2M5_CONFIGURATION}
+        -p:Platform=AnyCPU
+        -p:PlatformTarget=AnyCPU
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CS_KLAUS2M5_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

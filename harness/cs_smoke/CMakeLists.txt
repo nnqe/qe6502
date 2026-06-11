@@ -40,6 +40,8 @@ endif()
 add_custom_target(qe6502_cs_smoke ALL
     COMMAND ${DOTNET_EXECUTABLE} build ${QE6502_CS_SMOKE_PROJECT}
         --configuration ${QE6502_CS_SMOKE_CONFIGURATION}
+        -p:Platform=AnyCPU
+        -p:PlatformTarget=AnyCPU
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CS_SMOKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
