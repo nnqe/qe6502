@@ -131,7 +131,7 @@ import qe6502
 cpu = qe6502.CPU(qe6502.MODEL_NMOS)
 ```
 
-Use the **Rust binding** when using `qe6502` from Rust. The Cargo crate vendors the native C core and statically builds it as part of the Rust package. The Rust CPU object is stateful and `tick()` returns a 32-bit `Tick` value matching the native bus tick layout.
+Use the **Rust binding** when using `qe6502` from Rust. The Cargo-managed crate stages the native C core during the Cargo build and statically builds it into the Rust package. In the repository build, the staged source is copied from the canonical `cpu/` tree; packaged crates may carry a generated `native/` staging source tree. The Rust CPU object is stateful and `tick()` returns a 32-bit `Tick` value matching the native bus tick layout.
 
 ```rust
 use qe6502::{Cpu, Model};
@@ -215,7 +215,7 @@ The Rust binding is Cargo-managed. CMake can build and test it from this source 
 | `QE6502_BUILD_SHARED` | `ON` | Build the stable shared ABI library. |
 | `QE6502_BUILD_CPP` | `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`. |
 | `QE6502_BUILD_CSHARP` | `ON` | Build the C# binding when the .NET SDK is available. |
-| `QE6502_BUILD_RUST` | `ON` | Build the Cargo-managed Rust binding. The Rust crate vendors the native C core and statically builds it through Cargo. |
+| `QE6502_BUILD_RUST` | `ON` | Build the Cargo-managed Rust binding. The Rust build stages the canonical C core from `cpu/` and statically builds it through Cargo. |
 | `QE6502_REQUIRE_RUST` | `OFF` | Fail configure if `QE6502_BUILD_RUST=ON` but Cargo is unavailable. Intended for CI. |
 | `QE6502_BUILD_JAVA` | `ON` | Build the Java binding when JDK 25+ development tools are available. |
 | `QE6502_REQUIRE_JAVA` | `OFF` | Fail configure if `QE6502_BUILD_JAVA=ON` but JDK 25+ is unavailable. Intended for CI. |
@@ -340,7 +340,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-The Rust binding vendors the native C core and statically links the Cargo-built native object into the Rust crate. `Cpu` keeps the active CPU state and the last bus tick internally, while hot loops can keep the returned `Tick` in a local variable and test `tick.flags` directly.
+The Rust binding stages the native C core during the Cargo build and statically links the Cargo-built native object into the Rust crate. Repository builds stage from the canonical `cpu/` source tree rather than a committed copy under `binds/rust/`. `Cpu` keeps the active CPU state and the last bus tick internally, while hot loops can keep the returned `Tick` in a local variable and test `tick.flags` directly.
 
 ## Minimal JavaScript / WebAssembly example
 
