@@ -131,7 +131,7 @@ import qe6502
 cpu = qe6502.CPU(qe6502.MODEL_NMOS)
 ```
 
-Use the **Rust binding** when using `qe6502` from Rust. The Cargo-managed crate stages the native C core during the Cargo build and statically builds it into the Rust package. In the repository build, the staged source is copied from the canonical `cpu/` tree; packaged crates may carry a generated `native/` staging source tree. The Rust CPU object is stateful: `tick()` advances the CPU and leaves the current bus pins available through `Cpu` methods such as `is_write()`, `bus_address()`, and `bus_data()`.
+Use the **Rust binding** when using `qe6502` from Rust. The Cargo-managed crate builds the canonical native C core from the repository `cpu/` tree and links it statically; it does not require a separately built CMake native library. The Rust CPU object is stateful: `tick()` advances the CPU and leaves the current bus pins available through `Cpu` methods such as `is_write()`, `bus_address()`, and `bus_data()`.
 
 ```rust
 use qe6502::{Cpu, Model};
@@ -369,18 +369,6 @@ try {
 
 The JavaScript wrapper exposes the same bus-driven execution model as the C and C++ APIs. In browsers, use `loadQe6502Browser()` instead of `loadQe6502Node()`. JavaScript CPU objects own a WASM-side context, so call `dispose()` when the CPU is no longer needed.
 
-Interrupt input pins are controlled explicitly through assert/deassert calls:
-
-```js
-cpu.irqAssert(true);  // assert the IRQ line
-cpu.irqAssert(false); // deassert the IRQ line
-
-cpu.nmiAssert(true);  // assert the NMI line
-cpu.nmiAssert(false); // deassert the NMI line
-```
-
-`nmiAssert()` is a pin-level API, not a one-shot pulse helper. Keep the line asserted for as long as your emulated device drives it active, then deassert it.
-
 ## Minimal C# example
 
 ```csharp
@@ -455,6 +443,20 @@ for _ in range(1_000_000):
 
 The Python binding uses the stable ABI. The hot path is `tick(data) -> int`; decode the returned packed bus state with the exported `TICK_*` constants.
 
+## Interrupt input pins
+
+Interrupt input pins are controlled explicitly through assert/deassert calls:
+
+```js
+cpu.irqAssert(true);  // assert the IRQ line
+cpu.irqAssert(false); // deassert the IRQ line
+
+cpu.nmiAssert(true);  // assert the NMI line
+cpu.nmiAssert(false); // deassert the NMI line
+```
+
+`nmiAssert()` is a pin-level API, not a one-shot pulse helper. Keep the line asserted for as long as your emulated device drives it active, then deassert it.
+
 ## Save/load snapshots
 
 `qe6502` supports a stable fixed-size 64-byte save/load snapshot format. A snapshot captures the complete CPU state, including the current internal bus-cycle phase, so restored execution resumes deterministically rather than only restoring the visible registers.
@@ -516,21 +518,6 @@ For Rust harnesses, when Cargo and rustc are available:
 cmake --build --preset release_native --target qe6502_rust_smoke_run
 cmake --build --preset release_native --target qe6502_rust_klaus2m5_run
 ```
-
-For Rust packaging checks, when Cargo and Python 3 are available, CMake can generate
-a self-contained crate staging tree and run package/publish dry-run validation without
-publishing anything:
-
-```sh
-cmake --build --preset release_native --target qe6502_rust_package_stage
-cmake --build --preset release_native --target qe6502_rust_package_check
-cmake --build --preset release_native --target qe6502_rust_publish_dry_run
-```
-
-The generated crate is staged under the CMake build directory at
-`rust-package/qe6502/`. It contains a generated `native/` tree copied from the
-canonical `cpu/` sources so the package is self-contained, while the repository
-source tree still keeps only one committed native source of truth.
 
 For WebAssembly/JavaScript harnesses:
 
