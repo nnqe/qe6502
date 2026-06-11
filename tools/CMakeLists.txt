@@ -66,21 +66,10 @@ target_link_libraries(tools6502
 qe6502_configure_warnings(tools6502)
 target_compile_features(tools6502 PUBLIC cxx_std_17 PRIVATE cxx_std_20)
 
-if(QE6502_INSTALL)
-    install(TARGETS tools6502
-        EXPORT qe6502ToolsTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-
-    foreach(tools6502_include_dir IN LISTS tools6502_include_dirs)
-        install(DIRECTORY ${tools6502_include_dir}/
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        )
-    endforeach()
-endif()
+# The tools subtree is intentionally build-only. Official qe6502 runtime installs
+# should contain only the C/C++ library artifacts and package metadata; developer
+# tools and their support headers stay out of the install tree unless a separate
+# tools package is introduced later.
 
 if(QE6502_BUILD_TESTS)
     add_executable(asm6502_smoke
