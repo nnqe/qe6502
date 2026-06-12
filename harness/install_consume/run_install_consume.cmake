@@ -146,12 +146,25 @@ foreach(QE6502_CONSUMER_TARGET IN LISTS QE6502_CONSUMER_EXES)
         )
     endif()
 
-    message(STATUS "Running installed-package C++ consumer: ${QE6502_CONSUMER_TARGET}")
-    qe6502_run_step("run installed-package C++ consumer ${QE6502_CONSUMER_TARGET}"
-        "${CMAKE_COMMAND}" -E env
-            "PATH=${QE6502_RUNTIME_PATH}${QE6502_PATH_SEP}$ENV{PATH}"
-            "LD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{LD_LIBRARY_PATH}"
-            "DYLD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{DYLD_LIBRARY_PATH}"
+    if(WIN32 AND IS_DIRECTORY "${QE6502_RUNTIME_PATH}")
+        get_filename_component(QE6502_CONSUMER_EXE_DIR "${QE6502_CONSUMER_EXE}" DIRECTORY)
+        file(GLOB QE6502_RUNTIME_DLLS "${QE6502_RUNTIME_PATH}/*.dll")
+        if(QE6502_RUNTIME_DLLS)
+            file(COPY ${QE6502_RUNTIME_DLLS} DESTINATION "${QE6502_CONSUMER_EXE_DIR}")
+        endif()
+    endif()
+
+    message(STATUS "Running installed-package C++ consumer: ${QE6502_CONSUMER_EXE}")
+    if(WIN32)
+        qe6502_run_step("run installed-package C++ consumer ${QE6502_CONSUMER_TARGET}"
             "${QE6502_CONSUMER_EXE}"
-    )
+        )
+    else()
+        qe6502_run_step("run installed-package C++ consumer ${QE6502_CONSUMER_TARGET}"
+            "${CMAKE_COMMAND}" -E env
+                "LD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{LD_LIBRARY_PATH}"
+                "DYLD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{DYLD_LIBRARY_PATH}"
+                "${QE6502_CONSUMER_EXE}"
+        )
+    endif()
 endforeach()
