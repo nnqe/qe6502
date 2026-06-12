@@ -2,8 +2,18 @@
 
 #include <cstdint>
 
-#ifndef QE6502_CPP_SHARED
-#error "qe6502::cpp from the dynamic installed package must define QE6502_CPP_SHARED"
+#ifndef QE6502_EXPECT_CPP_SHARED
+#error "QE6502_EXPECT_CPP_SHARED must be defined by the install/consume harness"
+#endif
+
+#if QE6502_EXPECT_CPP_SHARED
+#  ifndef QE6502_CPP_SHARED
+#    error "This installed C++ target must define QE6502_CPP_SHARED"
+#  endif
+#else
+#  ifdef QE6502_CPP_SHARED
+#    error "This installed C++ target must not define QE6502_CPP_SHARED"
+#  endif
 #endif
 
 int main()

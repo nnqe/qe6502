@@ -19,6 +19,7 @@ foreach(required_var IN ITEMS
     QE6502_SOURCE_DIR
     QE6502_WORK_DIR
     QE6502_CONSUMER_SOURCE_DIR
+    QE6502_INSTALL_CONSUME_CASE
     QE6502_GENERATOR
 )
     if(NOT DEFINED ${required_var} OR "${${required_var}}" STREQUAL "")
@@ -28,6 +29,19 @@ endforeach()
 
 if(NOT DEFINED QE6502_TEST_CONFIG OR "${QE6502_TEST_CONFIG}" STREQUAL "")
     set(QE6502_TEST_CONFIG Debug)
+endif()
+
+if(QE6502_INSTALL_CONSUME_CASE STREQUAL "dynamic")
+    set(QE6502_CASE_BUILD_STATIC OFF)
+    set(QE6502_CASE_BUILD_SHARED ON)
+elseif(QE6502_INSTALL_CONSUME_CASE STREQUAL "static")
+    set(QE6502_CASE_BUILD_STATIC ON)
+    set(QE6502_CASE_BUILD_SHARED OFF)
+elseif(QE6502_INSTALL_CONSUME_CASE STREQUAL "both")
+    set(QE6502_CASE_BUILD_STATIC ON)
+    set(QE6502_CASE_BUILD_SHARED ON)
+else()
+    message(FATAL_ERROR "Unknown QE6502_INSTALL_CONSUME_CASE: ${QE6502_INSTALL_CONSUME_CASE}")
 endif()
 
 set(QE6502_PACKAGE_BUILD_DIR "${QE6502_WORK_DIR}/qe6502-build")
@@ -49,8 +63,8 @@ if(DEFINED QE6502_GENERATOR_TOOLSET AND NOT "${QE6502_GENERATOR_TOOLSET}" STREQU
     list(APPEND QE6502_GENERATOR_ARGS -T "${QE6502_GENERATOR_TOOLSET}")
 endif()
 
-message(STATUS "Configuring qe6502 dynamic-only package build")
-qe6502_run_step("configure qe6502 dynamic package"
+message(STATUS "Configuring qe6502 ${QE6502_INSTALL_CONSUME_CASE} package build")
+qe6502_run_step("configure qe6502 ${QE6502_INSTALL_CONSUME_CASE} package"
     "${CMAKE_COMMAND}"
     -S "${QE6502_SOURCE_DIR}"
     -B "${QE6502_PACKAGE_BUILD_DIR}"
@@ -58,8 +72,8 @@ qe6502_run_step("configure qe6502 dynamic package"
     -DCMAKE_BUILD_TYPE=${QE6502_TEST_CONFIG}
     -DCMAKE_INSTALL_PREFIX=${QE6502_INSTALL_PREFIX}
     -DBUILD_TESTING=OFF
-    -DQE6502_BUILD_STATIC=OFF
-    -DQE6502_BUILD_SHARED=ON
+    -DQE6502_BUILD_STATIC=${QE6502_CASE_BUILD_STATIC}
+    -DQE6502_BUILD_SHARED=${QE6502_CASE_BUILD_SHARED}
     -DQE6502_BUILD_CPP=ON
     -DQE6502_BUILD_TOOLS=OFF
     -DQE6502_BUILD_TESTS=OFF
@@ -70,13 +84,13 @@ qe6502_run_step("configure qe6502 dynamic package"
     -DQE6502_INSTALL=ON
 )
 
-message(STATUS "Building qe6502 dynamic-only package build")
-qe6502_run_step("build qe6502 dynamic package"
+message(STATUS "Building qe6502 ${QE6502_INSTALL_CONSUME_CASE} package build")
+qe6502_run_step("build qe6502 ${QE6502_INSTALL_CONSUME_CASE} package"
     "${CMAKE_COMMAND}" --build "${QE6502_PACKAGE_BUILD_DIR}" --config "${QE6502_TEST_CONFIG}"
 )
 
-message(STATUS "Installing qe6502 dynamic-only package build")
-qe6502_run_step("install qe6502 dynamic package"
+message(STATUS "Installing qe6502 ${QE6502_INSTALL_CONSUME_CASE} package build")
+qe6502_run_step("install qe6502 ${QE6502_INSTALL_CONSUME_CASE} package"
     "${CMAKE_COMMAND}" --install "${QE6502_PACKAGE_BUILD_DIR}" --config "${QE6502_TEST_CONFIG}"
 )
 
@@ -89,6 +103,7 @@ qe6502_run_step("configure installed-package C++ consumer"
     -DCMAKE_BUILD_TYPE=${QE6502_TEST_CONFIG}
     -DCMAKE_PREFIX_PATH=${QE6502_INSTALL_PREFIX}
     -DQE6502_INSTALL_PREFIX=${QE6502_INSTALL_PREFIX}
+    -DQE6502_INSTALL_CONSUME_CASE=${QE6502_INSTALL_CONSUME_CASE}
 )
 
 message(STATUS "Building installed-package C++ consumer")
@@ -96,15 +111,9 @@ qe6502_run_step("build installed-package C++ consumer"
     "${CMAKE_COMMAND}" --build "${QE6502_CONSUMER_BUILD_DIR}" --config "${QE6502_TEST_CONFIG}"
 )
 
-set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/qe6502_install_consume_cpp")
-if(WIN32)
-    set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/qe6502_install_consume_cpp.exe")
-elseif(EXISTS "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/qe6502_install_consume_cpp")
-    set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/qe6502_install_consume_cpp")
-endif()
-
-if(NOT EXISTS "${QE6502_CONSUMER_EXE}")
-    message(FATAL_ERROR "Consumer executable was not produced: ${QE6502_CONSUMER_EXE}")
+set(QE6502_CONSUMER_EXES qe6502_install_consume_cpp)
+if(QE6502_INSTALL_CONSUME_CASE STREQUAL "both")
+    list(APPEND QE6502_CONSUMER_EXES qe6502_install_consume_cpp_shared)
 endif()
 
 set(QE6502_RUNTIME_PATH "${QE6502_INSTALL_PREFIX}/bin")
@@ -114,11 +123,24 @@ else()
     set(QE6502_PATH_SEP ":")
 endif()
 
-message(STATUS "Running installed-package C++ consumer")
-qe6502_run_step("run installed-package C++ consumer"
-    "${CMAKE_COMMAND}" -E env
-        "PATH=${QE6502_RUNTIME_PATH}${QE6502_PATH_SEP}$ENV{PATH}"
-        "LD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{LD_LIBRARY_PATH}"
-        "DYLD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{DYLD_LIBRARY_PATH}"
-        "${QE6502_CONSUMER_EXE}"
-)
+foreach(QE6502_CONSUMER_TARGET IN LISTS QE6502_CONSUMER_EXES)
+    set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_CONSUMER_TARGET}")
+    if(WIN32)
+        set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/${QE6502_CONSUMER_TARGET}.exe")
+    elseif(EXISTS "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/${QE6502_CONSUMER_TARGET}")
+        set(QE6502_CONSUMER_EXE "${QE6502_CONSUMER_BUILD_DIR}/${QE6502_TEST_CONFIG}/${QE6502_CONSUMER_TARGET}")
+    endif()
+
+    if(NOT EXISTS "${QE6502_CONSUMER_EXE}")
+        message(FATAL_ERROR "Consumer executable was not produced: ${QE6502_CONSUMER_EXE}")
+    endif()
+
+    message(STATUS "Running installed-package C++ consumer: ${QE6502_CONSUMER_TARGET}")
+    qe6502_run_step("run installed-package C++ consumer ${QE6502_CONSUMER_TARGET}"
+        "${CMAKE_COMMAND}" -E env
+            "PATH=${QE6502_RUNTIME_PATH}${QE6502_PATH_SEP}$ENV{PATH}"
+            "LD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{LD_LIBRARY_PATH}"
+            "DYLD_LIBRARY_PATH=${QE6502_INSTALL_PREFIX}/lib${QE6502_PATH_SEP}$ENV{DYLD_LIBRARY_PATH}"
+            "${QE6502_CONSUMER_EXE}"
+    )
+endforeach()
