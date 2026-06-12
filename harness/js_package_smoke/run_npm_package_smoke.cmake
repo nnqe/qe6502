@@ -38,7 +38,7 @@ execute_process(
 )
 
 if(NOT pack_result EQUAL 0)
-    message(FATAL_ERROR "npm pack failed\n${pack_output}\n${pack_error}")
+    message(FATAL_ERROR "npm pack failed\nCommand: ${QE6502_NPM_EXECUTABLE} pack --pack-destination ${QE6502_PACK_DIR}\nWorking directory: ${QE6502_PACKAGE_DIR}\nResult: ${pack_result}\nstdout:\n${pack_output}\nstderr:\n${pack_error}")
 endif()
 
 if(NOT EXISTS "${QE6502_TARBALL}")
@@ -96,7 +96,7 @@ execute_process(
 )
 
 if(NOT install_result EQUAL 0)
-    message(FATAL_ERROR "npm install from tarball failed\n${install_output}\n${install_error}")
+    message(FATAL_ERROR "npm install from tarball failed\nCommand: ${QE6502_NPM_EXECUTABLE} install --no-audit --no-fund ${QE6502_TARBALL}\nWorking directory: ${QE6502_CONSUMER_DIR}\nResult: ${install_result}\nstdout:\n${install_output}\nstderr:\n${install_error}")
 endif()
 
 execute_process(
@@ -108,7 +108,7 @@ execute_process(
 )
 
 if(NOT smoke_result EQUAL 0)
-    message(FATAL_ERROR "qe6502 npm package consumer smoke failed\n${smoke_output}\n${smoke_error}")
+    message(FATAL_ERROR "qe6502 npm package consumer smoke failed\nCommand: ${QE6502_NODE_EXECUTABLE} package_consumer_smoke.mjs\nWorking directory: ${QE6502_CONSUMER_DIR}\nResult: ${smoke_result}\nstdout:\n${smoke_output}\nstderr:\n${smoke_error}")
 endif()
 
 message(STATUS "${smoke_output}")

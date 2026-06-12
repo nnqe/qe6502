@@ -1,5 +1,5 @@
 find_program(QE6502_NODE_EXECUTABLE node)
-find_program(QE6502_NPM_EXECUTABLE npm)
+find_program(QE6502_NPM_EXECUTABLE NAMES npm.cmd npm)
 
 if(NOT QE6502_NODE_EXECUTABLE)
     message(STATUS "node not found; skipping qe6502 JS npm package smoke")
