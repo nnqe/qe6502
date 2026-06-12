@@ -170,7 +170,9 @@ export async function loadQe6502Browser(source) {
   return instantiateQe6502(bytesFromBufferSource(source));
 }
 
-export async function loadQe6502Node(source) {
+export async function loadQe6502Node(
+  source = new URL("./qe6502_js.wasm", import.meta.url),
+) {
   if (typeof source === "string" || isUrl(source)) {
     const { readFile } = await import("node:fs/promises");
     return instantiateQe6502(await readFile(source));
