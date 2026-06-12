@@ -7,6 +7,26 @@
 #include <string>
 #include <vector>
 
+#if defined(QE6502_CPP_SHARED)
+#    if defined(_WIN32)
+#        if defined(QE6502_CPP_EMIT_IMPL)
+#            define QE6502_CPP_API __declspec(dllexport)
+#        else
+#            define QE6502_CPP_API __declspec(dllimport)
+#        endif
+#    elif defined(__GNUC__) || defined(__clang__)
+#        if defined(QE6502_CPP_EMIT_IMPL)
+#            define QE6502_CPP_API __attribute__((visibility("default")))
+#        else
+#            define QE6502_CPP_API
+#        endif
+#    else
+#        define QE6502_CPP_API
+#    endif
+#else
+#    define QE6502_CPP_API
+#endif
+
 namespace qe6502 {
 
 enum class model : std::uint8_t {
@@ -28,7 +48,7 @@ inline constexpr std::uint8_t flag_n  = qe6502_flag_N;
 
 using cpu_snapshot = std::vector<std::uint8_t>;
 
-class cpu {
+class QE6502_CPP_API cpu {
 public:
     explicit cpu(model cpu_model = model::nmos) noexcept;
     explicit cpu(const cpu_snapshot& snapshot);
@@ -87,42 +107,65 @@ private:
     qe6502_tick_t tick_{};
 };
 
-inline const qe6502_tick_t& cpu::tick(std::uint8_t input) noexcept
+#if defined(QE6502_CPP_SHARED) && !defined(QE6502_CPP_EMIT_IMPL)
+
+/*
+ * Shared C++ consumer mode.
+ *
+ * Do not expose header implementations from this header. The function
+ * definitions are provided by the qe6502_cpp shared library.
+ */
+
+#else
+
+#    if defined(QE6502_CPP_SHARED)
+#        define QE6502_CPP_IMPL
+#    else
+#        define QE6502_CPP_IMPL inline
+#    endif
+
+QE6502_CPP_IMPL const qe6502_tick_t& cpu::tick(std::uint8_t input) noexcept
 {
     tick_ = qe6502_tick(&cpu_, input);
     return tick_;
 }
 
-inline std::uint16_t cpu::bus_address() const noexcept
+QE6502_CPP_IMPL std::uint16_t cpu::bus_address() const noexcept
 {
     return tick_.address;
 }
 
-inline std::uint8_t cpu::bus_data() const noexcept
+QE6502_CPP_IMPL std::uint8_t cpu::bus_data() const noexcept
 {
     return tick_.bus;
 }
 
-inline std::uint8_t cpu::bus_status() const noexcept
+QE6502_CPP_IMPL std::uint8_t cpu::bus_status() const noexcept
 {
     return tick_.status;
 }
 
-inline bool cpu::is_write() const noexcept
+QE6502_CPP_IMPL bool cpu::is_write() const noexcept
 {
     return (tick_.status & qe6502_status_writing) != 0u;
 }
 
-inline bool cpu::is_opcode_fetch() const noexcept
+QE6502_CPP_IMPL bool cpu::is_opcode_fetch() const noexcept
 {
     return (tick_.status & qe6502_status_opcode_fetch) != 0u;
 }
 
-inline bool cpu::is_jammed() const noexcept
+QE6502_CPP_IMPL bool cpu::is_jammed() const noexcept
 {
     return (tick_.status & qe6502_status_cpu_jammed) != 0u;
 }
 
+#    undef QE6502_CPP_IMPL
+
+#endif
+
 } // namespace qe6502
+
+#undef QE6502_CPP_API
 
 #endif // QE6502_CPP_CPU_HPP

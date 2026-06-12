@@ -1,4 +1,12 @@
+#if defined(QE6502_CPP_SHARED)
+#    define QE6502_CPP_EMIT_IMPL 1
+#endif
+
 #include <qe6502/cpu.hpp>
+
+#if defined(QE6502_CPP_EMIT_IMPL)
+#    undef QE6502_CPP_EMIT_IMPL
+#endif
 
 #include <cstdio>
 #include <stdexcept>
