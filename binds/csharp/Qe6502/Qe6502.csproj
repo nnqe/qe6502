@@ -5,6 +5,7 @@
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PackageId>Qe6502</PackageId>
+    <Title>Qe6502</Title>
     <Version Condition="'$(Version)' == ''">0.0.0</Version>
     <Authors>Nikolay Nedelchev</Authors>
     <Company>Nikolay Nedelchev</Company>
@@ -13,10 +14,10 @@
     <PackageProjectUrl>https://github.com/nikolaynedelchev/qe6502</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nikolaynedelchev/qe6502</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>6502;emulator;cpu;mos6502;retrocomputing</PackageTags>
+    <PackageTags>6502;65c02;emulator;cpu;mos6502;retrocomputing</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Copyright>Copyright (c) 2025 Nikolay Nedelchev</Copyright>
+    <Copyright>Copyright (c) 2026 Nikolay Nedelchev</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
