@@ -26,6 +26,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Qe6502NativeRuntimeRoot)' != ''">
-    <None Include="$(Qe6502NativeRuntimeRoot)/runtimes/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)" Visible="false" />
+    <None Include="$(Qe6502NativeRuntimeRoot)/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)" Visible="false" />
   </ItemGroup>
 </Project>

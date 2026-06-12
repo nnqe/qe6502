@@ -312,8 +312,54 @@ jobs:
             -p:Platform=AnyCPU \
             -p:PlatformTarget=AnyCPU \
             -p:PackageOutputPath="$PWD/build/csharp-nuget" \
-            -p:Qe6502NativeRuntimeRoot="$PWD/build/csharp-multirid-runtime"
+            -p:Qe6502NativeRuntimeRoot="$PWD/build/csharp-multirid-runtime/runtimes"
           unzip -l "build/csharp-nuget/Qe6502.${package_version}.nupkg"
+
+      - name: Verify C# multi-RID NuGet package layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          package_version = Path("binds/csharp/Qe6502/Qe6502.csproj").read_text()
+          import re
+          match = re.search(r"<Version>([^<]+)</Version>", package_version)
+          if not match:
+              raise SystemExit("Could not read Qe6502 package version")
+          nupkg = Path("build/csharp-nuget") / f"Qe6502.{match.group(1)}.nupkg"
+          expected = {
+              "runtimes/linux-x64/native/libqe6502.so",
+              "runtimes/linux-arm64/native/libqe6502.so",
+              "runtimes/osx-x64/native/libqe6502.dylib",
+              "runtimes/osx-arm64/native/libqe6502.dylib",
+              "runtimes/win-x64/native/libqe6502.dll",
+              "runtimes/win-arm64/native/libqe6502.dll",
+          }
+          with zipfile.ZipFile(nupkg) as zf:
+              names = set(zf.namelist())
+
+          missing = sorted(expected - names)
+          nested = sorted(
+              name for name in names
+              if name.startswith("runtimes/")
+              and "/native/" in name
+              and name.count("/native/") > 1
+          )
+          if missing or nested:
+              if missing:
+                  print("Missing expected NuGet runtime assets:", file=sys.stderr)
+                  for name in missing:
+                      print(f"  {name}", file=sys.stderr)
+              if nested:
+                  print("Unexpected nested NuGet runtime asset paths:", file=sys.stderr)
+                  for name in nested:
+                      print(f"  {name}", file=sys.stderr)
+              raise SystemExit(1)
+          print("C# multi-RID NuGet package layout verified")
+          PY
 
       - name: Smoke C# multi-RID NuGet package on Linux
         shell: bash
