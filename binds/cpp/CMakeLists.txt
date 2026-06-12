@@ -84,6 +84,12 @@ if(TARGET qe6502_core_noabi_objects AND QE6502_BUILD_SHARED)
         )
     endif()
 
+    if(MINGW)
+        target_link_options(qe6502_cpp_shared PRIVATE
+            LINKER:--exclude-all-symbols
+        )
+    endif()
+
     set_target_properties(qe6502_cpp_shared PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}

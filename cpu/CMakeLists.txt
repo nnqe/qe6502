@@ -144,6 +144,12 @@ if(QE6502_BUILD_SHARED)
         )
     endif()
 
+    if(MINGW)
+        target_link_options(qe6502_shared PRIVATE
+            LINKER:--exclude-all-symbols
+        )
+    endif()
+
     if(NOT QE6502_BUILD_WASM)
         set_target_properties(qe6502_shared PROPERTIES
             VERSION ${PROJECT_VERSION}
