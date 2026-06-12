@@ -63,6 +63,45 @@ function(qe6502_forbid_export library symbols_text symbol_name)
 endfunction()
 
 function(qe6502_read_exports library out_var)
+    get_filename_component(library_ext "${library}" EXT)
+
+    if(library_ext STREQUAL ".dll")
+        # MinGW nm reports global COFF symbols from a DLL, not just the PE
+        # export table. Use objdump private headers for loader-visible exports.
+        find_program(QE6502_PE_EXPORT_TOOL NAMES llvm-objdump objdump)
+        if(NOT QE6502_PE_EXPORT_TOOL)
+            message(STATUS
+                "Skipping symbol visibility checks for ${library}: "
+                "llvm-objdump/objdump not found"
+            )
+            set(${out_var} "" PARENT_SCOPE)
+            set(QE6502_SYMBOL_CHECK_AVAILABLE OFF PARENT_SCOPE)
+            return()
+        endif()
+
+        get_filename_component(symbol_tool_name "${QE6502_PE_EXPORT_TOOL}" NAME)
+        execute_process(
+            COMMAND "${QE6502_PE_EXPORT_TOOL}" -p "${library}"
+            RESULT_VARIABLE symbol_result
+            OUTPUT_VARIABLE symbol_output
+            ERROR_VARIABLE symbol_error
+        )
+
+        if(NOT symbol_result EQUAL 0)
+            message(STATUS
+                "Skipping symbol visibility checks for ${library}: "
+                "${symbol_tool_name} failed with exit code ${symbol_result}: ${symbol_error}"
+            )
+            set(${out_var} "" PARENT_SCOPE)
+            set(QE6502_SYMBOL_CHECK_AVAILABLE OFF PARENT_SCOPE)
+            return()
+        endif()
+
+        set(${out_var} "${symbol_output}" PARENT_SCOPE)
+        set(QE6502_SYMBOL_CHECK_AVAILABLE ON PARENT_SCOPE)
+        return()
+    endif()
+
     find_program(QE6502_SYMBOL_TOOL NAMES llvm-nm nm)
     if(NOT QE6502_SYMBOL_TOOL)
         message(STATUS "Skipping symbol visibility checks for ${library}: llvm-nm/nm not found")
@@ -72,13 +111,10 @@ function(qe6502_read_exports library out_var)
     endif()
 
     get_filename_component(symbol_tool_name "${QE6502_SYMBOL_TOOL}" NAME)
-    get_filename_component(library_ext "${library}" EXT)
 
     set(symbol_tool_args "${QE6502_SYMBOL_TOOL}")
     if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
         list(APPEND symbol_tool_args -gU "${library}")
-    elseif(library_ext STREQUAL ".dll")
-        list(APPEND symbol_tool_args -g --defined-only "${library}")
     else()
         list(APPEND symbol_tool_args -D -g --defined-only "${library}")
     endif()
