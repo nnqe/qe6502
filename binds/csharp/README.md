@@ -19,6 +19,25 @@ The C# project uses `DllImport("libqe6502")`, so the native shared library must 
 
 The CMake target places the managed output and copied native shared library under the CMake build tree, not in the source tree.
 
+
+## NuGet package smoke
+
+The CMake build can also create a current-platform NuGet package with the native `qe6502` shared library bundled as a NuGet runtime asset:
+
+```sh
+cmake --build build --target qe6502_csharp_pack
+```
+
+The package contains the managed assembly plus one native runtime asset for the platform that built it, for example `runtimes/linux-x64/native/libqe6502.so`, `runtimes/osx-arm64/native/libqe6502.dylib`, or `runtimes/win-x64/native/libqe6502.dll`.
+
+To validate the package end-to-end, build the package smoke target. It creates a temporary external .NET console app, installs the locally built package, and runs a small CPU smoke test:
+
+```sh
+cmake --build build --target qe6502_csharp_package_smoke
+```
+
+GitHub CI runs this package smoke on each native OS job, so each platform validates its own current-platform native bundle before the future multi-RID aggregation step.
+
 ## Smoke test
 
 When `QE6502_BUILD_TESTS` is enabled, CMake also builds a small console smoke test and registers it with CTest:

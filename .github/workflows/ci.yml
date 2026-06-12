@@ -79,6 +79,12 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Setup .NET 8 for native C# tests
+        if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
       - name: Setup .NET 8 for Windows ARM64 native C# tests
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
         uses: actions/setup-dotnet@v5
@@ -170,6 +176,10 @@ jobs:
       - name: Build verbose
         if: inputs.verbose_build == 'true'
         run: cmake --build --preset ${{ matrix.preset }} --verbose
+
+      - name: Test C# NuGet package for current platform
+        if: contains(matrix.preset, 'native')
+        run: cmake --build build/${{ matrix.preset }} --target qe6502_csharp_package_smoke
 
       - name: Diagnose Windows ARM64 native artifacts
         if: always() && matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
