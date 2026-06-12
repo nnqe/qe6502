@@ -1,5 +1,6 @@
 if(QE6502_BUILD_WASM)
     add_subdirectory(js_smoke)
+    add_subdirectory(js_package_smoke)
     add_subdirectory(js_klaus2m5)
     add_subdirectory(js_manual)
 else()
