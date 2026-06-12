@@ -237,10 +237,17 @@ namespace Qe6502
         private static void EnsureAbiVersion()
         {
             uint version = NativeMethods.Version();
-            if (version != NativeMethods.ExpectedAbiVersion) {
+            uint major = version >> 16;
+            uint minor = version & 0x0000FFFFu;
+
+            if (major != NativeMethods.CompiledAbiVersionMajor ||
+                minor < NativeMethods.CompiledAbiVersionMinor) {
                 throw new InvalidOperationException(
                     "Unsupported qe6502 ABI version 0x" + version.ToString("X8") +
-                    "; expected 0x" + NativeMethods.ExpectedAbiVersion.ToString("X8") + ".");
+                    "; expected ABI-compatible version 0x" +
+                    NativeMethods.CompiledAbiVersion.ToString("X8") +
+                    " or newer with major " +
+                    NativeMethods.CompiledAbiVersionMajor.ToString() + ".");
             }
         }
 

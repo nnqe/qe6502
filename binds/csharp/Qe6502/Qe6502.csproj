@@ -4,5 +4,24 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PackageId>Qe6502</PackageId>
+    <Version>0.5.0</Version>
+    <Authors>Nikolay Nedelchev</Authors>
+    <Company>Nikolay Nedelchev</Company>
+    <Description>Cycle-accurate C# bindings for the qe6502 6502/65C02 CPU core.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nikolaynedelchev/qe6502</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nikolaynedelchev/qe6502</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>6502;65c02;emulator;bindings</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Qe6502NativeRuntimeRid)' != '' and '$(Qe6502NativeRuntimeLibrary)' != ''">
+    <None Include="$(Qe6502NativeRuntimeLibrary)" Pack="true" PackagePath="runtimes/$(Qe6502NativeRuntimeRid)/native/" Visible="false" />
+  </ItemGroup>
 </Project>
