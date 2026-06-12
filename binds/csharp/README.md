@@ -44,7 +44,7 @@ For release-native builds, CMake can also stage just the native runtime asset fr
 cmake --build build --target qe6502_csharp_stage_runtime_asset
 ```
 
-The staged tree is rooted at `runtime-asset/<config>` under the C# build directory and contains only the NuGet-ready `runtimes/<rid>/native/...` layout for the current platform. GitHub CI uploads this staged runtime asset as a build artifact from each `release_native` OS job; a later aggregation step can merge those artifacts into one all-platform package.
+The staged tree is rooted at `runtime-asset/<config>` under the C# build directory and contains only the NuGet-ready `runtimes/<rid>/native/...` layout for the current platform. GitHub CI uploads this staged runtime asset as a build artifact from each `release_native` OS job. After all matrix jobs complete, CI automatically downloads the selected runtime artifacts, merges them into one multi-RID package, smoke-tests that package on Linux, and uploads the final `Qe6502.<version>.nupkg` as the `qe6502-csharp-nuget-multirid` Actions artifact. This does not publish to NuGet.org.
 
 ## Smoke test
 

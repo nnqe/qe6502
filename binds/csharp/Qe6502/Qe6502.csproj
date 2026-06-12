@@ -24,4 +24,8 @@
   <ItemGroup Condition="'$(Qe6502NativeRuntimeRid)' != '' and '$(Qe6502NativeRuntimeLibrary)' != ''">
     <None Include="$(Qe6502NativeRuntimeLibrary)" Pack="true" PackagePath="runtimes/$(Qe6502NativeRuntimeRid)/native/" Visible="false" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Qe6502NativeRuntimeRoot)' != ''">
+    <None Include="$(Qe6502NativeRuntimeRoot)/runtimes/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)" Visible="false" />
+  </ItemGroup>
 </Project>
