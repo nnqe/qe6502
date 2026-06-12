@@ -27,6 +27,151 @@ foreach(required_var IN ITEMS
     endif()
 endforeach()
 
+function(qe6502_find_first_existing out_var)
+    set(found "")
+    foreach(candidate IN LISTS ARGN)
+        if(EXISTS "${candidate}")
+            set(found "${candidate}")
+            break()
+        endif()
+    endforeach()
+    set(${out_var} "${found}" PARENT_SCOPE)
+endfunction()
+
+function(qe6502_symbol_regex_for name out_var)
+    # Match the symbol as a whole token in typical nm/llvm-nm output. The optional
+    # leading underscore covers platforms/toolchains that decorate C symbols.
+    set(${out_var} "(^|[ \t])_?${name}($|[ \t\r\n])" PARENT_SCOPE)
+endfunction()
+
+function(qe6502_require_export library symbols_text symbol_name)
+    qe6502_symbol_regex_for("${symbol_name}" symbol_regex)
+    if(NOT "${symbols_text}" MATCHES "${symbol_regex}")
+        message(FATAL_ERROR
+            "Required symbol '${symbol_name}' was not exported by ${library}"
+        )
+    endif()
+endfunction()
+
+function(qe6502_forbid_export library symbols_text symbol_name)
+    qe6502_symbol_regex_for("${symbol_name}" symbol_regex)
+    if("${symbols_text}" MATCHES "${symbol_regex}")
+        message(FATAL_ERROR
+            "Forbidden symbol '${symbol_name}' was exported by ${library}"
+        )
+    endif()
+endfunction()
+
+function(qe6502_read_exports library out_var)
+    find_program(QE6502_SYMBOL_TOOL NAMES llvm-nm nm)
+    if(NOT QE6502_SYMBOL_TOOL)
+        message(STATUS "Skipping symbol visibility checks for ${library}: llvm-nm/nm not found")
+        set(${out_var} "" PARENT_SCOPE)
+        set(QE6502_SYMBOL_CHECK_AVAILABLE OFF PARENT_SCOPE)
+        return()
+    endif()
+
+    get_filename_component(symbol_tool_name "${QE6502_SYMBOL_TOOL}" NAME)
+    get_filename_component(library_ext "${library}" EXT)
+
+    set(symbol_tool_args "${QE6502_SYMBOL_TOOL}")
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+        list(APPEND symbol_tool_args -gU "${library}")
+    elseif(library_ext STREQUAL ".dll")
+        list(APPEND symbol_tool_args -g --defined-only "${library}")
+    else()
+        list(APPEND symbol_tool_args -D -g --defined-only "${library}")
+    endif()
+
+    execute_process(
+        COMMAND ${symbol_tool_args}
+        RESULT_VARIABLE symbol_result
+        OUTPUT_VARIABLE symbol_output
+        ERROR_VARIABLE symbol_error
+    )
+
+    if(NOT symbol_result EQUAL 0)
+        message(STATUS
+            "Skipping symbol visibility checks for ${library}: "
+            "${symbol_tool_name} failed with exit code ${symbol_result}: ${symbol_error}"
+        )
+        set(${out_var} "" PARENT_SCOPE)
+        set(QE6502_SYMBOL_CHECK_AVAILABLE OFF PARENT_SCOPE)
+        return()
+    endif()
+
+    set(${out_var} "${symbol_output}" PARENT_SCOPE)
+    set(QE6502_SYMBOL_CHECK_AVAILABLE ON PARENT_SCOPE)
+endfunction()
+
+function(qe6502_check_installed_shared_symbols)
+    if(QE6502_INSTALL_CONSUME_CASE STREQUAL "static")
+        message(STATUS "Skipping shared symbol checks for static-only install")
+        return()
+    endif()
+
+    set(qe6502_abi_candidates
+        "${QE6502_INSTALL_PREFIX}/bin/libqe6502.dll"
+        "${QE6502_INSTALL_PREFIX}/bin/qe6502.dll"
+        "${QE6502_INSTALL_PREFIX}/lib/libqe6502.so"
+        "${QE6502_INSTALL_PREFIX}/lib/libqe6502.dylib"
+    )
+    set(qe6502_cpp_candidates
+        "${QE6502_INSTALL_PREFIX}/bin/libqe6502_cpp.dll"
+        "${QE6502_INSTALL_PREFIX}/bin/qe6502_cpp.dll"
+        "${QE6502_INSTALL_PREFIX}/lib/libqe6502_cpp.so"
+        "${QE6502_INSTALL_PREFIX}/lib/libqe6502_cpp.dylib"
+    )
+
+    qe6502_find_first_existing(qe6502_abi_library ${qe6502_abi_candidates})
+    qe6502_find_first_existing(qe6502_cpp_library ${qe6502_cpp_candidates})
+
+    if(qe6502_abi_library STREQUAL "")
+        message(FATAL_ERROR "Installed qe6502 shared library was not found. Checked: ${qe6502_abi_candidates}")
+    endif()
+    if(qe6502_cpp_library STREQUAL "")
+        message(FATAL_ERROR "Installed qe6502_cpp shared library was not found. Checked: ${qe6502_cpp_candidates}")
+    endif()
+
+    message(STATUS "Checking installed C ABI shared exports: ${qe6502_abi_library}")
+    qe6502_read_exports("${qe6502_abi_library}" qe6502_abi_symbols)
+    if(QE6502_SYMBOL_CHECK_AVAILABLE)
+        foreach(required_symbol IN ITEMS
+            qe6502abi_version
+            qe6502abi_setup
+            qe6502abi_tick
+        )
+            qe6502_require_export("${qe6502_abi_library}" "${qe6502_abi_symbols}" "${required_symbol}")
+        endforeach()
+        foreach(forbidden_symbol IN ITEMS
+            qe6502_restart
+            qe6502_tick_exported
+            qe6502_control_store
+            qe6502_save
+            qe6502_load
+        )
+            qe6502_forbid_export("${qe6502_abi_library}" "${qe6502_abi_symbols}" "${forbidden_symbol}")
+        endforeach()
+    endif()
+
+    message(STATUS "Checking installed C++ shared exports: ${qe6502_cpp_library}")
+    qe6502_read_exports("${qe6502_cpp_library}" qe6502_cpp_symbols)
+    if(QE6502_SYMBOL_CHECK_AVAILABLE)
+        foreach(forbidden_symbol IN ITEMS
+            qe6502abi_version
+            qe6502abi_setup
+            qe6502abi_tick
+            qe6502_restart
+            qe6502_tick_exported
+            qe6502_control_store
+            qe6502_save
+            qe6502_load
+        )
+            qe6502_forbid_export("${qe6502_cpp_library}" "${qe6502_cpp_symbols}" "${forbidden_symbol}")
+        endforeach()
+    endif()
+endfunction()
+
 if(NOT DEFINED QE6502_TEST_CONFIG OR "${QE6502_TEST_CONFIG}" STREQUAL "")
     set(QE6502_TEST_CONFIG Debug)
 endif()
@@ -93,6 +238,8 @@ message(STATUS "Installing qe6502 ${QE6502_INSTALL_CONSUME_CASE} package build")
 qe6502_run_step("install qe6502 ${QE6502_INSTALL_CONSUME_CASE} package"
     "${CMAKE_COMMAND}" --install "${QE6502_PACKAGE_BUILD_DIR}" --config "${QE6502_TEST_CONFIG}"
 )
+
+qe6502_check_installed_shared_symbols()
 
 message(STATUS "Configuring installed-package C++ consumer")
 qe6502_run_step("configure installed-package C++ consumer"
