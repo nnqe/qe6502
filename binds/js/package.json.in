@@ -1,0 +1,38 @@
+{
+  "name": "qe6502",
+  "version": "@PROJECT_VERSION@",
+  "description": "JavaScript and WebAssembly binding for qe6502, a cycle-oriented 6502/65C02 CPU emulator.",
+  "type": "module",
+  "exports": {
+    ".": "./qe6502.js",
+    "./qe6502_js.wasm": "./qe6502_js.wasm"
+  },
+  "files": [
+    "qe6502.js",
+    "qe6502_js.wasm",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "author": "Nikolay Nedelchev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nikolaynedelchev/qe6502.git"
+  },
+  "homepage": "https://github.com/nikolaynedelchev/qe6502#readme",
+  "bugs": {
+    "url": "https://github.com/nikolaynedelchev/qe6502/issues"
+  },
+  "keywords": [
+    "6502",
+    "65c02",
+    "emulator",
+    "cpu",
+    "mos6502",
+    "retrocomputing",
+    "wasm"
+  ]
+}
