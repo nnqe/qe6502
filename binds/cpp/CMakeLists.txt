@@ -29,6 +29,51 @@ set_target_properties(qe6502_cpp_static PROPERTIES
 add_library(qe6502_cpp ALIAS qe6502_cpp_static)
 add_library(qe6502::cpp ALIAS qe6502_cpp_static)
 
+if(TARGET qe6502_core_noabi_objects AND QE6502_BUILD_SHARED)
+    add_library(qe6502_cpp_shared SHARED
+        ${QE6502_CPP_PUBLIC_HEADERS}
+        src/cpu.cpp
+        $<TARGET_OBJECTS:qe6502_core_noabi_objects>
+    )
+
+    target_include_directories(qe6502_cpp_shared
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cpu/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+
+    target_compile_definitions(qe6502_cpp_shared
+        PUBLIC
+            QE6502_CPP_SHARED=1
+    )
+
+    qe6502_configure_warnings(qe6502_cpp_shared)
+    target_compile_features(qe6502_cpp_shared PUBLIC cxx_std_17)
+
+    set_target_properties(qe6502_cpp_shared PROPERTIES
+        EXPORT_NAME cpp_shared
+        OUTPUT_NAME qe6502_cpp
+        CXX_VISIBILITY_PRESET hidden
+        C_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
+    )
+
+    if(WIN32)
+        set_target_properties(qe6502_cpp_shared PROPERTIES
+            PREFIX "lib"
+        )
+    endif()
+
+    set_target_properties(qe6502_cpp_shared PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        MACOSX_RPATH ON
+    )
+
+    add_library(qe6502::cpp_shared ALIAS qe6502_cpp_shared)
+endif()
+
 if(QE6502_INSTALL)
     install(TARGETS qe6502_cpp_static
         EXPORT qe6502Targets
