@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <qe6502/qe6502_version.h>
+
 #ifndef QE6502_STATIC_ASSERT
 # ifdef __cplusplus
 #  define QE6502_STATIC_ASSERT(condition, message) static_assert((condition), message)

@@ -80,6 +80,14 @@ fn emit_rerun_if_changed(native_source: &NativeSource) {
         native_source
             .include_dir
             .join("qe6502")
+            .join("qe6502_version.h")
+            .display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        native_source
+            .include_dir
+            .join("qe6502")
             .join("qe6502_abi.h")
             .display()
     );
@@ -107,6 +115,16 @@ fn stage_native_source(native_source: &NativeSource, staged_native_dir: &Path) -
             .join("include")
             .join("qe6502")
             .join("qe6502.h"),
+    )?;
+    copy_file(
+        &native_source
+            .include_dir
+            .join("qe6502")
+            .join("qe6502_version.h"),
+        &staged_native_dir
+            .join("include")
+            .join("qe6502")
+            .join("qe6502_version.h"),
     )?;
     copy_file(
         &native_source

@@ -2,6 +2,7 @@
 # qe6502: no external dependencies
 
 set(QE6502_PUBLIC_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502_version.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502_abi.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/qe6502/qe6502.h
 )

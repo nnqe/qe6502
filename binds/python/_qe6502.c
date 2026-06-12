@@ -6,7 +6,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#define PY_QE6502_EXPECTED_ABI_VERSION QE6502_ABI_VERSION
+#define PY_QE6502_EXPECTED_VERSION_MAJOR QE6502_VERSION_MAJOR
+#define PY_QE6502_EXPECTED_VERSION_MINOR QE6502_VERSION_MINOR
+
+#define PY_QE6502_VERSION_MAJOR(version) (((version) >> 16u) & UINT32_C(0x0000ffff))
+#define PY_QE6502_VERSION_MINOR(version) ((version) & UINT32_C(0x0000ffff))
 #define PY_QE6502_TICK_ADDRESS_MASK UINT32_C(0x0000ffff)
 #define PY_QE6502_TICK_STATUS_MASK  (UINT32_C(0x000000ff) << QE6502_ABI_TICK_STATUS_SHIFT)
 #define PY_QE6502_TICK_BUS_MASK     (UINT32_C(0x000000ff) << QE6502_ABI_TICK_BUS_SHIFT)
@@ -34,13 +38,17 @@ static int
 check_abi_version(void)
 {
     const uint32_t version = qe6502abi_version();
+    const uint32_t major = PY_QE6502_VERSION_MAJOR(version);
+    const uint32_t minor = PY_QE6502_VERSION_MINOR(version);
 
-    if (version != PY_QE6502_EXPECTED_ABI_VERSION) {
+    if (major != PY_QE6502_EXPECTED_VERSION_MAJOR || minor < PY_QE6502_EXPECTED_VERSION_MINOR) {
         PyErr_Format(
             PyExc_RuntimeError,
-            "unsupported qe6502 ABI version 0x%08x; expected 0x%08x",
-            (unsigned int)version,
-            (unsigned int)PY_QE6502_EXPECTED_ABI_VERSION);
+            "unsupported qe6502 version %u.%u; expected %u.%u or compatible",
+            (unsigned int)major,
+            (unsigned int)minor,
+            (unsigned int)PY_QE6502_EXPECTED_VERSION_MAJOR,
+            (unsigned int)PY_QE6502_EXPECTED_VERSION_MINOR);
         return -1;
     }
 
@@ -422,7 +430,7 @@ add_uint_constant(PyObject* module, const char* name, uint32_t value)
 static int
 add_constants(PyObject* module)
 {
-    if (add_uint_constant(module, "ABI_VERSION", QE6502_ABI_VERSION) < 0) { return -1; }
+    if (add_uint_constant(module, "ABI_VERSION", QE6502_VERSION) < 0) { return -1; }
     if (add_uint_constant(module, "SNAPSHOT_SIZE", QE6502_ABI_SNAPSHOT_SIZE) < 0) { return -1; }
 
     if (add_uint_constant(module, "MODEL_NMOS", QE6502_ABI_MODEL_NMOS) < 0) { return -1; }

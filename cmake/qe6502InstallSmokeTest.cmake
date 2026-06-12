@@ -54,7 +54,7 @@ int main(void)
 {
     qe6502abi_context_t cpu;
     qe6502abi_setup(&cpu, QE6502_ABI_MODEL_NMOS);
-    return qe6502abi_version() == QE6502_ABI_VERSION ? 0 : 1;
+    return qe6502abi_version() == QE6502_VERSION ? 0 : 1;
 }
 ]=])
 

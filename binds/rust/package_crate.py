@@ -23,6 +23,7 @@ include = [
     \"README.md\",
     \"LICENSE\",
     \"native/include/qe6502/qe6502.h\",
+    \"native/include/qe6502/qe6502_version.h\",
     \"native/include/qe6502/qe6502_abi.h\",
     \"native/src/qe6502.c\",
     \"native/src/control_store/**\",
@@ -104,6 +105,7 @@ def stage_crate(repo_root: Path, out_dir: Path) -> None:
         rust_dir / "build.rs",
         rust_dir / "src",
         cpu_dir / "include" / "qe6502" / "qe6502.h",
+        cpu_dir / "include" / "qe6502" / "qe6502_version.h",
         cpu_dir / "include" / "qe6502" / "qe6502_abi.h",
         cpu_dir / "src" / "qe6502.c",
         cpu_dir / "src" / "control_store",
@@ -129,6 +131,10 @@ def stage_crate(repo_root: Path, out_dir: Path) -> None:
     copy_file(
         cpu_dir / "include" / "qe6502" / "qe6502.h",
         out_dir / "native" / "include" / "qe6502" / "qe6502.h",
+    )
+    copy_file(
+        cpu_dir / "include" / "qe6502" / "qe6502_version.h",
+        out_dir / "native" / "include" / "qe6502" / "qe6502_version.h",
     )
     copy_file(
         cpu_dir / "include" / "qe6502" / "qe6502_abi.h",

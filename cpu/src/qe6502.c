@@ -2769,7 +2769,7 @@ static inline const qe6502abi_impl_t *qe6502abi_const_impl(const qe6502abi_conte
 
 QE6502_ABI_API uint32_t qe6502abi_version(void)
 {
-    return QE6502_ABI_VERSION;
+    return QE6502_VERSION;
 }
 
 QE6502_ABI_API void qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model)

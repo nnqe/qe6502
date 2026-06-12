@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 
+#include <qe6502/qe6502_version.h>
+
 #if defined(__cplusplus)
 #   define QE6502_ABI_ALIGNAS(n) alignas(n)
 #   define QE6502_ABI_ALIGNOF(type) alignof(type)
@@ -55,11 +57,6 @@ extern "C" {
  * storage. It does not perform null-pointer, bounds, model, or state-safety
  * checks; callers must pass valid objects and must not edit context bytes.
  */
-
-#define QE6502_ABI_VERSION_MAJOR 0u
-#define QE6502_ABI_VERSION_MINOR 5u
-#define QE6502_ABI_VERSION \
-    ((QE6502_ABI_VERSION_MAJOR << 16u) | QE6502_ABI_VERSION_MINOR)
 
 #define QE6502_ABI_CONTEXT_SIZE    64u
 #define QE6502_ABI_CONTEXT_ALIGN   8u

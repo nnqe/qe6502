@@ -1,6 +1,26 @@
 # /CMakeLists.txt
 cmake_minimum_required(VERSION 3.15)
-project(qe6502 VERSION 0.1.0 LANGUAGES C)
+
+set(QE6502_VERSION_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/cpu/include/qe6502/qe6502_version.h")
+file(READ "${QE6502_VERSION_HEADER}" QE6502_VERSION_HEADER_TEXT)
+
+function(qe6502_read_uint_define out_var define_name)
+    string(REGEX MATCH
+        "#[ \t]*define[ \t]+${define_name}[ \t]+([0-9]+)[uU]?"
+        _qe6502_define_match
+        "${QE6502_VERSION_HEADER_TEXT}"
+    )
+
+    if(NOT _qe6502_define_match)
+        message(FATAL_ERROR "Failed to parse ${define_name} from ${QE6502_VERSION_HEADER}")
+    endif()
+
+    set(${out_var} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+endfunction()
+
+qe6502_read_uint_define(QE6502_VERSION_MAJOR QE6502_VERSION_MAJOR)
+qe6502_read_uint_define(QE6502_VERSION_MINOR QE6502_VERSION_MINOR)
+project(qe6502 VERSION "${QE6502_VERSION_MAJOR}.${QE6502_VERSION_MINOR}" LANGUAGES C)
 
 include(CTest)
 include(GNUInstallDirs)
