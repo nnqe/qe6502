@@ -38,10 +38,43 @@ else()
     message(STATUS "QE6502 2 Native Build")
 endif()
 
+add_library(qe6502_core_noabi_objects OBJECT
+    ${QE6502_PRIVATE_SOURCE}
+)
+
+qe6502_configure_core_target(qe6502_core_noabi_objects)
+
+target_compile_definitions(qe6502_core_noabi_objects
+    PRIVATE
+        QE6502_NO_ABI=1
+)
+
+set_target_properties(qe6502_core_noabi_objects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+)
+
 if(QE6502_BUILD_STATIC)
+    add_library(qe6502_static_objects OBJECT
+        ${QE6502_PRIVATE_SOURCE}
+    )
+
+    qe6502_configure_core_target(qe6502_static_objects)
+
+    target_compile_definitions(qe6502_static_objects
+        PRIVATE
+            QE6502_STATIC=1
+            QE6502_BUILD_SHARED=0
+    )
+
+    set_target_properties(qe6502_static_objects PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        C_VISIBILITY_PRESET hidden
+    )
+
     add_library(qe6502_static STATIC
         ${QE6502_PUBLIC_HEADERS}
-        ${QE6502_PRIVATE_SOURCE}
+        $<TARGET_OBJECTS:qe6502_static_objects>
     )
 
     qe6502_configure_core_target(qe6502_static)
@@ -49,8 +82,6 @@ if(QE6502_BUILD_STATIC)
     target_compile_definitions(qe6502_static
         PUBLIC
             QE6502_STATIC=1
-        PRIVATE
-            QE6502_BUILD_SHARED=0
     )
 
     set_target_properties(qe6502_static PROPERTIES
@@ -64,15 +95,33 @@ if(QE6502_BUILD_STATIC)
 endif()
 
 if(QE6502_BUILD_SHARED)
+    add_library(qe6502_shared_objects OBJECT
+        ${QE6502_PRIVATE_SOURCE}
+    )
+
+    qe6502_configure_core_target(qe6502_shared_objects)
+
+    target_compile_definitions(qe6502_shared_objects
+        PRIVATE
+            QE6502_BUILDING_LIBRARY=1
+            QE6502_BUILD_SHARED=1
+            QE6502_SHARED=1
+    )
+
+    set_target_properties(qe6502_shared_objects PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        C_VISIBILITY_PRESET hidden
+    )
+
     if(QE6502_BUILD_WASM)
         add_executable(qe6502_shared
             ${QE6502_PUBLIC_HEADERS}
-            ${QE6502_PRIVATE_SOURCE}
+            $<TARGET_OBJECTS:qe6502_shared_objects>
         )
     else()
         add_library(qe6502_shared SHARED
             ${QE6502_PUBLIC_HEADERS}
-            ${QE6502_PRIVATE_SOURCE}
+            $<TARGET_OBJECTS:qe6502_shared_objects>
         )
     endif()
 
@@ -81,9 +130,6 @@ if(QE6502_BUILD_SHARED)
     target_compile_definitions(qe6502_shared
         PUBLIC
             QE6502_SHARED=1
-        PRIVATE
-            QE6502_BUILDING_LIBRARY=1
-            QE6502_BUILD_SHARED=1
     )
 
     set_target_properties(qe6502_shared PROPERTIES
