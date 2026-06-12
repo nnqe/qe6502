@@ -87,6 +87,8 @@ if(QE6502_CSHARP_RUNTIME_RID)
         COMMAND ${DOTNET_EXECUTABLE} pack ${QE6502_CSHARP_PROJECT}
             --configuration ${QE6502_CSHARP_CONFIGURATION}
             --no-build
+            -p:Platform=AnyCPU
+            -p:PlatformTarget=AnyCPU
             -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
             -p:PackageOutputPath=${QE6502_CSHARP_PACKAGE_DIR}
             -p:Qe6502NativeRuntimeRid=${QE6502_CSHARP_RUNTIME_RID}
