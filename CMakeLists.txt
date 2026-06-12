@@ -39,10 +39,6 @@ if(QE6502_BUILD_WASM AND NOT QE6502_BUILD_STATIC)
     message(FATAL_ERROR "QE6502_BUILD_WASM requires QE6502_BUILD_STATIC because the JS/WASM bindings link the static core")
 endif()
 
-if(QE6502_BUILD_CPP AND NOT QE6502_BUILD_STATIC)
-    message(FATAL_ERROR "QE6502_BUILD_CPP requires QE6502_BUILD_STATIC")
-endif()
-
 if(QE6502_REQUIRE_PYTHON AND NOT QE6502_BUILD_PYTHON)
     message(FATAL_ERROR "QE6502_REQUIRE_PYTHON requires QE6502_BUILD_PYTHON")
 endif()
@@ -215,6 +211,12 @@ if(QE6502_INSTALL)
     endif()
 
     if(QE6502_BUILD_CPP)
+        if(QE6502_BUILD_SHARED AND NOT QE6502_BUILD_STATIC)
+            set(QE6502_CPP_PC_LIBS "-L\${libdir} -lqe6502_cpp")
+        else()
+            set(QE6502_CPP_PC_LIBS "-L\${libdir} -lqe6502_cpp_static -lqe6502_static")
+        endif()
+
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/qe6502-cpp.pc.in
             ${CMAKE_CURRENT_BINARY_DIR}/qe6502-cpp.pc
