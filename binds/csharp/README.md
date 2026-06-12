@@ -38,6 +38,14 @@ cmake --build build --target qe6502_csharp_package_smoke
 
 GitHub CI runs this package smoke on each native OS job, so each platform validates its own current-platform native bundle before the future multi-RID aggregation step.
 
+For release-native builds, CMake can also stage just the native runtime asset fragment used by future multi-RID NuGet aggregation:
+
+```sh
+cmake --build build --target qe6502_csharp_stage_runtime_asset
+```
+
+The staged tree is rooted at `runtime-asset/<config>` under the C# build directory and contains only the NuGet-ready `runtimes/<rid>/native/...` layout for the current platform. GitHub CI uploads this staged runtime asset as a build artifact from each `release_native` OS job; a later aggregation step can merge those artifacts into one all-platform package.
+
 ## Smoke test
 
 When `QE6502_BUILD_TESTS` is enabled, CMake also builds a small console smoke test and registers it with CTest:

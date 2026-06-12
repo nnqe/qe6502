@@ -181,6 +181,18 @@ jobs:
         if: contains(matrix.preset, 'native')
         run: cmake --build build/${{ matrix.preset }} --target qe6502_csharp_package_smoke
 
+      - name: Stage C# native runtime asset for NuGet aggregation
+        if: matrix.preset == 'release_native'
+        run: cmake --build build/${{ matrix.preset }} --target qe6502_csharp_stage_runtime_asset
+
+      - name: Upload C# native runtime asset for NuGet aggregation
+        if: matrix.preset == 'release_native'
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-csharp-runtime-${{ matrix.os }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}/binds/csharp/runtime-asset/Release
+          if-no-files-found: error
+
       - name: Diagnose Windows ARM64 native artifacts
         if: always() && matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
         shell: pwsh
