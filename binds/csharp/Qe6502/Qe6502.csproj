@@ -5,16 +5,19 @@
     <Nullable>disable</Nullable>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PackageId>Qe6502</PackageId>
-    <Version>0.5.0</Version>
+    <Version Condition="'$(Version)' == ''">0.0.0</Version>
     <Authors>Nikolay Nedelchev</Authors>
     <Company>Nikolay Nedelchev</Company>
-    <Description>Cycle-accurate C# bindings for the qe6502 6502/65C02 CPU core.</Description>
+    <Description>.NET binding for qe6502, a cycle-oriented 6502 CPU emulator with bundled native runtime libraries.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikolaynedelchev/qe6502</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nikolaynedelchev/qe6502</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>6502;65c02;emulator;bindings</PackageTags>
+    <PackageTags>6502;emulator;cpu;mos6502;retrocomputing</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright (c) 2025 Nikolay Nedelchev</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

@@ -69,6 +69,7 @@ add_custom_target(qe6502_csharp ALL
         --configuration ${QE6502_CSHARP_CONFIGURATION}
         -p:Platform=AnyCPU
         -p:PlatformTarget=AnyCPU
+        -p:Version=${QE6502_CSHARP_PACKAGE_VERSION}
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CSHARP_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -105,6 +106,7 @@ if(QE6502_CSHARP_RUNTIME_RID)
             --no-build
             -p:Platform=AnyCPU
             -p:PlatformTarget=AnyCPU
+            -p:Version=${QE6502_CSHARP_PACKAGE_VERSION}
             -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
             -p:PackageOutputPath=${QE6502_CSHARP_PACKAGE_DIR}
             -p:Qe6502NativeRuntimeRid=${QE6502_CSHARP_RUNTIME_RID}

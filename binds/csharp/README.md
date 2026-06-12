@@ -1,65 +1,13 @@
-# qe6502 C# binding
+# Qe6502
 
-This binding is a thin, cycle-by-cycle C# wrapper over the stable `qe6502_abi` native library. It does not provide a memory callback, batch runner, or hidden bus loop; the caller drives every CPU bus cycle.
+.NET binding for `qe6502`, a cycle-oriented 6502 CPU emulator.
 
-## Build
+The NuGet package includes the managed C# wrapper and bundled native `qe6502` runtime libraries for the supported platforms. A normal .NET consumer project should not need to build or copy the native library manually.
 
-The root CMake project can build the binding when the .NET SDK is available:
-
-```sh
-cmake -S . -B build
-cmake --build build --target qe6502_csharp
-```
-
-The C# project uses `DllImport("libqe6502")`, so the native shared library must be named as follows:
-
-- Windows: `libqe6502.dll`
-- Linux: `libqe6502.so`
-- macOS: `libqe6502.dylib`
-
-The CMake target places the managed output and copied native shared library under the CMake build tree, not in the source tree.
-
-
-## NuGet package smoke
-
-The CMake build can also create a current-platform NuGet package with the native `qe6502` shared library bundled as a NuGet runtime asset:
+## Install
 
 ```sh
-cmake --build build --target qe6502_csharp_pack
-```
-
-The package contains the managed assembly plus one native runtime asset for the platform that built it, for example `runtimes/linux-x64/native/libqe6502.so`, `runtimes/osx-arm64/native/libqe6502.dylib`, or `runtimes/win-x64/native/libqe6502.dll`.
-
-To validate the package end-to-end, build the package smoke target. It creates a temporary external .NET console app, installs the locally built package, and runs a small CPU smoke test:
-
-```sh
-cmake --build build --target qe6502_csharp_package_smoke
-```
-
-GitHub CI runs this package smoke on each native OS job, so each platform validates its own current-platform native bundle before the future multi-RID aggregation step.
-
-For release-native builds, CMake can also stage just the native runtime asset fragment used by future multi-RID NuGet aggregation:
-
-```sh
-cmake --build build --target qe6502_csharp_stage_runtime_asset
-```
-
-The staged tree is rooted at `runtime-asset/<config>` under the C# build directory and contains only the NuGet-ready `runtimes/<rid>/native/...` layout for the current platform. GitHub CI uploads this staged runtime asset as a build artifact from each `release_native` OS job. After all matrix jobs complete, CI automatically downloads the selected runtime artifacts, merges them into one multi-RID package, verifies that the package contains the expected `runtimes/<rid>/native/...` NuGet runtime asset layout, smoke-tests that package on Linux, and uploads the final `Qe6502.<version>.nupkg` as the `qe6502-csharp-nuget-multirid` Actions artifact. This does not publish to NuGet.org.
-
-## Smoke test
-
-When `QE6502_BUILD_TESTS` is enabled, CMake also builds a small console smoke test and registers it with CTest:
-
-```sh
-cmake -S . -B build -DQE6502_BUILD_TESTS=ON
-cmake --build build --target qe6502_cs_smoke
-ctest --test-dir build -R qe6502_cs_smoke --output-on-failure
-```
-
-The same smoke program can be run directly through CMake to see its normal console output:
-
-```sh
-cmake --build build --target qe6502_cs_smoke_run
+dotnet add package Qe6502
 ```
 
 ## Minimal use
@@ -72,7 +20,7 @@ var memory = new byte[65536];
 
 cpu.JumpTo(0x8000);
 
-for (int i = 0; i < 1000000; ++i) {
+for (int i = 0; i < 1_000_000; ++i) {
     if (cpu.IsWrite) {
         memory[cpu.Address] = cpu.Data;
         cpu.Tick();
@@ -82,27 +30,180 @@ for (int i = 0; i < 1000000; ++i) {
 }
 ```
 
-Use `NmiAsserted` and `IrqAsserted` to control the logical interrupt assertion state.
+`qe6502` is bus-cycle oriented: the caller drives each CPU cycle by observing the current bus request and passing the byte read from memory back into `Tick`.
 
-## Klaus2m5 harness
+## Supported CPU models
 
-When `QE6502_BUILD_TESTS` is enabled, CMake also builds a C# Klaus2m5 console harness and registers the default supported model/test matrix with CTest:
+```csharp
+var cpu = new Cpu(Model.Nmos);
+```
+
+Available models:
+
+- `Model.Nmos` — NMOS 6502
+- `Model.Nes` — NES / RP2A03 CPU
+- `Model.Wdc` — WDC 65C02
+- `Model.Rockwell` — Rockwell 65C02
+- `Model.St` — ST 65C02
+
+The model can also be changed through the `Model` property.
+
+## Bus state
+
+After `JumpTo`, `Restart`, `Load`, or `Tick`, the wrapper exposes the last native CPU tick through these properties:
+
+```csharp
+cpu.Address;
+cpu.Data;
+cpu.IsWrite;
+cpu.IsOpcodeFetch;
+cpu.IsInternalReset;
+cpu.IsJammed;
+cpu.RawTick;
+```
+
+A read cycle is handled by passing the memory byte to `Tick`:
+
+```csharp
+cpu.Tick(memory[cpu.Address]);
+```
+
+A write cycle is handled by storing `cpu.Data`, then ticking:
+
+```csharp
+memory[cpu.Address] = cpu.Data;
+cpu.Tick();
+```
+
+## Registers and flags
+
+The wrapper exposes CPU registers:
+
+```csharp
+cpu.PC;
+cpu.S;
+cpu.A;
+cpu.X;
+cpu.Y;
+cpu.P;
+```
+
+It also exposes individual status flags:
+
+```csharp
+cpu.CarryFlag;
+cpu.ZeroFlag;
+cpu.InterruptDisableFlag;
+cpu.DecimalFlag;
+cpu.BreakFlag;
+cpu.UnusedFlag;
+cpu.OverflowFlag;
+cpu.NegativeFlag;
+```
+
+## Interrupt inputs
+
+Use `NmiAsserted` and `IrqAsserted` to control the logical interrupt input state:
+
+```csharp
+cpu.NmiAsserted = true;
+cpu.Tick(memory[cpu.Address]);
+
+cpu.NmiAsserted = false;
+```
+
+```csharp
+cpu.IrqAsserted = true;
+cpu.Tick(memory[cpu.Address]);
+
+cpu.IrqAsserted = false;
+```
+
+## Save and load
+
+`Save` returns a portable 64-byte CPU snapshot, including the last tick:
+
+```csharp
+byte[] snapshot = cpu.Save();
+```
+
+Restore it with:
+
+```csharp
+cpu.Load(snapshot);
+```
+
+## Bundled native runtimes
+
+The NuGet package bundles native runtime libraries using standard NuGet runtime asset paths.
+
+Supported runtime identifiers:
+
+- `linux-x64`
+- `linux-arm64`
+- `osx-x64`
+- `osx-arm64`
+- `win-x64`
+- `win-arm64`
+
+Native library names:
+
+- Linux: `libqe6502.so`
+- macOS: `libqe6502.dylib`
+- Windows: `libqe6502.dll`
+
+## ABI compatibility
+
+The C# binding uses the stable native `qe6502_abi` library.
+
+At runtime, the binding checks the native ABI version. It accepts the same ABI major version with a runtime minor version greater than or equal to the version it was compiled against.
+
+## Build from source
+
+From the repository root:
+
+```sh
+cmake -S . -B build
+cmake --build build --target qe6502_csharp
+```
+
+The CMake target builds the managed assembly and copies the native shared library next to the C# build output.
+
+## Package validation
+
+To create a current-platform NuGet package from a local build:
+
+```sh
+cmake --build build --target qe6502_csharp_pack
+```
+
+To validate that package end-to-end with an external .NET console app:
+
+```sh
+cmake --build build --target qe6502_csharp_package_smoke
+```
+
+GitHub CI also builds and validates a multi-RID NuGet package artifact containing all supported native runtime assets. This CI artifact is not automatically published to NuGet.org.
+
+## Tests
+
+When `QE6502_BUILD_TESTS` is enabled, CMake builds and registers C# smoke and Klaus2m5 harness tests:
+
+```sh
+cmake -S . -B build -DQE6502_BUILD_TESTS=ON
+cmake --build build --target qe6502_cs_smoke
+ctest --test-dir build -R qe6502_cs_smoke --output-on-failure
+```
 
 ```sh
 cmake --build build --target qe6502_cs_klaus2m5
 ctest --test-dir build -R qe6502.cs.klaus2m5 --output-on-failure
 ```
 
-The same harness can be run directly through CMake to see the full default-suite output:
+## Repository
 
-```sh
-cmake --build build --target qe6502_cs_klaus2m5_run
-```
+https://github.com/nikolaynedelchev/qe6502
 
-The harness copies the existing `harness/klaus2m5` ROM fixtures next to the executable at build time. It can also be run manually from its output directory:
+## License
 
-```sh
-dotnet Qe6502.CsKlaus2m5.dll
-dotnet Qe6502.CsKlaus2m5.dll nmos standard
-dotnet Qe6502.CsKlaus2m5.dll /path/to/harness/klaus2m5 rw extended
-```
+MIT

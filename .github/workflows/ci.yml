@@ -297,23 +297,40 @@ jobs:
           test -f build/csharp-multirid-runtime/runtimes/win-x64/native/libqe6502.dll
           test -f build/csharp-multirid-runtime/runtimes/win-arm64/native/libqe6502.dll
 
+      - name: Read qe6502 package version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version=$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("cpu/include/qe6502/qe6502_version.h").read_text()
+          major = re.search(r"#\s*define\s+QE6502_VERSION_MAJOR\s+([0-9]+)[uU]?", text)
+          minor = re.search(r"#\s*define\s+QE6502_VERSION_MINOR\s+([0-9]+)[uU]?", text)
+          if not major or not minor:
+              raise SystemExit("Could not read qe6502 version header")
+          print(f"{major.group(1)}.{minor.group(1)}.0")
+          PY
+          )
+          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
+          echo "PACKAGE_VERSION=$package_version"
+
       - name: Build C# binding for package aggregation
-        run: dotnet build binds/csharp/Qe6502/Qe6502.csproj --configuration Release -p:Platform=AnyCPU -p:PlatformTarget=AnyCPU
+        run: dotnet build binds/csharp/Qe6502/Qe6502.csproj --configuration Release -p:Platform=AnyCPU -p:PlatformTarget=AnyCPU -p:Version=$PACKAGE_VERSION
 
       - name: Pack C# multi-RID NuGet package
         shell: bash
         run: |
           set -euo pipefail
-          package_version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' binds/csharp/Qe6502/Qe6502.csproj | head -n 1)
-          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
           dotnet pack binds/csharp/Qe6502/Qe6502.csproj \
             --configuration Release \
             --no-build \
             -p:Platform=AnyCPU \
             -p:PlatformTarget=AnyCPU \
+            -p:Version="$PACKAGE_VERSION" \
             -p:PackageOutputPath="$PWD/build/csharp-nuget" \
             -p:Qe6502NativeRuntimeRoot="$PWD/build/csharp-multirid-runtime/runtimes"
-          unzip -l "build/csharp-nuget/Qe6502.${package_version}.nupkg"
+          unzip -l "build/csharp-nuget/Qe6502.${PACKAGE_VERSION}.nupkg"
 
       - name: Verify C# multi-RID NuGet package layout
         shell: bash
@@ -324,12 +341,9 @@ jobs:
           import zipfile
           from pathlib import Path
 
-          package_version = Path("binds/csharp/Qe6502/Qe6502.csproj").read_text()
-          import re
-          match = re.search(r"<Version>([^<]+)</Version>", package_version)
-          if not match:
-              raise SystemExit("Could not read Qe6502 package version")
-          nupkg = Path("build/csharp-nuget") / f"Qe6502.{match.group(1)}.nupkg"
+          import os
+          package_version = os.environ["PACKAGE_VERSION"]
+          nupkg = Path("build/csharp-nuget") / f"Qe6502.{package_version}.nupkg"
           expected = {
               "runtimes/linux-x64/native/libqe6502.so",
               "runtimes/linux-arm64/native/libqe6502.so",
