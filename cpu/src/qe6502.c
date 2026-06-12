@@ -1,5 +1,7 @@
 #include <qe6502/qe6502.h>
+#ifndef QE6502_NO_ABI
 #include <qe6502/qe6502_abi.h>
+#endif
 #include <stdbool.h>
 
 static const uint8_t flag_C  = qe6502_flag_C ;
@@ -2634,46 +2636,45 @@ static qe6502_tick_t op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr_prefetch(
 
 /* ABI/API helpers */
 
-static inline qe6502abi_tick_t pack_tick(qe6502_tick_t tick)
+enum
 {
-    return ((uint32_t)tick.address << QE6502_ABI_TICK_ADDRESS_SHIFT) |
-           ((uint32_t)tick.status << QE6502_ABI_TICK_STATUS_SHIFT) |
-           ((uint32_t)tick.bus << QE6502_ABI_TICK_BUS_SHIFT);
+    qe6502_packed_tick_address_shift = 0u,
+    qe6502_packed_tick_status_shift = 16u,
+    qe6502_packed_tick_bus_shift = 24u,
+    qe6502_snapshot_context_magic = 0x6502u,
+    qe6502_snapshot_context_version = 1u
+};
+
+typedef uint32_t qe6502_packed_tick_t;
+
+static inline qe6502_packed_tick_t pack_tick(qe6502_tick_t tick)
+{
+    return ((uint32_t)tick.address << qe6502_packed_tick_address_shift) |
+           ((uint32_t)tick.status << qe6502_packed_tick_status_shift) |
+           ((uint32_t)tick.bus << qe6502_packed_tick_bus_shift);
 }
 
-static inline qe6502_tick_t unpack_tick(qe6502abi_tick_t tick)
+static inline qe6502_tick_t unpack_tick(qe6502_packed_tick_t tick)
 {
     qe6502_tick_t result;
-    result.address = QE6502_ABI_TICK_ADDRESS(tick);
-    result.bus = QE6502_ABI_TICK_BUS(tick);
-    result.status = QE6502_ABI_TICK_STATUS(tick);
+    result.address = (uint16_t)((tick >> qe6502_packed_tick_address_shift) & 0xffffu);
+    result.bus = (uint8_t)((tick >> qe6502_packed_tick_bus_shift) & 0xffu);
+    result.status = (uint8_t)((tick >> qe6502_packed_tick_status_shift) & 0xffu);
     return result;
 }
 
-typedef struct qe6502abi_impl
+typedef struct qe6502_snapshot_impl
 {
     qe6502_t cpu;
     uint16_t magic;
     uint16_t version;
     uint8_t reserve[44];
-} qe6502abi_impl_t;
+} qe6502_snapshot_impl_t;
 
 QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16u,
                      "qe6502 CPU context must be 16 bytes");
-QE6502_STATIC_ASSERT(sizeof(qe6502abi_impl_t) == QE6502_ABI_CONTEXT_SIZE,
-                     "qe6502 ABI implementation context must be 64 bytes");
-QE6502_STATIC_ASSERT(QE6502_ABI_SNAPSHOT_SIZE == QE6502_SNAPSHOT_SIZE,
-                     "qe6502 Snapshot must be 64 bytes");
-
-static inline qe6502abi_impl_t *qe6502abi_impl(qe6502abi_context_t *ctx)
-{
-    return (qe6502abi_impl_t *)(void *)ctx;
-}
-
-static inline const qe6502abi_impl_t *qe6502abi_const_impl(const qe6502abi_context_t *ctx)
-{
-    return (const qe6502abi_impl_t *)(const void *)ctx;
-}
+QE6502_STATIC_ASSERT(sizeof(qe6502_snapshot_impl_t) == QE6502_SNAPSHOT_SIZE,
+                     "qe6502 Snapshot implementation context must be 64 bytes");
 
 static inline void clear_buffer(uint8_t *bytes, uint32_t count)
 {
@@ -2762,7 +2763,26 @@ static inline void qe6502abi_read_cpu(qe6502_t *cpu, const uint8_t *src)
     cpu->interrupts = src[15];
 }
 
+#ifndef QE6502_NO_ABI
+
 /* Public ABI. */
+
+QE6502_STATIC_ASSERT(sizeof(qe6502_snapshot_impl_t) == QE6502_ABI_CONTEXT_SIZE,
+                     "qe6502 ABI implementation context must be 64 bytes");
+QE6502_STATIC_ASSERT(QE6502_ABI_SNAPSHOT_SIZE == QE6502_SNAPSHOT_SIZE,
+                     "qe6502 Snapshot must be 64 bytes");
+
+typedef qe6502_snapshot_impl_t qe6502abi_impl_t;
+
+static inline qe6502abi_impl_t *qe6502abi_impl(qe6502abi_context_t *ctx)
+{
+    return (qe6502abi_impl_t *)(void *)ctx;
+}
+
+static inline const qe6502abi_impl_t *qe6502abi_const_impl(const qe6502abi_context_t *ctx)
+{
+    return (const qe6502abi_impl_t *)(const void *)ctx;
+}
 
 QE6502_ABI_API uint32_t qe6502abi_version(void)
 {
@@ -2932,6 +2952,8 @@ QE6502_ABI_API void qe6502abi_set_model(qe6502abi_context_t *ctx, uint32_t value
     impl->cpu.model = (uint8_t)value;
 }
 
+#endif /* QE6502_NO_ABI */
+
 
 /* Public API. */
 
@@ -3010,26 +3032,18 @@ void qe6502_save(const qe6502_t *cpu,
                  qe6502_tick_t tick,
                  uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
 {
-    qe6502abi_context_t abi_ctx;
-    qe6502abi_impl_t *ctx = qe6502abi_impl(&abi_ctx);
-
-    ctx->cpu = *cpu;
-    ctx->magic = (uint16_t)QE6502_ABI_CONTEXT_MAGIC;
-    ctx->version = (uint16_t)QE6502_ABI_CONTEXT_VERSION;
-    clear_buffer(ctx->reserve, (uint32_t)sizeof(ctx->reserve));
-
-    qe6502abi_save(&abi_ctx, pack_tick(tick), snapshot);
+    qe6502abi_write_u16(&snapshot[0], (uint16_t)qe6502_snapshot_context_magic);
+    qe6502abi_write_u16(&snapshot[2], (uint16_t)qe6502_snapshot_context_version);
+    qe6502abi_write_cpu(&snapshot[4], cpu);
+    qe6502abi_write_u32(&snapshot[20], pack_tick(tick));
+    clear_buffer(&snapshot[24], QE6502_SNAPSHOT_SIZE - 24u);
 }
 
 qe6502_tick_t qe6502_load(qe6502_t *ctx,
                           const uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
 {
-    qe6502abi_context_t abi_ctx;
-    const qe6502abi_tick_t tick = qe6502abi_load(&abi_ctx, snapshot);
-    const qe6502abi_impl_t *snapshot_ctx = qe6502abi_const_impl(&abi_ctx);
-
-    *ctx = snapshot_ctx->cpu;
-    return unpack_tick(tick);
+    qe6502abi_read_cpu(ctx, &snapshot[4]);
+    return unpack_tick(qe6502abi_read_u32(&snapshot[20]));
 }
 
 const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
