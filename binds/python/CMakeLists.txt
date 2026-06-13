@@ -113,6 +113,8 @@ set(QE6502_PYTHON_PACKAGE_README "${QE6502_PYTHON_PACKAGE_DIR}/README.md")
 set(QE6502_PYTHON_PACKAGE_LICENSE_FILE "${QE6502_PYTHON_PACKAGE_DIR}/LICENSE")
 set(QE6502_PYTHON_PACKAGE_INIT "${QE6502_PYTHON_PACKAGE_DIR}/qe6502/__init__.py")
 set(QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/package_wheel.py")
+set(QE6502_PYTHON_WHEEL_GLOB "${QE6502_PYTHON_PACKAGE_DIST_DIR}/${QE6502_PYTHON_PACKAGE_NAME}-${QE6502_PACKAGE_VERSION}-${QE6502_PYTHON_WHEEL_PYTHON_TAG}-${QE6502_PYTHON_WHEEL_ABI_TAG}-*.whl")
+set(QE6502_PYTHON_WHEEL_SMOKE_DIR "${CMAKE_CURRENT_BINARY_DIR}/wheel-smoke")
 
 file(MAKE_DIRECTORY "${QE6502_PYTHON_PACKAGE_DIR}")
 configure_file(
@@ -153,6 +155,7 @@ else()
     )
 
     add_custom_target(qe6502_python_wheel
+        COMMAND "${CMAKE_COMMAND}" -E remove_directory "${QE6502_PYTHON_PACKAGE_DIST_DIR}"
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${QE6502_PYTHON_PACKAGE_DIST_DIR}"
         COMMAND "${QE6502_PYTHON_PACKAGE_EXECUTABLE}"
             "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
@@ -195,6 +198,33 @@ else()
             qe6502_python_package_stage
             "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
         COMMENT "Building qe6502 Python wheel"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_python_wheel_smoke
+        COMMAND "${CMAKE_COMMAND}"
+            -DQE6502_PYTHON_EXECUTABLE=${QE6502_PYTHON_PACKAGE_EXECUTABLE}
+            -DQE6502_PYTHON_DIST_DIR=${QE6502_PYTHON_PACKAGE_DIST_DIR}
+            -DQE6502_PYTHON_WHEEL_GLOB=${QE6502_PYTHON_WHEEL_GLOB}
+            -DQE6502_PYTHON_SMOKE_DIR=${QE6502_PYTHON_WHEEL_SMOKE_DIR}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/run_wheel_smoke.cmake"
+        DEPENDS
+            qe6502_python_wheel
+            "${CMAKE_CURRENT_SOURCE_DIR}/run_wheel_smoke.cmake"
+        COMMENT "Installing and smoke-testing qe6502 Python wheel"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_python_twine_check
+        COMMAND "${CMAKE_COMMAND}"
+            -DQE6502_PYTHON_EXECUTABLE=${QE6502_PYTHON_PACKAGE_EXECUTABLE}
+            -DQE6502_PYTHON_DIST_DIR=${QE6502_PYTHON_PACKAGE_DIST_DIR}
+            -DQE6502_PYTHON_WHEEL_GLOB=${QE6502_PYTHON_WHEEL_GLOB}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/run_twine_check.cmake"
+        DEPENDS
+            qe6502_python_wheel
+            "${CMAKE_CURRENT_SOURCE_DIR}/run_twine_check.cmake"
+        COMMENT "Running twine check for qe6502 Python wheel"
         VERBATIM
     )
 endif()
