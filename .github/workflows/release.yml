@@ -221,14 +221,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/js-npm-pack
-          npm pack --pack-destination "$PWD/build/js-npm-pack" \
-            --prefix "$PWD/build/release_wasm/binds/js/npm/qe6502"
+          mkdir -p "$PWD/build/js-npm-pack"
+          (
+            cd "$PWD/build/release_wasm/binds/js/npm/qe6502"
+            npm pack --pack-destination "$GITHUB_WORKSPACE/build/js-npm-pack"
+          )
+          ls -l build/js-npm-pack
           tar -tzf build/js-npm-pack/*.tgz | sort > build/js-npm-pack/qe6502-${{ needs.validate-release.outputs.version }}-files.txt
 
       - name: Dry-run JS npm publish
         shell: bash
-        run: npm publish --dry-run "$PWD/build/js-npm-pack/qe6502-${{ needs.validate-release.outputs.version }}.tgz"
+        run: |
+          set -euo pipefail
+          npm publish --dry-run "$PWD/build/js-npm-pack/qe6502-${{ needs.validate-release.outputs.version }}.tgz"
 
       - name: Upload JS npm release artifact
         uses: actions/upload-artifact@v7
@@ -555,8 +560,8 @@ jobs:
         with:
           name: qe6502-release-rust-crate-${{ needs.validate-release.outputs.version }}
           path: |
-            build/rust-package/qe6502
-            build/rust-package/qe6502/target/package/*.crate
+            build/release_native/rust-package/qe6502
+            build/release_native/rust-package/qe6502/target/package/*.crate
           if-no-files-found: error
 
   package-source:
