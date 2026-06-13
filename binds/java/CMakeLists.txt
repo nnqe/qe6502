@@ -250,6 +250,7 @@ add_custom_target(qe6502_java_package_stage
 )
 
 set(QE6502_JAVA_MAVEN_PUBLISH_DIR ${CMAKE_CURRENT_BINARY_DIR}/maven-publish)
+set(QE6502_JAVA_MAVEN_CENTRAL_BUNDLE ${CMAKE_CURRENT_BINARY_DIR}/qe6502-java-maven-central-${QE6502_JAVA_MAVEN_VERSION}.zip)
 
 add_custom_target(qe6502_java_maven_publish_layout
     COMMAND ${CMAKE_COMMAND}
@@ -274,6 +275,39 @@ if(QE6502_GPG_EXECUTABLE)
         COMMENT "Signing qe6502 Java Maven artifacts with GPG"
         VERBATIM
     )
+
+    add_custom_target(qe6502_java_maven_generate_checksums
+        COMMAND ${CMAKE_COMMAND}
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR=${QE6502_JAVA_MAVEN_PUBLISH_DIR}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_generate_maven_checksums.cmake
+        DEPENDS qe6502_java_maven_sign_artifacts
+        COMMENT "Generating qe6502 Java Maven checksums"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_java_maven_verify_central_bundle
+        COMMAND ${CMAKE_COMMAND}
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR=${QE6502_JAVA_MAVEN_PUBLISH_DIR}
+            -DQE6502_JAVA_MAVEN_GROUP_ID=${QE6502_JAVA_MAVEN_GROUP_ID}
+            -DQE6502_JAVA_MAVEN_ARTIFACT_ID=${QE6502_JAVA_MAVEN_ARTIFACT_ID}
+            -DQE6502_JAVA_MAVEN_VERSION=${QE6502_JAVA_MAVEN_VERSION}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_verify_maven_central_bundle.cmake
+        DEPENDS qe6502_java_maven_generate_checksums
+        COMMENT "Verifying qe6502 Java Maven Central publish layout"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_java_maven_central_bundle
+        COMMAND ${CMAKE_COMMAND}
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR=${QE6502_JAVA_MAVEN_PUBLISH_DIR}
+            -DQE6502_JAVA_MAVEN_CENTRAL_BUNDLE=${QE6502_JAVA_MAVEN_CENTRAL_BUNDLE}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_package_maven_central_bundle.cmake
+        DEPENDS qe6502_java_maven_verify_central_bundle
+        COMMENT "Packaging qe6502 Java Maven Central upload bundle"
+        VERBATIM
+    )
+else()
+    message(STATUS "GPG executable not found; skipping qe6502 Java Maven Central bundle target")
 endif()
 
 set(QE6502_JAVA_RUNTIME_ASSET_DIR ${CMAKE_CURRENT_BINARY_DIR}/runtime-asset)
@@ -344,6 +378,7 @@ set(QE6502_MAVEN_EXECUTABLE ${QE6502_MAVEN_EXECUTABLE} CACHE FILEPATH "Maven exe
 set(QE6502_JAVADOC_EXECUTABLE ${QE6502_JAVADOC_EXECUTABLE} CACHE FILEPATH "Javadoc executable for qe6502 Java javadoc jar")
 set(QE6502_GPG_EXECUTABLE ${QE6502_GPG_EXECUTABLE} CACHE FILEPATH "GPG executable for qe6502 Java Maven artifact signing")
 set(QE6502_JAVA_MAVEN_PUBLISH_DIR ${QE6502_JAVA_MAVEN_PUBLISH_DIR} CACHE INTERNAL "qe6502 Java Maven publish layout directory")
+set(QE6502_JAVA_MAVEN_CENTRAL_BUNDLE ${QE6502_JAVA_MAVEN_CENTRAL_BUNDLE} CACHE INTERNAL "qe6502 Java Maven Central upload bundle")
 set(QE6502_JAVA_MAVEN_GROUP_ID ${QE6502_JAVA_MAVEN_GROUP_ID} CACHE INTERNAL "qe6502 Java Maven groupId")
 set(QE6502_JAVA_MAVEN_ARTIFACT_ID ${QE6502_JAVA_MAVEN_ARTIFACT_ID} CACHE INTERNAL "qe6502 Java Maven artifactId")
 set(QE6502_JAVA_MAVEN_VERSION ${QE6502_JAVA_MAVEN_VERSION} CACHE INTERNAL "qe6502 Java Maven version")

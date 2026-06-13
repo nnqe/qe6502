@@ -82,8 +82,19 @@ contains `qe6502-<version>.jar`, `qe6502-<version>-sources.jar`,
 `qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. This Maven publish
 layout is the only Java release candidate uploaded by CI; the package staging
 directory remains an internal build/smoke-test input and is not part of the final
-publish artifact. If GPG is available, the companion signing target produces
-detached ASCII signatures next to those files:
+publish artifact.
+
+If GPG is available, the Maven Central bundle target signs the artifacts,
+generates the required `.md5` and `.sha1` checksum sidecars, verifies the Maven
+Central layout, and creates a local upload bundle zip without publishing it:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_maven_central_bundle
+```
+
+The generated zip is staged in the Java build directory as
+`qe6502-java-maven-central-<version>.zip`. The lower-level signing-only target is
+also available when GPG is configured:
 
 ```sh
 cmake --build --preset debug_native --target qe6502_java_maven_sign_artifacts
