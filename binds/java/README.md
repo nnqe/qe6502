@@ -25,6 +25,18 @@ library inside it under `qe6502/native/<platform>/`, and also copies the native
 shared library next to it in the Java binding build output directory for local
 fallback/debug use.
 
+A package-style staging directory for the current platform can be generated with:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_package_stage
+```
+
+The staged directory is created under the Java binding build tree as
+`package/qe6502-java-<version>/` and contains `qe6502-java.jar`, this README, and
+the project license. The jar in that directory is the same embedded-native jar
+built by `qe6502_java`; multi-platform aggregation and Maven metadata are handled
+by later packaging steps, not by this staging target.
+
 ## Runtime
 
 The binding is classpath-based in this development tree. Because the FFM API is

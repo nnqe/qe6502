@@ -419,7 +419,7 @@ try (Cpu cpu = new Cpu(Model.NMOS)) {
 }
 ```
 
-The Java binding uses Java 25+ FFM over the stable shared ABI. Development-tree runs use `--enable-native-access=ALL-UNNAMED`. Java harness output directories contain the harness jar, `qe6502-java.jar`, and the native shared library, so the harnesses can also be run directly with `java --enable-native-access=ALL-UNNAMED -jar ...`. CMake run targets and CTest entries still pass `-Dqe6502.native.path=...` explicitly.
+The Java binding uses Java 25+ FFM over the stable shared ABI. Development-tree runs use `--enable-native-access=ALL-UNNAMED`. The `qe6502-java.jar` embeds the current platform native shared library under `qe6502/native/<platform>/`; the binding also supports `-Dqe6502.native.path=...`, local-library, and system-library fallbacks. Java harness output directories contain the harness jar, `qe6502-java.jar`, and the native shared library, so the harnesses can also be run directly with `java --enable-native-access=ALL-UNNAMED -jar ...`.
 
 ## Minimal Python example
 
