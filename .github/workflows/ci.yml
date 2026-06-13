@@ -220,6 +220,24 @@ jobs:
       - name: Test
         run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure --verbose
 
+      - name: Package JS npm artifact
+        if: matrix.preset == 'release_wasm'
+        run: cmake --build build/${{ matrix.preset }} --target qe6502_js_npm_package_file_list
+
+      - name: Dry-run JS npm publish
+        if: matrix.preset == 'release_wasm'
+        run: cmake --build build/${{ matrix.preset }} --target qe6502_js_npm_publish_dry_run
+
+      - name: Upload JS npm package artifact
+        if: matrix.preset == 'release_wasm'
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-js-npm-${{ matrix.os }}-${{ matrix.preset }}
+          path: |
+            build/${{ matrix.preset }}/harness/js_package_smoke/pack/*.tgz
+            build/${{ matrix.preset }}/harness/js_package_smoke/pack/*-files.txt
+          if-no-files-found: error
+
       - name: Install smoke test
         if: runner.os != 'Windows' && contains(matrix.preset, 'wasm') == false
         run: cmake -DQE6502_BUILD_DIR=build/${{ matrix.preset }} -P cmake/qe6502InstallSmokeTest.cmake

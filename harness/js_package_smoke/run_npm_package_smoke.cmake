@@ -58,8 +58,12 @@ endif()
 
 string(REPLACE "\r\n" "\n" list_output "${list_output}")
 string(REPLACE "\r" "\n" list_output "${list_output}")
-string(REPLACE "\n" ";" package_files "${list_output}")
-list(REMOVE_ITEM package_files "")
+string(REGEX REPLACE "\n+$" "" list_output "${list_output}")
+if(list_output STREQUAL "")
+    set(package_files)
+else()
+    string(REPLACE "\n" ";" package_files "${list_output}")
+endif()
 list(SORT package_files)
 
 set(expected_files
