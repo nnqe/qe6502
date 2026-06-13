@@ -8,6 +8,7 @@ import base64
 import csv
 import hashlib
 import os
+import platform as host_platform
 import re
 import shutil
 import sysconfig
@@ -23,6 +24,26 @@ def normalize_distribution(name: str) -> str:
 
 def wheel_platform_tag() -> str:
     platform = sysconfig.get_platform()
+
+    if platform.startswith("macosx-"):
+        parts = platform.split("-")
+        if len(parts) == 3 and parts[2] == "universal2":
+            arch = host_platform.machine().lower()
+            if arch in {"amd64", "x86-64", "x86_64"}:
+                arch = "x86_64"
+            elif arch in {"aarch64", "arm64"}:
+                arch = "arm64"
+            else:
+                arch = parts[2]
+
+            version = parts[1]
+            if arch == "arm64":
+                version_items = tuple(int(item) for item in version.split(".")[:2])
+                if version_items < (11, 0):
+                    version = "11.0"
+
+            platform = f"macosx-{version}-{arch}"
+
     return platform.replace("-", "_").replace(".", "_")
 
 

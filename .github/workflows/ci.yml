@@ -244,7 +244,7 @@ jobs:
         run: cmake --build build/${{ matrix.preset }} --target qe6502_python_twine_check
 
       - name: Upload Python wheel publish candidate
-        if: matrix.preset == 'release_native'
+        if: matrix.preset == 'release_native' && matrix.os != 'macos-latest'
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-python-wheel-${{ matrix.os }}-${{ matrix.preset }}
