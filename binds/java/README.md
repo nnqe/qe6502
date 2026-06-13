@@ -32,10 +32,12 @@ cmake --build --preset debug_native --target qe6502_java_package_stage
 ```
 
 The staged directory is created under the Java binding build tree as
-`package/qe6502-java-<version>/` and contains `qe6502-java.jar`, this README, and
-the project license. The jar in that directory is the same embedded-native jar
-built by `qe6502_java`; multi-platform aggregation and Maven metadata are handled
-by later packaging steps, not by this staging target.
+`package/qe6502-java-<version>/` and contains `qe6502-java.jar`, `pom.xml`,
+this README, and the project license. The jar in that directory is the same
+embedded-native jar built by `qe6502_java`; the POM uses Maven coordinates
+`io.github.nnqe:qe6502:<version>` with the version generated from the qe6502
+CMake package version. Multi-platform aggregation is handled by later packaging
+steps, not by this staging target.
 
 A native runtime asset fragment for CI/package aggregation can be staged with:
 
@@ -64,8 +66,9 @@ cmake \
   -P binds/java/run_package_aggregate.cmake
 ```
 
-The aggregate script overlays the collected native resources into the staged jar
-and verifies that the six supported platform entries are present.
+The aggregate script overlays the collected native resources into the staged jar,
+copies the staged `pom.xml`, and verifies that the six supported platform entries
+are present.
 
 A clean external consumer smoke can be run against the staged jar with:
 
@@ -88,8 +91,10 @@ native access, run Java code with:
 
 The binding first checks `-Dqe6502.native.path=/absolute/path/to/library` when it
 is provided. If that property is absent, it tries to extract and load the
-platform native library bundled in `qe6502-java.jar`. If no matching bundled
-library is available, it tries to load the platform native library from the
+platform native library bundled in `qe6502-java.jar`. The extraction directory
+name includes the ABI version and platform id. If the current OS/architecture is
+unsupported or no matching bundled library is available, the error diagnostics
+say so clearly and the loader then tries the platform native library from the
 current working directory before falling back to the normal system library
 lookup.
 

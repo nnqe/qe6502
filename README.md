@@ -531,8 +531,10 @@ cmake --build --preset release_native --target qe6502_java_package_smoke
 
 Release CI also has a Java package aggregation job that downloads the Java native
 runtime fragments from the supported native release builds, overlays them into
-the staged jar, verifies the multi-platform `qe6502/native/<platform>/` layout,
-runs the package smoke on Linux, and uploads the resulting Java package candidate.
+the staged jar, carries the generated Maven `pom.xml` with coordinates
+`io.github.nnqe:qe6502:<version>`, verifies the multi-platform
+`qe6502/native/<platform>/` layout, runs the package smoke on Linux, and uploads
+the resulting Java package candidate.
 
 
 For WebAssembly/JavaScript harnesses:

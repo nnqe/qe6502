@@ -209,46 +209,83 @@ final class NativeLibrary implements AutoCloseable {
     private static SymbolLookup openLookup(Arena arena) {
         String nativePath = System.getProperty(NATIVE_PATH_PROPERTY);
         if (nativePath != null && !nativePath.isBlank()) {
-            return SymbolLookup.libraryLookup(Path.of(nativePath), arena);
+            try {
+                return SymbolLookup.libraryLookup(Path.of(nativePath), arena);
+            } catch (RuntimeException | Error failure) {
+                throw new UnsatisfiedLinkError(
+                    "Failed to load qe6502 native library from -D" + NATIVE_PATH_PROPERTY + "=" + nativePath
+                    + ": " + failure.getMessage()
+                );
+            }
         }
 
-        Path bundledLibrary = extractBundledLibrary();
+        StringBuilder diagnostics = new StringBuilder();
+
+        Path bundledLibrary = extractBundledLibrary(diagnostics);
         if (bundledLibrary != null) {
-            return SymbolLookup.libraryLookup(bundledLibrary, arena);
+            try {
+                return SymbolLookup.libraryLookup(bundledLibrary, arena);
+            } catch (RuntimeException | Error failure) {
+                appendDiagnostic(diagnostics, "bundled native library could not be loaded from "
+                    + bundledLibrary + ": " + failure.getMessage());
+            }
         }
 
         Path localLibrary = Path.of(platformLibraryFileName()).toAbsolutePath();
         if (Files.isRegularFile(localLibrary)) {
-            return SymbolLookup.libraryLookup(localLibrary, arena);
+            try {
+                return SymbolLookup.libraryLookup(localLibrary, arena);
+            } catch (RuntimeException | Error failure) {
+                appendDiagnostic(diagnostics, "local native library could not be loaded from "
+                    + localLibrary + ": " + failure.getMessage());
+            }
+        } else {
+            appendDiagnostic(diagnostics, "local native library not found at " + localLibrary);
         }
 
-        return SymbolLookup.libraryLookup(defaultLibraryName(), arena);
+        try {
+            return SymbolLookup.libraryLookup(defaultLibraryName(), arena);
+        } catch (RuntimeException | Error failure) {
+            appendDiagnostic(diagnostics, "system library lookup for " + defaultLibraryName()
+                + " failed: " + failure.getMessage());
+        }
+
+        throw new UnsatisfiedLinkError("Unable to load qe6502 native library. Tried -D"
+            + NATIVE_PATH_PROPERTY + ", bundled jar resource, local file, and system lookup."
+            + diagnostics);
     }
 
-    private static Path extractBundledLibrary() {
-        String platform = platformResourceDirectory();
-        if (platform == null) {
+    private static Path extractBundledLibrary(StringBuilder diagnostics) {
+        PlatformInfo platform = detectPlatform();
+        if (!platform.supported()) {
+            appendDiagnostic(diagnostics, "unsupported platform for bundled native library: os.name=\""
+                + platform.osName() + "\", os.arch=\"" + platform.archName() + "\"");
             return null;
         }
 
-        String resourceName = "/qe6502/native/" + platform + "/" + platformLibraryFileName();
+        String resourceName = "/qe6502/native/" + platform.resourceDirectory() + "/" + platformLibraryFileName();
         try (InputStream input = NativeLibrary.class.getResourceAsStream(resourceName)) {
             if (input == null) {
+                appendDiagnostic(diagnostics, "bundled native library resource not found: " + resourceName);
                 return null;
             }
 
-            Path directory = Files.createTempDirectory("qe6502-java-native-");
+            Path directory = Files.createTempDirectory(
+                "qe6502-java-native-abi" + Integer.toHexString(EXPECTED_ABI_VERSION)
+                    + "-" + platform.resourceDirectory() + "-"
+            );
             Path extractedLibrary = directory.resolve(platformLibraryFileName());
             Files.copy(input, extractedLibrary, StandardCopyOption.REPLACE_EXISTING);
             directory.toFile().deleteOnExit();
             extractedLibrary.toFile().deleteOnExit();
             return extractedLibrary;
         } catch (IOException exception) {
-            throw new UnsatisfiedLinkError("Failed to extract bundled qe6502 native library: " + exception.getMessage());
+            throw new UnsatisfiedLinkError("Failed to extract bundled qe6502 native library resource "
+                + resourceName + ": " + exception.getMessage());
         }
     }
 
-    private static String platformResourceDirectory() {
+    private static PlatformInfo detectPlatform() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         String archName = System.getProperty("os.arch", "").toLowerCase();
 
@@ -260,7 +297,7 @@ final class NativeLibrary implements AutoCloseable {
         } else if (osName.contains("linux")) {
             os = "linux";
         } else {
-            return null;
+            os = null;
         }
 
         String arch;
@@ -269,11 +306,23 @@ final class NativeLibrary implements AutoCloseable {
         } else if (archName.equals("aarch64") || archName.equals("arm64")) {
             arch = "arm64";
         } else {
-            return null;
+            arch = null;
         }
 
-        return os + "-" + arch;
+        String resourceDirectory = (os == null || arch == null) ? null : os + "-" + arch;
+        return new PlatformInfo(osName, archName, resourceDirectory);
     }
+
+    private static void appendDiagnostic(StringBuilder diagnostics, String message) {
+        diagnostics.append(System.lineSeparator()).append("  - ").append(message);
+    }
+
+    private record PlatformInfo(String osName, String archName, String resourceDirectory) {
+        boolean supported() {
+            return resourceDirectory != null;
+        }
+    }
+
 
     private static String platformLibraryFileName() {
         String osName = System.getProperty("os.name", "").toLowerCase();
