@@ -1,6 +1,6 @@
 {
   "name": "qe6502",
-  "version": "@PROJECT_VERSION@.0",
+  "version": "@QE6502_PACKAGE_VERSION@",
   "description": "JavaScript and WebAssembly binding for qe6502, a cycle-oriented 6502/65C02 CPU emulator.",
   "type": "module",
   "exports": {
