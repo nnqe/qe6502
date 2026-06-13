@@ -519,7 +519,7 @@ cmake --build --preset release_native --target qe6502_rust_smoke_run
 cmake --build --preset release_native --target qe6502_rust_klaus2m5_run
 ```
 
-For Java harnesses, Java package staging, and Java package smoke, when JDK 25+ is available:
+For Java harnesses, Java package staging, runtime asset staging, and Java package smoke, when JDK 25+ is available:
 
 ```sh
 cmake --build --preset release_native --target qe6502_java_smoke_run
@@ -528,6 +528,12 @@ cmake --build --preset release_native --target qe6502_java_package_stage
 cmake --build --preset release_native --target qe6502_java_stage_runtime_asset
 cmake --build --preset release_native --target qe6502_java_package_smoke
 ```
+
+Release CI also has a Java package aggregation job that downloads the Java native
+runtime fragments from the supported native release builds, overlays them into
+the staged jar, verifies the multi-platform `qe6502/native/<platform>/` layout,
+runs the package smoke on Linux, and uploads the resulting Java package candidate.
+
 
 For WebAssembly/JavaScript harnesses:
 

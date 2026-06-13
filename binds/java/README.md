@@ -46,8 +46,26 @@ cmake --build --preset debug_native --target qe6502_java_stage_runtime_asset
 The runtime asset fragment is created under `runtime-asset/` in the Java binding
 build tree and uses the same embedded-resource layout as the jar, for example
 `qe6502/native/linux-x64/libqe6502.so`. Release CI uploads this fragment from
-each supported OS/architecture so a later aggregation step can build a
-multi-platform jar.
+each supported OS/architecture. The CI Java package aggregation job merges those
+fragments into one multi-platform package candidate whose jar contains all
+supported native libraries under `qe6502/native/<platform>/`.
+
+
+The same aggregation step can also be run manually after collecting all runtime
+asset fragments into a single root that contains `qe6502/native/`:
+
+```sh
+cmake \
+  -DQE6502_JAVA_JAR_EXECUTABLE="$(command -v jar)" \
+  -DQE6502_JAVA_BASE_PACKAGE_DIR="$PWD/build/release_native/binds/java/package/qe6502-java-<version>" \
+  -DQE6502_JAVA_RUNTIME_ROOT="$PWD/build/java-multiplatform-runtime" \
+  -DQE6502_JAVA_AGGREGATE_DIR="$PWD/build/java-package" \
+  -DQE6502_JAVA_PACKAGE_VERSION="<version>" \
+  -P binds/java/run_package_aggregate.cmake
+```
+
+The aggregate script overlays the collected native resources into the staged jar
+and verifies that the six supported platform entries are present.
 
 A clean external consumer smoke can be run against the staged jar with:
 
