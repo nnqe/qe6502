@@ -10,7 +10,7 @@ The Python package wraps the stable qe6502 C ABI and provides a small stateful `
 pip install qe6502
 ```
 
-The published package is intended to provide prebuilt wheels for supported platforms. Building from source may require a C compiler, CMake, and Python development headers.
+Most users should receive a prebuilt wheel. The package is a native CPython extension targeting Python 3.10 and newer through CPython's stable ABI. Source builds are a fallback and may require a C compiler, CMake, and Python development headers.
 
 ## Quick start
 
@@ -73,6 +73,10 @@ restored_tick = cpu.load(snapshot)
 ```
 
 Snapshots are byte strings with length `SNAPSHOT_SIZE`.
+
+## Lifetime
+
+`CPU` owns its emulator context. No explicit close or dispose call is required; the context is released with the Python object.
 
 ## Versioning
 
