@@ -215,6 +215,10 @@ async function loadDescriptorJson(descriptor) {
     return undefined;
   }
 
+  if (String(text).trim().length === 0) {
+    return [];
+  }
+
   try {
     return JSON.parse(text);
   } catch (error) {
