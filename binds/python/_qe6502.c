@@ -1,10 +1,15 @@
 #define PY_SSIZE_T_CLEAN
+#ifndef Py_LIMITED_API
+#define Py_LIMITED_API 0x030A0000
+#endif
 #include <Python.h>
 
 #include "qe6502/qe6502_abi.h"
 
 #include <stdint.h>
 #include <string.h>
+
+#define PY_QE6502_SLOT_FUNCTION(function) ((void*)(uintptr_t)(function))
 
 #define PY_QE6502_EXPECTED_VERSION_MAJOR QE6502_VERSION_MAJOR
 #define PY_QE6502_EXPECTED_VERSION_MINOR QE6502_VERSION_MINOR
@@ -185,20 +190,27 @@ CPU_save(Qe6502CPUObject* self, PyObject* Py_UNUSED(ignored))
 static PyObject*
 CPU_load(Qe6502CPUObject* self, PyObject* arg)
 {
-    Py_buffer view;
+    char* snapshot;
+    Py_ssize_t snapshot_size;
+    PyObject* snapshot_bytes = PyBytes_FromObject(arg);
 
-    if (PyObject_GetBuffer(arg, &view, PyBUF_SIMPLE) < 0) {
+    if (snapshot_bytes == NULL) {
         return NULL;
     }
 
-    if (view.len != (Py_ssize_t)QE6502_ABI_SNAPSHOT_SIZE) {
-        PyBuffer_Release(&view);
+    if (PyBytes_AsStringAndSize(snapshot_bytes, &snapshot, &snapshot_size) < 0) {
+        Py_DECREF(snapshot_bytes);
+        return NULL;
+    }
+
+    if (snapshot_size != (Py_ssize_t)QE6502_ABI_SNAPSHOT_SIZE) {
+        Py_DECREF(snapshot_bytes);
         PyErr_SetString(PyExc_ValueError, "snapshot must be exactly 64 bytes");
         return NULL;
     }
 
-    self->tick = qe6502abi_load(&self->ctx, (const uint8_t*)view.buf);
-    PyBuffer_Release(&view);
+    self->tick = qe6502abi_load(&self->ctx, (const uint8_t*)snapshot);
+    Py_DECREF(snapshot_bytes);
 
     return uint32_to_python(self->tick);
 }
@@ -381,23 +393,22 @@ static PyGetSetDef CPU_getset[] = {
     {NULL, NULL, NULL, NULL, NULL}
 };
 
-static PyTypeObject Qe6502CPUType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_qe6502.CPU",
-    .tp_basicsize = sizeof(Qe6502CPUObject),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = "qe6502 CPU ABI context",
-    .tp_init = (initproc)CPU_init,
-    .tp_methods = CPU_methods,
-    .tp_getset = CPU_getset,
+static PyType_Slot CPU_type_slots[] = {
+    {Py_tp_doc, (void*)"qe6502 CPU ABI context"},
+    {Py_tp_new, PY_QE6502_SLOT_FUNCTION(PyType_GenericNew)},
+    {Py_tp_init, PY_QE6502_SLOT_FUNCTION(CPU_init)},
+    {Py_tp_methods, (void*)CPU_methods},
+    {Py_tp_getset, (void*)CPU_getset},
+    {0, NULL},
 };
 
-static void
-CPU_type_init_runtime_slots(void)
-{
-    Qe6502CPUType.tp_new = PyType_GenericNew;
-}
+static PyType_Spec CPU_type_spec = {
+    .name = "_qe6502.CPU",
+    .basicsize = (int)sizeof(Qe6502CPUObject),
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT,
+    .slots = CPU_type_slots,
+};
 
 static PyObject*
 module_version(PyObject* Py_UNUSED(self), PyObject* Py_UNUSED(ignored))
@@ -483,11 +494,7 @@ PyInit__qe6502(void)
         return NULL;
     }
 
-    CPU_type_init_runtime_slots();
-
-    if (PyType_Ready(&Qe6502CPUType) < 0) {
-        return NULL;
-    }
+    PyObject* cpu_type;
 
     module = PyModule_Create(&moduledef);
 
@@ -495,10 +502,15 @@ PyInit__qe6502(void)
         return NULL;
     }
 
-    Py_INCREF(&Qe6502CPUType);
+    cpu_type = PyType_FromSpec(&CPU_type_spec);
 
-    if (PyModule_AddObject(module, "CPU", (PyObject*)&Qe6502CPUType) < 0) {
-        Py_DECREF(&Qe6502CPUType);
+    if (cpu_type == NULL) {
+        Py_DECREF(module);
+        return NULL;
+    }
+
+    if (PyModule_AddObject(module, "CPU", cpu_type) < 0) {
+        Py_DECREF(cpu_type);
         Py_DECREF(module);
         return NULL;
     }
