@@ -609,11 +609,9 @@ jobs:
             -P binds/java/run_maven_publish_layout.cmake
           find build/java-maven-publish -type f | sort
 
-      - name: Upload Java multi-platform package
+      - name: Upload Java Maven publish layout
         uses: actions/upload-artifact@v7
         with:
-          name: qe6502-java-multiplatform-package
-          path: |
-            build/java-package/qe6502-*/*
-            build/java-maven-publish/**/*
+          name: qe6502-java-maven-publish
+          path: build/java-maven-publish/**/*
           if-no-files-found: error

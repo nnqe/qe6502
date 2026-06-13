@@ -79,9 +79,11 @@ cmake --build --preset debug_native --target qe6502_java_maven_publish_layout
 
 The layout is staged under `maven-publish/io/github/nnqe/qe6502/<version>/` and
 contains `qe6502-<version>.jar`, `qe6502-<version>-sources.jar`,
-`qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. If GPG is available,
-the companion signing target produces detached ASCII signatures next to those
-files:
+`qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. This Maven publish
+layout is the only Java release candidate uploaded by CI; the package staging
+directory remains an internal build/smoke-test input and is not part of the final
+publish artifact. If GPG is available, the companion signing target produces
+detached ASCII signatures next to those files:
 
 ```sh
 cmake --build --preset debug_native --target qe6502_java_maven_sign_artifacts

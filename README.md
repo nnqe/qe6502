@@ -543,10 +543,10 @@ runtime fragments from the supported native release builds, overlays them into
 the staged jar, carries the generated Maven `pom.xml`, Java sources jar, and
 javadoc jar with coordinates `io.github.nnqe:qe6502:<version>`, verifies the
 multi-platform `qe6502/native/<platform>/` layout, stages a Maven-style publish
-layout, runs package smoke checks, and uploads the resulting Java package
-candidate. The native release jobs also run the Java
-package smoke on their own platform before uploading their Java runtime asset
-fragments, so embedded native loading is exercised on Windows, macOS, and Linux.
+layout, runs package smoke checks, and uploads only that Maven publish layout as
+the Java release candidate. The native release jobs also run the Java package
+smoke on their own platform before uploading their Java runtime asset fragments,
+so embedded native loading is exercised on Windows, macOS, and Linux.
 
 
 For WebAssembly/JavaScript harnesses:
