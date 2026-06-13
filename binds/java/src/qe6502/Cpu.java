@@ -247,10 +247,16 @@ public final class Cpu implements AutoCloseable {
 
     private static void ensureAbiVersion(NativeLibrary nativeLibrary) {
         int version = nativeLibrary.version();
-        if (version != NativeLibrary.EXPECTED_ABI_VERSION) {
+        int major = (version >>> 16) & 0xffff;
+        int minor = version & 0xffff;
+
+        if (major != NativeVersion.COMPILED_ABI_VERSION_MAJOR ||
+            minor < NativeVersion.COMPILED_ABI_VERSION_MINOR) {
             throw new IllegalStateException(
                 "Unsupported qe6502 ABI version 0x" + Integer.toHexString(version) +
-                "; expected 0x" + Integer.toHexString(NativeLibrary.EXPECTED_ABI_VERSION) + ".");
+                "; expected ABI-compatible version 0x" +
+                Integer.toHexString(NativeVersion.COMPILED_ABI_VERSION) +
+                " or newer with major " + NativeVersion.COMPILED_ABI_VERSION_MAJOR + ".");
         }
     }
 

@@ -42,9 +42,9 @@ The binding exposes the same model constants as the C ABI, including:
 
 - `MODEL_NMOS`
 - `MODEL_NES`
-- `MODEL_WDC65C02`
-- `MODEL_ROCKWELL65C02`
-- `MODEL_ST65C02`
+- `MODEL_WDC`
+- `MODEL_ROCKWELL`
+- `MODEL_SYNERTEK`
 
 ## Bus state
 
@@ -53,7 +53,7 @@ The binding exposes the same model constants as the C ABI, including:
 - `TICK_ADDRESS_MASK`
 - `TICK_BUS_SHIFT`
 - `TICK_WRITING`
-- `TICK_OPCODE_FETCH`
+- `TICK_FETCH`
 - `TICK_INTERNAL_RESET`
 - `TICK_CPU_JAMMED`
 

@@ -90,7 +90,7 @@ Available models:
 - `Model.nes` - NES / RP2A03 CPU
 - `Model.wdc` - WDC 65C02
 - `Model.rw` - Rockwell 65C02
-- `Model.st` - ST 65C02
+- `Model.st` - Synertek 65C02
 
 ## Bus state
 

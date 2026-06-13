@@ -17,7 +17,6 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 final class NativeLibrary implements AutoCloseable {
-    static final int EXPECTED_ABI_VERSION = 0x00000005;
     static final int CONTEXT_SIZE = 64;
     static final int CONTEXT_ALIGN = 8;
     static final int SNAPSHOT_SIZE = 64;
@@ -271,7 +270,7 @@ final class NativeLibrary implements AutoCloseable {
             }
 
             Path directory = Files.createTempDirectory(
-                "qe6502-java-native-abi" + Integer.toHexString(EXPECTED_ABI_VERSION)
+                "qe6502-java-native-abi" + Integer.toHexString(NativeVersion.COMPILED_ABI_VERSION)
                     + "-" + platform.resourceDirectory() + "-"
             );
             Path extractedLibrary = directory.resolve(platformLibraryFileName());

@@ -1,6 +1,7 @@
 [package]
 name = "qe6502"
-version = "0.1.0"
+# Development-tree placeholder; package_crate.py rewrites this from qe6502_version.h or CMake.
+version = "0.0.0"
 edition = "2021"
 rust-version = "1.70"
 license = "MIT"

@@ -24,7 +24,13 @@ export const Status = Object.freeze({
   cpuJammed: 1 << 7,
 });
 
-const ABI_VERSION = 0x00000005;
+function configuredInteger(configuredValue) {
+  const value = Number(configuredValue);
+  return Number.isInteger(value) ? value : null;
+}
+
+const ABI_VERSION_MAJOR = configuredInteger("@QE6502_VERSION_MAJOR@");
+const ABI_VERSION_MINOR = configuredInteger("@QE6502_VERSION_MINOR@");
 const SNAPSHOT_SIZE = 64;
 
 const TICK_ADDRESS_MASK = 0xffff;
@@ -143,9 +149,16 @@ async function instantiateQe6502(bytes) {
   requireExports(exports);
 
   const version = exports.qe6502abi_version() >>> 0;
-  if (version !== ABI_VERSION) {
+  const major = (version >>> 16) & 0xffff;
+  const minor = version & 0xffff;
+
+  const expectedMajor = ABI_VERSION_MAJOR === null ? major : ABI_VERSION_MAJOR;
+  const expectedMinor = ABI_VERSION_MINOR === null ? minor : ABI_VERSION_MINOR;
+
+  if (major !== expectedMajor || minor < expectedMinor) {
     throw new Error(
-      `Unsupported qe6502 ABI version: 0x${version.toString(16).padStart(8, "0")}`,
+      `Unsupported qe6502 ABI version: 0x${version.toString(16).padStart(8, "0")}; ` +
+        `expected major ${expectedMajor} with minor >= ${expectedMinor}`,
     );
   }
 
@@ -297,7 +310,7 @@ export class Qe6502Cpu {
   save() {
     this.#assertAlive();
 
-    const scratch = this.#allocScratch();
+    const scratch = this.#allocSnapshotScratch();
 
     try {
       this.#runtime.exports.qe6502abi_save(this.#ptr, this.#tick, scratch);
@@ -317,7 +330,7 @@ export class Qe6502Cpu {
       throw new RangeError(`Snapshot must be exactly ${SNAPSHOT_SIZE} bytes`);
     }
 
-    const scratch = this.#allocScratch();
+    const scratch = this.#allocSnapshotScratch();
 
     try {
       new Uint8Array(this.#runtime.memory.buffer, scratch, SNAPSHOT_SIZE).set(
@@ -424,7 +437,7 @@ export class Qe6502Cpu {
     );
   }
 
-  #allocScratch() {
+  #allocSnapshotScratch() {
     const scratch = this.#runtime.exports.qe6502js_context_alloc() >>> 0;
 
     if (scratch === 0) {

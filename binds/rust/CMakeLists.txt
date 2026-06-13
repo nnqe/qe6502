@@ -55,6 +55,7 @@ if(Python3_Interpreter_FOUND)
             "${CMAKE_CURRENT_SOURCE_DIR}/package_crate.py"
             --repo-root "${CMAKE_SOURCE_DIR}"
             --out "${QE6502_RUST_PACKAGE_DIR}"
+            --version "${QE6502_PACKAGE_VERSION}"
         COMMENT "Staging self-contained qe6502 Rust crate"
         VERBATIM
     )

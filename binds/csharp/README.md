@@ -44,7 +44,7 @@ Available models:
 - `Model.Nes` — NES / RP2A03 CPU
 - `Model.Wdc` — WDC 65C02
 - `Model.Rockwell` — Rockwell 65C02
-- `Model.St` — ST 65C02
+- `Model.St` — Synertek 65C02
 
 The model can also be changed through the `Model` property.
 

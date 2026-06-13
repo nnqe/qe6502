@@ -10,6 +10,7 @@
 #include <string.h>
 
 #define PY_QE6502_SLOT_FUNCTION(function) ((void*)(uintptr_t)(function))
+#define PY_QE6502_CONST_CLOSURE(object) ((void*)(uintptr_t)(const void*)&(object))
 
 #define PY_QE6502_EXPECTED_VERSION_MAJOR QE6502_VERSION_MAJOR
 #define PY_QE6502_EXPECTED_VERSION_MINOR QE6502_VERSION_MINOR
@@ -350,22 +351,22 @@ CPU_set_irq_asserted(Qe6502CPUObject* self, PyObject* value, void* Py_UNUSED(clo
     return 0;
 }
 
-static Qe6502RegisterAccess register_pc = {qe6502abi_get_pc, qe6502abi_set_pc, 0xffffu};
-static Qe6502RegisterAccess register_s = {qe6502abi_get_s, qe6502abi_set_s, 0xffu};
-static Qe6502RegisterAccess register_a = {qe6502abi_get_a, qe6502abi_set_a, 0xffu};
-static Qe6502RegisterAccess register_x = {qe6502abi_get_x, qe6502abi_set_x, 0xffu};
-static Qe6502RegisterAccess register_y = {qe6502abi_get_y, qe6502abi_set_y, 0xffu};
-static Qe6502RegisterAccess register_p = {qe6502abi_get_p, qe6502abi_set_p, 0xffu};
-static Qe6502RegisterAccess register_model = {qe6502abi_get_model, qe6502abi_set_model, QE6502_ABI_MODEL_COUNT - 1u};
+static const Qe6502RegisterAccess register_pc = {qe6502abi_get_pc, qe6502abi_set_pc, 0xffffu};
+static const Qe6502RegisterAccess register_s = {qe6502abi_get_s, qe6502abi_set_s, 0xffu};
+static const Qe6502RegisterAccess register_a = {qe6502abi_get_a, qe6502abi_set_a, 0xffu};
+static const Qe6502RegisterAccess register_x = {qe6502abi_get_x, qe6502abi_set_x, 0xffu};
+static const Qe6502RegisterAccess register_y = {qe6502abi_get_y, qe6502abi_set_y, 0xffu};
+static const Qe6502RegisterAccess register_p = {qe6502abi_get_p, qe6502abi_set_p, 0xffu};
+static const Qe6502RegisterAccess register_model = {qe6502abi_get_model, qe6502abi_set_model, QE6502_ABI_MODEL_COUNT - 1u};
 
-static Qe6502FlagAccess flag_carry = {QE6502_ABI_FLAG_C};
-static Qe6502FlagAccess flag_zero = {QE6502_ABI_FLAG_Z};
-static Qe6502FlagAccess flag_interrupt_disable = {QE6502_ABI_FLAG_I};
-static Qe6502FlagAccess flag_decimal = {QE6502_ABI_FLAG_D};
-static Qe6502FlagAccess flag_break = {QE6502_ABI_FLAG_B};
-static Qe6502FlagAccess flag_unused = {QE6502_ABI_FLAG_UN};
-static Qe6502FlagAccess flag_overflow = {QE6502_ABI_FLAG_V};
-static Qe6502FlagAccess flag_negative = {QE6502_ABI_FLAG_N};
+static const Qe6502FlagAccess flag_carry = {QE6502_ABI_FLAG_C};
+static const Qe6502FlagAccess flag_zero = {QE6502_ABI_FLAG_Z};
+static const Qe6502FlagAccess flag_interrupt_disable = {QE6502_ABI_FLAG_I};
+static const Qe6502FlagAccess flag_decimal = {QE6502_ABI_FLAG_D};
+static const Qe6502FlagAccess flag_break = {QE6502_ABI_FLAG_B};
+static const Qe6502FlagAccess flag_unused = {QE6502_ABI_FLAG_UN};
+static const Qe6502FlagAccess flag_overflow = {QE6502_ABI_FLAG_V};
+static const Qe6502FlagAccess flag_negative = {QE6502_ABI_FLAG_N};
 
 static PyMethodDef CPU_methods[] = {
     {"setup", (PyCFunction)CPU_setup, METH_O, "Set up the CPU model and clear the cached tick."},
@@ -379,21 +380,21 @@ static PyMethodDef CPU_methods[] = {
 
 static PyGetSetDef CPU_getset[] = {
     {"raw_tick", (getter)CPU_get_raw_tick, NULL, "last packed ABI tick", NULL},
-    {"pc", (getter)CPU_get_register, (setter)CPU_set_register, "program counter", &register_pc},
-    {"s", (getter)CPU_get_register, (setter)CPU_set_register, "stack pointer", &register_s},
-    {"a", (getter)CPU_get_register, (setter)CPU_set_register, "accumulator", &register_a},
-    {"x", (getter)CPU_get_register, (setter)CPU_set_register, "X register", &register_x},
-    {"y", (getter)CPU_get_register, (setter)CPU_set_register, "Y register", &register_y},
-    {"p", (getter)CPU_get_register, (setter)CPU_set_register, "processor status", &register_p},
-    {"model", (getter)CPU_get_register, (setter)CPU_set_register, "CPU model", &register_model},
-    {"carry_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "carry flag", &flag_carry},
-    {"zero_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "zero flag", &flag_zero},
-    {"interrupt_disable_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "interrupt-disable flag", &flag_interrupt_disable},
-    {"decimal_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "decimal flag", &flag_decimal},
-    {"break_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "break flag", &flag_break},
-    {"unused_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "unused status flag", &flag_unused},
-    {"overflow_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "overflow flag", &flag_overflow},
-    {"negative_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "negative flag", &flag_negative},
+    {"pc", (getter)CPU_get_register, (setter)CPU_set_register, "program counter", PY_QE6502_CONST_CLOSURE(register_pc)},
+    {"s", (getter)CPU_get_register, (setter)CPU_set_register, "stack pointer", PY_QE6502_CONST_CLOSURE(register_s)},
+    {"a", (getter)CPU_get_register, (setter)CPU_set_register, "accumulator", PY_QE6502_CONST_CLOSURE(register_a)},
+    {"x", (getter)CPU_get_register, (setter)CPU_set_register, "X register", PY_QE6502_CONST_CLOSURE(register_x)},
+    {"y", (getter)CPU_get_register, (setter)CPU_set_register, "Y register", PY_QE6502_CONST_CLOSURE(register_y)},
+    {"p", (getter)CPU_get_register, (setter)CPU_set_register, "processor status", PY_QE6502_CONST_CLOSURE(register_p)},
+    {"model", (getter)CPU_get_register, (setter)CPU_set_register, "CPU model", PY_QE6502_CONST_CLOSURE(register_model)},
+    {"carry_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "carry flag", PY_QE6502_CONST_CLOSURE(flag_carry)},
+    {"zero_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "zero flag", PY_QE6502_CONST_CLOSURE(flag_zero)},
+    {"interrupt_disable_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "interrupt-disable flag", PY_QE6502_CONST_CLOSURE(flag_interrupt_disable)},
+    {"decimal_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "decimal flag", PY_QE6502_CONST_CLOSURE(flag_decimal)},
+    {"break_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "break flag", PY_QE6502_CONST_CLOSURE(flag_break)},
+    {"unused_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "unused status flag", PY_QE6502_CONST_CLOSURE(flag_unused)},
+    {"overflow_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "overflow flag", PY_QE6502_CONST_CLOSURE(flag_overflow)},
+    {"negative_flag", (getter)CPU_get_flag, (setter)CPU_set_flag, "negative flag", PY_QE6502_CONST_CLOSURE(flag_negative)},
     {"nmi_asserted", (getter)CPU_get_nmi_asserted, (setter)CPU_set_nmi_asserted, "NMI input state", NULL},
     {"irq_asserted", (getter)CPU_get_irq_asserted, (setter)CPU_set_irq_asserted, "IRQ input state", NULL},
     {NULL, NULL, NULL, NULL, NULL}

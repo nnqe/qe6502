@@ -57,6 +57,13 @@ set_target_properties(qe6502_js PROPERTIES
     SUFFIX ".wasm"
 )
 
+set(QE6502_JS_CONFIGURED_MODULE "${CMAKE_CURRENT_BINARY_DIR}/qe6502.js")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/qe6502.js"
+    "${QE6502_JS_CONFIGURED_MODULE}"
+    @ONLY
+)
+
 set(QE6502_JS_NPM_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/npm/qe6502")
 set(QE6502_JS_NPM_PACKAGE_JSON "${QE6502_JS_NPM_PACKAGE_DIR}/package.json")
 set(QE6502_JS_NPM_PACKAGE_README "${QE6502_JS_NPM_PACKAGE_DIR}/README.md")
@@ -85,7 +92,7 @@ add_custom_command(
         "${CMAKE_SOURCE_DIR}/LICENSE"
         "${QE6502_JS_NPM_PACKAGE_LICENSE}"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/qe6502.js"
+        "${QE6502_JS_CONFIGURED_MODULE}"
         "${QE6502_JS_NPM_PACKAGE_MODULE}"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "$<TARGET_FILE:qe6502_js>"
@@ -93,6 +100,7 @@ add_custom_command(
     DEPENDS
         qe6502_js
         "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+        "${QE6502_JS_CONFIGURED_MODULE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/qe6502.js"
         "${CMAKE_SOURCE_DIR}/LICENSE"
     VERBATIM

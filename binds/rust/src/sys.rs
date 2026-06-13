@@ -38,6 +38,9 @@ pub(crate) struct CpuContext {
     pub(crate) interrupts: u8,
 }
 
+const _: [(); 16] = [(); core::mem::size_of::<CpuContext>()];
+const _: [(); 2] = [(); core::mem::align_of::<CpuContext>()];
+
 impl Default for CpuContext {
     fn default() -> Self {
         Self {
@@ -65,6 +68,9 @@ pub(crate) struct Tick {
     pub(crate) data: u8,
     pub(crate) flags: u8,
 }
+
+const _: [(); 4] = [(); core::mem::size_of::<Tick>()];
+const _: [(); 2] = [(); core::mem::align_of::<Tick>()];
 
 unsafe extern "C" {
     pub(crate) fn qe6502_restart(cpu: *mut CpuContext) -> Tick;

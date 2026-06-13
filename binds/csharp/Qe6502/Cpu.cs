@@ -18,7 +18,7 @@ namespace Qe6502
         /// <summary>Rockwell 65C02 model.</summary>
         Rockwell = 3,
 
-        /// <summary>ST 65C02 model.</summary>
+        /// <summary>Synertek 65C02 model.</summary>
         St = 4
     }
 
@@ -240,14 +240,14 @@ namespace Qe6502
             uint major = version >> 16;
             uint minor = version & 0x0000FFFFu;
 
-            if (major != NativeMethods.CompiledAbiVersionMajor ||
-                minor < NativeMethods.CompiledAbiVersionMinor) {
+            if (major != NativeVersion.CompiledAbiVersionMajor ||
+                minor < NativeVersion.CompiledAbiVersionMinor) {
                 throw new InvalidOperationException(
                     "Unsupported qe6502 ABI version 0x" + version.ToString("X8") +
                     "; expected ABI-compatible version 0x" +
-                    NativeMethods.CompiledAbiVersion.ToString("X8") +
+                    NativeVersion.CompiledAbiVersion.ToString("X8") +
                     " or newer with major " +
-                    NativeMethods.CompiledAbiVersionMajor.ToString() + ".");
+                    NativeVersion.CompiledAbiVersionMajor.ToString() + ".");
             }
         }
 
