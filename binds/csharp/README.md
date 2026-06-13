@@ -202,7 +202,7 @@ ctest --test-dir build -R qe6502.cs.klaus2m5 --output-on-failure
 
 ## Repository
 
-https://github.com/nikolaynedelchev/qe6502
+https://github.com/nnqe/qe6502
 
 ## License
 

@@ -191,9 +191,9 @@ else()
             --classifier "Programming Language :: Python :: 3.13"
             --classifier "Programming Language :: Python :: Implementation :: CPython"
             --classifier "Topic :: System :: Emulators"
-            --project-url Homepage "https://github.com/nikolaynedelchev/qe6502"
-            --project-url Repository "https://github.com/nikolaynedelchev/qe6502"
-            --project-url Issues "https://github.com/nikolaynedelchev/qe6502/issues"
+            --project-url Homepage "https://github.com/nnqe/qe6502"
+            --project-url Repository "https://github.com/nnqe/qe6502"
+            --project-url Issues "https://github.com/nnqe/qe6502/issues"
         DEPENDS
             qe6502_python_package_stage
             "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
