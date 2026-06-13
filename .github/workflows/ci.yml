@@ -597,9 +597,23 @@ jobs:
             -DQE6502_JAVA_MAVEN_VERSION="$PACKAGE_VERSION" \
             -P binds/java/run_maven_package_smoke.cmake
 
+      - name: Stage Java Maven publish layout
+        shell: bash
+        run: |
+          cmake \
+            -DQE6502_JAVA_PACKAGE_DIR="$PWD/build/java-package/qe6502-java-${PACKAGE_VERSION}" \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -DQE6502_JAVA_MAVEN_GROUP_ID="io.github.nnqe" \
+            -DQE6502_JAVA_MAVEN_ARTIFACT_ID="qe6502" \
+            -DQE6502_JAVA_MAVEN_VERSION="$PACKAGE_VERSION" \
+            -P binds/java/run_maven_publish_layout.cmake
+          find build/java-maven-publish -type f | sort
+
       - name: Upload Java multi-platform package
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-java-multiplatform-package
-          path: build/java-package/qe6502-java-*/*
+          path: |
+            build/java-package/qe6502-*/*
+            build/java-maven-publish/**/*
           if-no-files-found: error

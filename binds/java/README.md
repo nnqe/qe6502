@@ -33,7 +33,8 @@ cmake --build --preset debug_native --target qe6502_java_package_stage
 
 The staged directory is created under the Java binding build tree as
 `package/qe6502-java-<version>/` and contains `qe6502-java.jar`,
-`qe6502-java-sources.jar`, `pom.xml`, this README, and the project license. The jar in that directory is the same
+`qe6502-java-sources.jar`, `qe6502-java-javadoc.jar`, `pom.xml`, this README,
+and the project license. The jar in that directory is the same
 embedded-native jar built by `qe6502_java`; the POM uses Maven coordinates
 `io.github.nnqe:qe6502:<version>` with the version generated from the qe6502
 CMake package version. Multi-platform aggregation is handled by later packaging
@@ -67,8 +68,24 @@ cmake \
 ```
 
 The aggregate script overlays the collected native resources into the staged jar,
-copies the staged sources jar and `pom.xml`, and verifies that the six supported
-platform entries are present.
+copies the staged sources jar, javadoc jar, and `pom.xml`, and verifies that the
+six supported platform entries are present.
+
+A Maven-style publish layout can be generated from the staged package with:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_maven_publish_layout
+```
+
+The layout is staged under `maven-publish/io/github/nnqe/qe6502/<version>/` and
+contains `qe6502-<version>.jar`, `qe6502-<version>-sources.jar`,
+`qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. If GPG is available,
+the companion signing target produces detached ASCII signatures next to those
+files:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_maven_sign_artifacts
+```
 
 A clean external consumer smoke can be run against the staged jar with:
 
