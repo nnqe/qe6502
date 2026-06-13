@@ -56,6 +56,7 @@ enum
 QE6502_STATIC_ASSERT((qe6502_microcode_per_slot & (qe6502_microcode_per_slot - 1u)) == 0u,
                      "qe6502_microcode_per_slot must be a power of two");
 
+#define QE6502_HIJACKED_SERVICE_SLOT 0x100u
 #define QE6502_IDX(model, slot, cycle) (uint16_t)((((uint32_t)(model) & 0x0Fu) << 12u) | ((((uint32_t)(slot)) & 0x1FFu) << 3u) | (uint32_t)(cycle))
 #define QE6502_SERVICE_SLOT_IDX(model, service, cycle) QE6502_IDX(model, service, cycle)
 
@@ -157,7 +158,7 @@ qe6502_tick_t qe6502_restart(qe6502_t *cpu);
 /* Enter execution at address and return the first bus request. */
 qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address);
 
-/* Execute one CPU bus phase through an exported native C function. */
+/* Exported native C symbol equivalent to the inline qe6502_tick() helper. */
 qe6502_tick_t qe6502_tick_exported(qe6502_t *cpu, uint8_t bus);
 
 void qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi);
@@ -169,7 +170,7 @@ uint8_t qe6502_is_irq_asserted(const qe6502_t *cpu);
 void qe6502_save(const qe6502_t *cpu,
                  qe6502_tick_t tick,
                  uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
-qe6502_tick_t qe6502_load(qe6502_t *ctx,
+qe6502_tick_t qe6502_load(qe6502_t *cpu,
                           const uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
 
 /* Execute one CPU bus phase and return the next bus request. */
@@ -178,7 +179,7 @@ qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
     if( cpu->hijack_microcode != 0 )
     {
-        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(0, 0x100, 0)](cpu, bus);
+        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(0, QE6502_HIJACKED_SERVICE_SLOT, 0)](cpu, bus);
     }
 
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);

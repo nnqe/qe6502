@@ -36,7 +36,7 @@ static inline uint16_t u16_set_byte(uint16_t x, unsigned byte_index, uint8_t val
 
 typedef enum service_slot
 {
-    service_slot_microcode_hijacked = 256,
+    service_slot_microcode_hijacked = QE6502_HIJACKED_SERVICE_SLOT,
     service_slot_illegal_ext = 257,
     service_slot_internal_reset = 258,
     service_slot_reset_0 = 259,
@@ -482,7 +482,7 @@ static qe6502_tick_t read_pc_inc(qe6502_t* cpu)
     return tick;
 }
 
-/* shared_handler; role=kil_jam; action=read_jam_vector_high */
+/* shared_handler; role=interrupt_resolver; action=sample_interrupt_pins_and_dispatch_pending_interrupts */
 static qe6502_tick_t interrupt_resolver(qe6502_t* cpu, uint8_t bus)
 {
     if (flag(cpu->interrupts, qe6502_interrupt_sampling_off) == 0u)
@@ -546,7 +546,7 @@ static inline void prefetch(qe6502_t* cpu)
 /* Microcode handlers. */
 
 /* shared_handler; role=kil_jam; action=read_jam_vector_high */
-static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -554,7 +554,7 @@ static qe6502_tick_t mc_kil_jam_read_ffff(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=read_fixed_fffe; action=read_fixed_address_fffe */
-static qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -562,7 +562,7 @@ static qe6502_tick_t mc_read_fffe(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=kil_jam; action=repeat_jammed_vector_high_read_forever */
-static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -575,7 +575,7 @@ static qe6502_tick_t op_kil_jam_r_ffff_pending_data_loop(qe6502_t* cpu, uint8_t 
 }
 
 /* shared_handler; role=dispatch; action=consume_fetched_opcode_and_dispatch_to_opcode_class */
-static qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->microcode = (uint16_t)(((uint16_t)cpu->model << 12u) | ((uint16_t)bus << 3u));
     cpu->PC++;
@@ -583,7 +583,7 @@ static qe6502_tick_t mc_dispatch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=fetch; action=consume_previous_bus_cycle_and_fetch_next_opcode */
-static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -591,7 +591,7 @@ static qe6502_tick_t mc_fetch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=fetch_illegal_ext; action=fetch_next_opcode_then_continue_at_illegal_extension_service_dispatch */
-static qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -600,7 +600,7 @@ static qe6502_tick_t mc_fetch_illegal_ext_dispatch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=read_pc_inc; action=read_pc_and_increment_pc */
-static qe6502_tick_t mc_read_pc_inc(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -608,7 +608,7 @@ static qe6502_tick_t mc_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=read_pc; action=read_pc_without_incrementing_pc */
-static qe6502_tick_t mc_read_pc(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_pc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -616,7 +616,7 @@ static qe6502_tick_t mc_read_pc(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=clear_latch_addr_read_pc_inc; action=clear_effective_address_then_read_pc_and_increment_pc */
-static qe6502_tick_t mc_clear_latch_addr_read_pc_inc(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_clear_latch_addr_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -625,7 +625,7 @@ static qe6502_tick_t mc_clear_latch_addr_read_pc_inc(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=clear_latch_addr_read_pc; action=clear_effective_address_then_read_pc_without_incrementing_pc */
-static qe6502_tick_t mc_clear_latch_addr_read_pc(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_clear_latch_addr_read_pc(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -634,7 +634,7 @@ static qe6502_tick_t mc_clear_latch_addr_read_pc(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=read_latch_addr; action=read_effective_address_from_latch_addr */
-static qe6502_tick_t mc_read_latch_addr(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -642,7 +642,7 @@ static qe6502_tick_t mc_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 }
 
 /* shared_handler; role=latch_data_write_latch_addr; action=latch_bus_data_then_write_effective_address */
-static qe6502_tick_t mc_latch_data_write_latch_addr(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_latch_data_write_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data = bus;
     return write(cpu, cpu->latch_addr, cpu->latch_data);
@@ -650,7 +650,7 @@ static qe6502_tick_t mc_latch_data_write_latch_addr(qe6502_t* cpu, uint8_t bus)
 
 
 /* shared_handler; role=read_stack_current_s; action=read_stack_address_without_incrementing_s */
-static qe6502_tick_t mc_read_stack_current_s(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_stack_current_s(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -658,14 +658,14 @@ static qe6502_tick_t mc_read_stack_current_s(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; action=ignore_bus_increment_s_and_read_stack */
-static qe6502_tick_t mc_stack_pull_read(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_stack_pull_read(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return stack_read(cpu);
 }
 
-static qe6502_tick_t mc_internal_reset(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_internal_reset(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_data++;
     cpu->PC = calculate_reset_pc(cpu->PC, bus);
@@ -679,19 +679,19 @@ static qe6502_tick_t mc_internal_reset(qe6502_t* cpu, uint8_t bus)
     return reset_read(cpu, cpu->PC);
 }
 
-static qe6502_tick_t mc_restart_read_hhff(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_restart_read_hhff(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = calculate_reset_pc(cpu->PC, bus);
     return reset_read(cpu, cpu->PC);
 }
 
-static qe6502_tick_t mc_restart_read_zzhh_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_restart_read_zzhh_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = calculate_reset_pc(cpu->PC, bus);
     return reset_fetch(cpu);
 }
 
-static qe6502_tick_t mc_restart_read_zzhh(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_restart_read_zzhh(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -699,7 +699,7 @@ static qe6502_tick_t mc_restart_read_zzhh(qe6502_t* cpu, uint8_t bus)
 }
 
 /* service_handler; role=reset_stack_read; action=read_stack_current_s_and_decrement_s */
-static qe6502_tick_t mc_reset_stack_read(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_reset_stack_read(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -709,7 +709,7 @@ static qe6502_tick_t mc_reset_stack_read(qe6502_t* cpu, uint8_t bus)
 }
 
 /* service_handler; role=vec_lo; action=read_reset_vector_low */
-static qe6502_tick_t mc_reset_vec_lo(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_reset_vec_lo(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -717,7 +717,7 @@ static qe6502_tick_t mc_reset_vec_lo(qe6502_t* cpu, uint8_t bus)
 }
 
 /* service_handler; role=vec_hi; action=consume_reset_vector_low_set_interrupt_disable_and_read_reset_vector_high */
-static qe6502_tick_t mc_reset_vec_hi(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_reset_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = flag_on(cpu->P, flag_B | flag_I );
@@ -725,35 +725,7 @@ static qe6502_tick_t mc_reset_vec_hi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
-static qe6502_tick_t mc_latch_pch_reset_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
-    return fetch(cpu);
-}
-
-/* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
-static qe6502_tick_t mc_latch_pch_nmi_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
-    return fetch(cpu);
-}
-
-/* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
-static qe6502_tick_t mc_latch_pch_irq_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
-    return fetch(cpu);
-}
-
-/* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
-static qe6502_tick_t mc_latch_pch_brk_fetch(qe6502_t* cpu, uint8_t bus)
-{
-    cpu->PC = u16_set_byte(cpu->PC, 1, bus);
-    return fetch(cpu);
-}
-
-/* interrupt_handler; role=latch_pch_interrupt_fetch; action=consume_vector_high_and_request_interrupt_handler_opcode */
-static qe6502_tick_t mc_latch_pch_rti_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_latch_pch_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 1, bus);
     return fetch(cpu);
@@ -792,7 +764,7 @@ static inline qe6502_tick_t mc_branch_pgfix_prefetch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* control_handler; model=wdc; role=apply; action=apply_bbr_bbs_signed_offset_and_dummy_read_branch_base_address */
-static qe6502_tick_t mc_wdc_bbr_bbs_c4_apply(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_wdc_bbr_bbs_c4_apply(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t old_pc = cpu->PC;
     const int8_t offset = (int8_t)bus;
@@ -813,7 +785,7 @@ static qe6502_tick_t mc_wdc_bbr_bbs_c4_apply(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=push_pc_high; action=push_pc_high_to_stack */
-static qe6502_tick_t mc_stack_push_pc_high(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_stack_push_pc_high(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -821,7 +793,7 @@ static qe6502_tick_t mc_stack_push_pc_high(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=push_pc_low; action=push_pc_low_to_stack */
-static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -829,7 +801,7 @@ static qe6502_tick_t mc_stack_push_pc_low(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=push_status_b; action=push_status_with_break_flag_to_stack */
-static qe6502_tick_t mc_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -852,7 +824,7 @@ static qe6502_tick_t mc_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=push_status_b; action=push_status_with_break_flag_to_stack */
-static qe6502_tick_t mc_cmos_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_cmos_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -860,7 +832,7 @@ static qe6502_tick_t mc_cmos_stack_push_status_b(qe6502_t* cpu, uint8_t bus)
 }
 
 /* special_handler; role=vec_hi; action=read_brk_vector_high_to_pc_high_and_set_interrupt_disable */
-static qe6502_tick_t mc_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)(cpu->P | flag_I);
@@ -870,7 +842,7 @@ static qe6502_tick_t mc_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* special_handler; model=cmos; role=vec_hi; action=read_brk_vector_high_to_pc_high_set_interrupt_disable_and_clear_decimal */
-static qe6502_tick_t mc_cmos_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_cmos_brk_c5_vec_hi(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     cpu->P = (uint8_t)((cpu->P | flag_I) & (uint8_t)(~flag_D));
@@ -1185,14 +1157,14 @@ static inline qe6502_tick_t mc_r_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* addressing_handler; role=data; action=latch_zero_page_effective_address_and_read_data */
-static qe6502_tick_t mc_latch_zp_addr_read_latch_addr(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_latch_zp_addr_read_latch_addr(qe6502_t* cpu, uint8_t bus)
 {
     cpu->latch_addr = bus;
     return read(cpu, (uint16_t)bus);
 }
 
 /* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_x_wraparound */
-static qe6502_tick_t mc_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);
     qe6502_tick_t tick = read(cpu, addr);
@@ -1201,7 +1173,7 @@ static qe6502_tick_t mc_zpx_c1_idx(qe6502_t* cpu, uint8_t bus)
 }
 
 /* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_y_wraparound */
-static qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t addr = u16_set_byte(cpu->latch_addr, 0, bus);
     qe6502_tick_t tick = read(cpu, addr);
@@ -1210,14 +1182,14 @@ static qe6502_tick_t mc_r_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 }
 
 /* special_handler; role=pull_pcl; action=normalize_status_increment_s_and_read_pc_low */
-static qe6502_tick_t mc_rti_c3_pull_pcl(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_rti_c3_pull_pcl(qe6502_t* cpu, uint8_t bus)
 {
     cpu->P = (uint8_t)((bus | flag_UN) & (uint8_t)(~flag_B));
     return stack_read(cpu);
 }
 
 /* common_handler; role=latch_pcl_stack_read; action=consume_pc_low_increment_s_and_read_pc_high */
-static qe6502_tick_t mc_latch_pcl_stack_read(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_latch_pcl_stack_read(qe6502_t* cpu, uint8_t bus)
 {
     cpu->PC = u16_set_byte(cpu->PC, 0, bus);
     return stack_read(cpu);
@@ -1233,7 +1205,7 @@ static inline qe6502_tick_t mc_rw_abx_c1_hi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=w_indexed_probe; action=dummy_read_indexed_probe_then_fix_ea_high */
-static qe6502_tick_t mc_w_indexed_probe(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_w_indexed_probe(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t page_cross = cpu->latch_data;
     const uint16_t addr = u16_set_byte(cpu->latch_addr, 1, bus);
@@ -1243,7 +1215,7 @@ static qe6502_tick_t mc_w_indexed_probe(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=unstable_store_indexed_probe_preserve_base_high; action=dummy_read_indexed_probe_and_preserve_base_high_for_unstable_store */
-static qe6502_tick_t mc_unstable_store_indexed_probe_preserve_base_high(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_unstable_store_indexed_probe_preserve_base_high(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     qe6502_tick_t tick = read(cpu, address);
@@ -1252,7 +1224,7 @@ static qe6502_tick_t mc_unstable_store_indexed_probe_preserve_base_high(qe6502_t
 }
 
 /* common_handler; role=read_zp_latch_x; action=dummy_read_zero_page_base_then_add_x_wraparound */
-static qe6502_tick_t mc_read_zp_latch_x(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_read_zp_latch_x(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t addr = bus;
     qe6502_tick_t tick = read(cpu, addr);
@@ -1261,7 +1233,7 @@ static qe6502_tick_t mc_read_zp_latch_x(qe6502_t* cpu, uint8_t bus)
 }
 
 /* addressing_handler; role=ptrhi; action=read_zp_pointer_to_ea_high */
-static qe6502_tick_t mc_w_izx_c3_ptrhi(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_w_izx_c3_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t ptr_hi_addr = cpu->latch_addr;
     set_latch_addr0(cpu, bus);
@@ -1269,7 +1241,7 @@ static qe6502_tick_t mc_w_izx_c3_ptrhi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* addressing_handler; role=ptrhi; action=read_zp_pointer_to_ea_high_add_y_low_and_record_page_cross */
-static qe6502_tick_t mc_w_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_w_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t ptr = u16_get_byte(cpu->latch_addr, 0);
     const uint16_t ptr_hi_addr = (uint8_t)(ptr + 1u);
@@ -1280,7 +1252,7 @@ static qe6502_tick_t mc_w_izy_c2_ptrhi(qe6502_t* cpu, uint8_t bus)
 }
 
 /* addressing_handler; role=idx; action=dummy_read_zero_page_base_then_add_y_wraparound */
-static qe6502_tick_t mc_w_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_w_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 {
     const uint16_t addr = bus;
     qe6502_tick_t tick = read(cpu, addr);
@@ -1289,21 +1261,21 @@ static qe6502_tick_t mc_w_zpy_c1_idx(qe6502_t* cpu, uint8_t bus)
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     adc_value(cpu, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; model=nes; role=exec_fetch; action=execute_binary_adc_operand_and_fetch_next_opcode */
-static qe6502_tick_t op_nes_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_nes_adc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     adc_binary(cpu, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; model=cmos; role=exec_fetch; action=execute_cmos_decimal_adc_and_fetch_next_opcode */
-static qe6502_tick_t op_cmos_adc_dec_ready_none_pending_dummy_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cmos_adc_dec_ready_none_pending_dummy_fetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1312,7 +1284,7 @@ static qe6502_tick_t op_cmos_adc_dec_ready_none_pending_dummy_fetch(qe6502_t* cp
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = (uint8_t)(cpu->A & bus);
     update_flags_nz(cpu, cpu->A);
@@ -1320,7 +1292,7 @@ static qe6502_tick_t op_and_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_anc_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_anc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_anc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = (uint8_t)(cpu->A & bus);
     update_flags_nzc(cpu, cpu->A, flag_C_if((cpu->A & flag_N) != 0u));
@@ -1328,14 +1300,14 @@ static qe6502_tick_t op_anc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_alr_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_alr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_alr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = lsr_value(cpu, (uint8_t)(cpu->A & bus));
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_arr_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     uint8_t value = (uint8_t)(cpu->A & bus);
     if ((cpu->P & flag_D) == 0u)
@@ -1350,14 +1322,14 @@ static qe6502_tick_t op_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; model=nes; role=exec_fetch; action=execute_illegal_arr_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_nes_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_nes_arr_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = arr_binary_value(cpu, (uint8_t)(cpu->A & bus));
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_axs_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_axs_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_axs_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     uint8_t lhs = (uint8_t)(cpu->A & cpu->X);
     const uint8_t result = (uint8_t)(lhs - bus);
@@ -1367,7 +1339,7 @@ static qe6502_tick_t op_axs_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_xaa_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_xaa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_xaa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = (uint8_t)((cpu->A | 0xeeu) & cpu->X & bus);
     update_flags_nz(cpu, cpu->A);
@@ -1375,7 +1347,7 @@ static qe6502_tick_t op_xaa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_illegal_lxa_immediate_and_fetch_next_opcode */
-static qe6502_tick_t op_lxa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_lxa_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t value = (uint8_t)((cpu->A | 0xeeu) & bus);
     cpu->A = value;
@@ -1398,7 +1370,7 @@ static inline qe6502_tick_t branch_c0_offset(qe6502_t* cpu, bool taken)
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_bit_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_bit_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t mask = (uint8_t)(flag_Z | flag_V | flag_N);
     const uint8_t flags = (uint8_t)(
@@ -1411,7 +1383,7 @@ static qe6502_tick_t op_bit_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; model=cmos; role=exec_fetch; action=execute_immediate_bit_test_and_fetch_next_opcode */
-static qe6502_tick_t op_cmos_bit_imm_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cmos_bit_imm_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t flags = flag_Z_if((cpu->A & bus) == 0u);
     cpu->P = (uint8_t)((cpu->P & (uint8_t)(~flag_Z)) | flags);
@@ -1419,28 +1391,28 @@ static qe6502_tick_t op_cmos_bit_imm_ready_none_pending_data_fetch(qe6502_t* cpu
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_cmp_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cmp_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     compare_register_with_value(cpu, cpu->A, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_cpx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cpx_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     compare_register_with_value(cpu, cpu->X, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_cpy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cpy_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     compare_register_with_value(cpu, cpu->Y, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_eor_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_eor_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = (uint8_t)(cpu->A ^ bus);
     update_flags_nz(cpu, cpu->A);
@@ -1448,7 +1420,7 @@ static qe6502_tick_t op_eor_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* common_handler; role=load_a_fetch; action=load_a_update_nz_and_fetch_next_opcode */
-static qe6502_tick_t mc_load_a_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_load_a_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = bus;
     update_flags_nz(cpu, cpu->A);
@@ -1456,7 +1428,7 @@ static qe6502_tick_t mc_load_a_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_lax_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_lax_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = bus;
     cpu->X = bus;
@@ -1465,7 +1437,7 @@ static qe6502_tick_t op_lax_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_las_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_las_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     const uint8_t value = (uint8_t)(bus & cpu->S);
     cpu->A = value;
@@ -1476,7 +1448,7 @@ static qe6502_tick_t op_las_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* common_handler; role=load_x_fetch; action=load_x_update_nz_and_fetch_next_opcode */
-static qe6502_tick_t mc_load_x_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_load_x_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->X = bus;
     update_flags_nz(cpu, cpu->X);
@@ -1484,7 +1456,7 @@ static qe6502_tick_t mc_load_x_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* common_handler; role=load_y_fetch; action=load_y_update_nz_and_fetch_next_opcode */
-static qe6502_tick_t mc_load_y_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t mc_load_y_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->Y = bus;
     update_flags_nz(cpu, cpu->Y);
@@ -1492,7 +1464,7 @@ static qe6502_tick_t mc_load_y_update_nz_fetch(qe6502_t* cpu, uint8_t bus)
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_ora_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_ora_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->A = (uint8_t)(cpu->A | bus);
     update_flags_nz(cpu, cpu->A);
@@ -1500,28 +1472,28 @@ static qe6502_tick_t op_ora_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8
 }
 
 /* mnemonic_handler; role=exec_fetch; action=consume_pulled_stack_value_apply_mnemonic_semantics_and_fetch_next_opcode */
-static qe6502_tick_t op_plp_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_plp_stack_pull_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     cpu->P = (uint8_t)((bus | flag_UN) & (uint8_t)(~flag_B));
     return fetch(cpu);
 }
 
 /* mnemonic_handler; role=exec_fetch; action=execute_read_operand_mnemonic_and_fetch_next_opcode */
-static qe6502_tick_t op_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     sbc_value(cpu, bus);
     return fetch(cpu);
 }
 
 /* mnemonic_handler; model=nes; role=exec_fetch; action=execute_binary_sbc_operand_and_fetch_next_opcode */
-static qe6502_tick_t op_nes_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_nes_sbc_r_ready_none_pending_data_fetch(qe6502_t* cpu, uint8_t bus)
 {
     adc_binary(cpu, (uint8_t)(bus ^ 0xffu));
     return fetch(cpu);
 }
 
 /* mnemonic_handler; model=cmos; role=exec_fetch; action=execute_cmos_decimal_sbc_and_fetch_next_opcode */
-static qe6502_tick_t op_cmos_sbc_dec_ready_none_pending_dummy_fetch(qe6502_t* cpu, uint8_t bus)
+static inline qe6502_tick_t op_cmos_sbc_dec_ready_none_pending_dummy_fetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1547,9 +1519,47 @@ static inline uint8_t unstable_store_mask(qe6502_t* cpu)
     return (uint8_t)(base_high + 1u);
 }
 
+/* common_helper; role=adc_decimal_dummy; action=execute_binary_adc_or_request_decimal_dummy_cycle */
+static inline qe6502_tick_t adc_fetch_or_decimal_dummy(qe6502_t* cpu, uint8_t bus, uint16_t dummy_address)
+{
+    if ((cpu->P & flag_D) != 0u)
+    {
+        prefetch(cpu);
+    }
+
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, bus);
+        cpu->microcode++;
+        return fetch(cpu);
+    }
+
+    cpu->latch_data = bus;
+    return read(cpu, dummy_address);
+}
+
+/* common_helper; role=sbc_decimal_dummy; action=execute_binary_sbc_or_request_decimal_dummy_cycle */
+static inline qe6502_tick_t sbc_fetch_or_decimal_dummy(qe6502_t* cpu, uint8_t bus, uint16_t dummy_address)
+{
+    if ((cpu->P & flag_D) != 0u)
+    {
+        prefetch(cpu);
+    }
+
+    if ((cpu->P & flag_D) == 0u)
+    {
+        adc_binary(cpu, (uint8_t)(bus ^ 0xffu));
+        cpu->microcode++;
+        return fetch(cpu);
+    }
+
+    cpu->latch_data = bus;
+    return read(cpu, dummy_address);
+}
+
 /* Prefetch microcode variants. */
-/* prefetch_handler; prefetc; condition=always; base=mc_cmos_jmp_ind_c4_target_hi_retry */
-static qe6502_tick_t mc_cmos_jmp_ind_c4_target_hi_retry_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_cmos_jmp_ind_c4_target_hi_retry */
+static inline qe6502_tick_t mc_cmos_jmp_ind_c4_target_hi_retry_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1561,8 +1571,8 @@ static qe6502_tick_t mc_cmos_jmp_ind_c4_target_hi_retry_prefetch(qe6502_t* cpu, 
     return read(cpu, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=no_page_cross_decimal_clear; base=mc_cmos_r_indexed_probe */
-static qe6502_tick_t mc_cmos_r_indexed_probe_prefetch_no_page_cross_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=no_page_cross_decimal_clear; base=mc_cmos_r_indexed_probe */
+static inline qe6502_tick_t mc_cmos_r_indexed_probe_prefetch_no_page_cross_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     if ((cpu->latch_data == 0u) && ((cpu->P & flag_D) == 0u))
     {
@@ -1571,8 +1581,8 @@ static qe6502_tick_t mc_cmos_r_indexed_probe_prefetch_no_page_cross_decimal_clea
     return mc_cmos_r_indexed_probe(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=no_page_cross; base=mc_cmos_r_indexed_probe_no_latch */
-static qe6502_tick_t mc_cmos_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=no_page_cross; base=mc_cmos_r_indexed_probe_no_latch */
+static inline qe6502_tick_t mc_cmos_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6502_t* cpu, uint8_t bus)
 {
     if (cpu->latch_data == 0u)
     {
@@ -1596,15 +1606,15 @@ static qe6502_tick_t mc_cmos_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6
     return tick;
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_latch_addr0_read_pc_inc */
-static qe6502_tick_t mc_latch_addr0_read_pc_inc_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_latch_addr0_read_pc_inc */
+static inline qe6502_tick_t mc_latch_addr0_read_pc_inc_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return mc_latch_addr0_read_pc_inc(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; base=mc_latch_addr1_read_latch_addr */
-static qe6502_tick_t mc_latch_addr1_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_clear; base=mc_latch_addr1_read_latch_addr */
+static inline qe6502_tick_t mc_latch_addr1_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     if ((cpu->P & flag_D) == 0u)
     {
@@ -1613,22 +1623,22 @@ static qe6502_tick_t mc_latch_addr1_read_latch_addr_prefetch_decimal_clear(qe650
     return mc_latch_addr1_read_latch_addr(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_latch_data_read_latch_addr */
-static qe6502_tick_t mc_latch_data_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_latch_data_read_latch_addr */
+static inline qe6502_tick_t mc_latch_data_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return mc_latch_data_read_latch_addr(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_latch_pcl_stack_read */
-static qe6502_tick_t mc_latch_pcl_stack_read_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_latch_pcl_stack_read */
+static inline qe6502_tick_t mc_latch_pcl_stack_read_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return mc_latch_pcl_stack_read(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; base=mc_latch_zp_addr_read_latch_addr */
-static qe6502_tick_t mc_latch_zp_addr_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_clear; base=mc_latch_zp_addr_read_latch_addr */
+static inline qe6502_tick_t mc_latch_zp_addr_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     if ((cpu->P & flag_D) == 0u)
     {
@@ -1638,8 +1648,8 @@ static qe6502_tick_t mc_latch_zp_addr_read_latch_addr_prefetch_decimal_clear(qe6
     return mc_latch_zp_addr_read_latch_addr(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=no_page_cross; base=mc_r_indexed_probe_no_latch */
-static qe6502_tick_t mc_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=no_page_cross; base=mc_r_indexed_probe_no_latch */
+static inline qe6502_tick_t mc_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6502_t* cpu, uint8_t bus)
 {
     if (cpu->latch_data == 0u)
     {
@@ -1662,8 +1672,8 @@ static qe6502_tick_t mc_r_indexed_probe_no_latch_prefetch_no_page_cross(qe6502_t
     return tick;
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; base=mc_r_izx_c4_data */
-static qe6502_tick_t mc_r_izx_c4_data_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_clear; base=mc_r_izx_c4_data */
+static inline qe6502_tick_t mc_r_izx_c4_data_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     if ((cpu->P & flag_D) == 0u)
     {
@@ -1673,31 +1683,31 @@ static qe6502_tick_t mc_r_izx_c4_data_prefetch_decimal_clear(qe6502_t* cpu, uint
     return mc_r_izx_c4_data(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_r_izx_c4_data_no_latch */
-static qe6502_tick_t mc_r_izx_c4_data_no_latch_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_r_izx_c4_data_no_latch */
+static inline qe6502_tick_t mc_r_izx_c4_data_no_latch_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_data, 1, bus);
     return read(cpu, address);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_r_zp_c1_data */
-static qe6502_tick_t mc_r_zp_c1_data_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_r_zp_c1_data */
+static inline qe6502_tick_t mc_r_zp_c1_data_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return read(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_read_addr_with_bus_hi */
-static qe6502_tick_t mc_read_addr_with_bus_hi_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_read_addr_with_bus_hi */
+static inline qe6502_tick_t mc_read_addr_with_bus_hi_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     return read(cpu, address);
 }
 
-/* prefetch_handler; prefetc; condition=always; */
-static qe6502_tick_t mc_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_read_latch_addr */
+static inline qe6502_tick_t mc_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1706,8 +1716,8 @@ static qe6502_tick_t mc_read_latch_addr_prefetch(qe6502_t* cpu, uint8_t bus)
     return read(cpu, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; */
-static qe6502_tick_t mc_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_clear; base=mc_read_latch_addr */
+static inline qe6502_tick_t mc_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1719,24 +1729,24 @@ static qe6502_tick_t mc_read_latch_addr_prefetch_decimal_clear(qe6502_t* cpu, ui
     return read(cpu, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_read_pc */
-static qe6502_tick_t mc_read_pc_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_read_pc */
+static inline qe6502_tick_t mc_read_pc_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
 
     return mc_read_pc(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_read_pc_inc */
-static qe6502_tick_t mc_read_pc_inc_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_read_pc_inc */
+static inline qe6502_tick_t mc_read_pc_inc_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
 
     return mc_read_pc_inc(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_clear; base=mc_read_pc_inc */
-static qe6502_tick_t mc_read_pc_inc_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_clear; base=mc_read_pc_inc */
+static inline qe6502_tick_t mc_read_pc_inc_prefetch_decimal_clear(qe6502_t* cpu, uint8_t bus)
 {
     if ((cpu->P & flag_D) == 0u)
     {
@@ -1746,8 +1756,8 @@ static qe6502_tick_t mc_read_pc_inc_prefetch_decimal_clear(qe6502_t* cpu, uint8_
     return mc_read_pc_inc(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_read_pc_minus_one */
-static qe6502_tick_t mc_read_pc_minus_one_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_read_pc_minus_one */
+static inline qe6502_tick_t mc_read_pc_minus_one_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1755,23 +1765,23 @@ static qe6502_tick_t mc_read_pc_minus_one_prefetch(qe6502_t* cpu, uint8_t bus)
     return read(cpu, (uint16_t)(cpu->PC - 1u));
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_rts_c4_inc_pc_dummy */
-static qe6502_tick_t mc_rts_c4_inc_pc_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_rts_c4_inc_pc_dummy */
+static inline qe6502_tick_t mc_rts_c4_inc_pc_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     cpu->PC = u16_set_byte(cpu->PC, 1, bus);
     return read_pc_inc(cpu);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_stack_pull_read */
-static qe6502_tick_t mc_stack_pull_read_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_stack_pull_read */
+static inline qe6502_tick_t mc_stack_pull_read_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return mc_stack_pull_read(cpu, bus);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=mc_wdc_bbr_bbs_c3_offset_or_skip */
-static qe6502_tick_t mc_wdc_bbr_bbs_c3_offset_or_skip_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=mc_wdc_bbr_bbs_c3_offset_or_skip */
+static inline qe6502_tick_t mc_wdc_bbr_bbs_c3_offset_or_skip_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint8_t opcode = current_opcode_slot(cpu);
@@ -1801,8 +1811,8 @@ static qe6502_tick_t mc_wdc_bbr_bbs_c3_offset_or_skip_prefetch(qe6502_t* cpu, ui
     return tick;
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_ahx_unstable_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_ahx_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_ahx_unstable_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_ahx_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1811,8 +1821,8 @@ static qe6502_tick_t op_ahx_unstable_w_ready_addr_pending_none_wr_prefetch(qe650
     return write_unstable_store(cpu, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_asl_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_asl_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_asl_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_asl_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1821,8 +1831,8 @@ static qe6502_tick_t op_asl_acc_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_asl_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_asl_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_asl_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_asl_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1831,72 +1841,72 @@ static qe6502_tick_t op_asl_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bcc_branch_c0_offset */
-static qe6502_tick_t op_bcc_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bcc_branch_c0_offset */
+static inline qe6502_tick_t op_bcc_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_C) == 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bcs_branch_c0_offset */
-static qe6502_tick_t op_bcs_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bcs_branch_c0_offset */
+static inline qe6502_tick_t op_bcs_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_C) != 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_beq_branch_c0_offset */
-static qe6502_tick_t op_beq_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_beq_branch_c0_offset */
+static inline qe6502_tick_t op_beq_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_Z) != 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bmi_branch_c0_offset */
-static qe6502_tick_t op_bmi_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bmi_branch_c0_offset */
+static inline qe6502_tick_t op_bmi_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_N) != 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bne_branch_c0_offset */
-static qe6502_tick_t op_bne_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bne_branch_c0_offset */
+static inline qe6502_tick_t op_bne_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_Z) == 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bpl_branch_c0_offset */
-static qe6502_tick_t op_bpl_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bpl_branch_c0_offset */
+static inline qe6502_tick_t op_bpl_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_N) == 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bvc_branch_c0_offset */
-static qe6502_tick_t op_bvc_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bvc_branch_c0_offset */
+static inline qe6502_tick_t op_bvc_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_V) == 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_bvs_branch_c0_offset */
-static qe6502_tick_t op_bvs_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_bvs_branch_c0_offset */
+static inline qe6502_tick_t op_bvs_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
     return branch_c0_offset(cpu, (cpu->P & flag_V) != 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_clc_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_clc_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_clc_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_clc_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1905,8 +1915,8 @@ static qe6502_tick_t op_clc_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cld_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_cld_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cld_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_cld_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1915,8 +1925,8 @@ static qe6502_tick_t op_cld_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cli_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_cli_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cli_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_cli_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1925,8 +1935,8 @@ static qe6502_tick_t op_cli_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_clv_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_clv_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_clv_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_clv_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1935,27 +1945,14 @@ static qe6502_tick_t op_clv_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_cmos_adc_r_ready_addr_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_cmos_adc_r_ready_addr_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_cmos_adc_r_ready_addr_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_cmos_adc_r_ready_addr_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, bus);
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, cpu->latch_addr);
+    return adc_fetch_or_decimal_dummy(cpu, bus, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_bra_branch_c0_offset */
-static qe6502_tick_t op_cmos_bra_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_bra_branch_c0_offset */
+static inline qe6502_tick_t op_cmos_bra_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1963,8 +1960,8 @@ static qe6502_tick_t op_cmos_bra_branch_c0_offset_prefetch(qe6502_t* cpu, uint8_
     return read_pc_inc(cpu);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_dec_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_cmos_dec_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_dec_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_cmos_dec_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1974,8 +1971,8 @@ static qe6502_tick_t op_cmos_dec_acc_ready_none_pending_none_dummy_prefetch(qe65
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_inc_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_cmos_inc_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_inc_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_cmos_inc_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1985,8 +1982,8 @@ static qe6502_tick_t op_cmos_inc_acc_ready_none_pending_none_dummy_prefetch(qe65
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_phx_stack_push_ready_none_pending_none_wr */
-static qe6502_tick_t op_cmos_phx_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_phx_stack_push_ready_none_pending_none_wr */
+static inline qe6502_tick_t op_cmos_phx_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -1994,8 +1991,8 @@ static qe6502_tick_t op_cmos_phx_stack_push_ready_none_pending_none_wr_prefetch(
     return stack_write(cpu, cpu->X);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_phy_stack_push_ready_none_pending_none_wr */
-static qe6502_tick_t op_cmos_phy_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_phy_stack_push_ready_none_pending_none_wr */
+static inline qe6502_tick_t op_cmos_phy_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2003,46 +2000,20 @@ static qe6502_tick_t op_cmos_phy_stack_push_ready_none_pending_none_wr_prefetch(
     return stack_write(cpu, cpu->Y);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_cmos_sbc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_cmos_sbc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_cmos_sbc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_cmos_sbc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, (uint8_t)(bus ^ 0xffu));
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, 0x0000u);
+    return sbc_fetch_or_decimal_dummy(cpu, bus, 0x0000u);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_cmos_sbc_r_ready_addr_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_cmos_sbc_r_ready_addr_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_cmos_sbc_r_ready_addr_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_cmos_sbc_r_ready_addr_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, (uint8_t)(bus ^ 0xffu));
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, cpu->latch_addr);
+    return sbc_fetch_or_decimal_dummy(cpu, bus, cpu->latch_addr);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_stz_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_cmos_stz_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_stz_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_cmos_stz_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2050,23 +2021,23 @@ static qe6502_tick_t op_cmos_stz_w_ready_addr_pending_none_wr_prefetch(qe6502_t*
     return write(cpu, cpu->latch_addr, 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_stz_w_ready_addrlo_pending_addrhi_wr */
-static qe6502_tick_t op_cmos_stz_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_stz_w_ready_addrlo_pending_addrhi_wr */
+static inline qe6502_tick_t op_cmos_stz_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     return write(cpu, address, 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_stz_w_ready_none_pending_addrlo_wr */
-static qe6502_tick_t op_cmos_stz_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_stz_w_ready_none_pending_addrlo_wr */
+static inline qe6502_tick_t op_cmos_stz_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return write(cpu, (uint16_t)bus, 0u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_trb_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_cmos_trb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_trb_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_cmos_trb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2078,8 +2049,8 @@ static qe6502_tick_t op_cmos_trb_rw_ready_addr_data_pending_none_wr_prefetch(qe6
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_cmos_tsb_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_cmos_tsb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_cmos_tsb_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_cmos_tsb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2090,8 +2061,8 @@ static qe6502_tick_t op_cmos_tsb_rw_ready_addr_data_pending_none_wr_prefetch(qe6
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_dcp_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_dcp_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_dcp_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_dcp_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2101,8 +2072,8 @@ static qe6502_tick_t op_dcp_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_dec_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_dec_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_dec_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_dec_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2112,8 +2083,8 @@ static qe6502_tick_t op_dec_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_dex_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_dex_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_dex_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_dex_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2123,8 +2094,8 @@ static qe6502_tick_t op_dex_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_dey_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_dey_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_dey_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_dey_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2134,8 +2105,8 @@ static qe6502_tick_t op_dey_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_inc_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_inc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_inc_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_inc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2145,8 +2116,8 @@ static qe6502_tick_t op_inc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_inx_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_inx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_inx_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_inx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2156,8 +2127,8 @@ static qe6502_tick_t op_inx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_iny_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_iny_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2167,8 +2138,8 @@ static qe6502_tick_t op_iny_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_isc_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_isc_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2178,8 +2149,8 @@ static qe6502_tick_t op_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_lsr_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_lsr_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_lsr_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_lsr_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2188,8 +2159,8 @@ static qe6502_tick_t op_lsr_acc_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_lsr_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_lsr_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2198,8 +2169,8 @@ static qe6502_tick_t op_lsr_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_nes_isc_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_nes_isc_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2209,8 +2180,8 @@ static qe6502_tick_t mc_nes_isc_rw_ready_addr_data_pending_none_wr_prefetch(qe65
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_nes_rra_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_nes_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_nes_rra_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_nes_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2220,8 +2191,8 @@ static qe6502_tick_t op_nes_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe65
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_pha_stack_push_ready_none_pending_none_wr */
-static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_pha_stack_push_ready_none_pending_none_wr */
+static inline qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2229,8 +2200,8 @@ static qe6502_tick_t op_pha_stack_push_ready_none_pending_none_wr_prefetch(qe650
     return stack_write(cpu, cpu->A);
 }
 
-/* prefetch_handler; prefetc; condition=always; */
-static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_php_stack_push_ready_none_pending_none_wr */
+static inline qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2238,8 +2209,8 @@ static qe6502_tick_t op_php_stack_push_ready_none_pending_none_wr_prefetch(qe650
     return stack_write(cpu, stack_status(cpu->P, flag_B));
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_rla_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_rla_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_rla_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_rla_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2250,8 +2221,8 @@ static qe6502_tick_t op_rla_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_rol_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_rol_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_rol_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_rol_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2260,8 +2231,8 @@ static qe6502_tick_t op_rol_acc_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_rol_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_rol_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_rol_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_rol_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     (void)bus;
@@ -2270,8 +2241,8 @@ static qe6502_tick_t op_rol_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_ror_acc_ready_none_pending_none_dummy */
-static qe6502_tick_t op_ror_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_ror_acc_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_ror_acc_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2280,8 +2251,8 @@ static qe6502_tick_t op_ror_acc_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_ror_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_ror_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2290,8 +2261,8 @@ static qe6502_tick_t op_ror_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_rra_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_rra_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2301,27 +2272,14 @@ static qe6502_tick_t op_rra_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_rw_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, bus);
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, 0x0059u);
+    return adc_fetch_or_decimal_dummy(cpu, bus, 0x0059u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sax_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_sax_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sax_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_sax_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2330,8 +2288,8 @@ static qe6502_tick_t op_sax_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu,
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sax_w_ready_addrlo_pending_addrhi_wr */
-static qe6502_tick_t op_sax_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sax_w_ready_addrlo_pending_addrhi_wr */
+static inline qe6502_tick_t op_sax_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint8_t value = (uint8_t)(cpu->A & cpu->X);
@@ -2339,16 +2297,16 @@ static qe6502_tick_t op_sax_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* 
     return write(cpu, address, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sax_w_ready_none_pending_addrlo_wr */
-static qe6502_tick_t op_sax_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sax_w_ready_none_pending_addrlo_wr */
+static inline qe6502_tick_t op_sax_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint8_t value = (uint8_t)(cpu->A & cpu->X);
     return write(cpu, (uint16_t)bus, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sec_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_sec_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sec_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_sec_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2357,8 +2315,8 @@ static qe6502_tick_t op_sec_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sed_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_sed_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sed_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_sed_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2367,8 +2325,8 @@ static qe6502_tick_t op_sed_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sei_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sei_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2377,8 +2335,8 @@ static qe6502_tick_t op_sei_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_shx_unstable_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_shx_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_shx_unstable_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_shx_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2387,8 +2345,8 @@ static qe6502_tick_t op_shx_unstable_w_ready_addr_pending_none_wr_prefetch(qe650
     return write_unstable_store(cpu, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_shy_unstable_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_shy_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_shy_unstable_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_shy_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2397,8 +2355,8 @@ static qe6502_tick_t op_shy_unstable_w_ready_addr_pending_none_wr_prefetch(qe650
     return write_unstable_store(cpu, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_slo_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_slo_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_slo_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_slo_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2409,8 +2367,8 @@ static qe6502_tick_t op_slo_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sre_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_sre_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sre_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_sre_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2421,27 +2379,14 @@ static qe6502_tick_t op_sre_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t
     return write(cpu, cpu->latch_addr, value);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_st_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_st_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_st_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_st_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, bus);
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, 0x0056u);
+    return adc_fetch_or_decimal_dummy(cpu, bus, 0x0056u);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sta_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_sta_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sta_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_sta_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2449,23 +2394,23 @@ static qe6502_tick_t op_sta_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu,
     return write(cpu, cpu->latch_addr, cpu->A);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sta_w_ready_addrlo_pending_addrhi_wr */
-static qe6502_tick_t op_sta_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sta_w_ready_addrlo_pending_addrhi_wr */
+static inline qe6502_tick_t op_sta_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     return write(cpu, address, cpu->A);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sta_w_ready_none_pending_addrlo_wr */
-static qe6502_tick_t op_sta_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sta_w_ready_none_pending_addrlo_wr */
+static inline qe6502_tick_t op_sta_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return write(cpu, (uint16_t)bus, cpu->A);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_stx_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_stx_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_stx_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_stx_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2473,24 +2418,24 @@ static qe6502_tick_t op_stx_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu,
     return write(cpu, cpu->latch_addr, cpu->X);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_stx_w_ready_addrlo_pending_addrhi_wr */
-static qe6502_tick_t op_stx_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_stx_w_ready_addrlo_pending_addrhi_wr */
+static inline qe6502_tick_t op_stx_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     return write(cpu, address, cpu->X);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_stx_w_ready_none_pending_addrlo_wr */
-static qe6502_tick_t op_stx_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_stx_w_ready_none_pending_addrlo_wr */
+static inline qe6502_tick_t op_stx_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
 
     return write(cpu, (uint16_t)bus, cpu->X);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sty_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_sty_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sty_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_sty_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2498,23 +2443,23 @@ static qe6502_tick_t op_sty_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu,
     return write(cpu, cpu->latch_addr, cpu->Y);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sty_w_ready_addrlo_pending_addrhi_wr */
-static qe6502_tick_t op_sty_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sty_w_ready_addrlo_pending_addrhi_wr */
+static inline qe6502_tick_t op_sty_w_ready_addrlo_pending_addrhi_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     const uint16_t address = u16_set_byte(cpu->latch_addr, 1, bus);
     return write(cpu, address, cpu->Y);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_sty_w_ready_none_pending_addrlo_wr */
-static qe6502_tick_t op_sty_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_sty_w_ready_none_pending_addrlo_wr */
+static inline qe6502_tick_t op_sty_w_ready_none_pending_addrlo_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     prefetch(cpu);
     return write(cpu, (uint16_t)bus, cpu->Y);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_tas_unstable_w_ready_addr_pending_none_wr */
-static qe6502_tick_t op_tas_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_tas_unstable_w_ready_addr_pending_none_wr */
+static inline qe6502_tick_t op_tas_unstable_w_ready_addr_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2525,8 +2470,8 @@ static qe6502_tick_t op_tas_unstable_w_ready_addr_pending_none_wr_prefetch(qe650
     return write_unstable_store(cpu, value);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_tax_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_tax_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_tax_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_tax_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2536,8 +2481,8 @@ static qe6502_tick_t op_tax_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_tay_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_tay_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_tay_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_tay_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2547,8 +2492,8 @@ static qe6502_tick_t op_tay_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_tsx_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_tsx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_tsx_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_tsx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2558,8 +2503,8 @@ static qe6502_tick_t op_tsx_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_txa_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_txa_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_txa_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_txa_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2569,8 +2514,8 @@ static qe6502_tick_t op_txa_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_txs_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_txs_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_txs_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_txs_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2579,8 +2524,8 @@ static qe6502_tick_t op_txs_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_tya_imp_ready_none_pending_none_dummy */
-static qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_tya_imp_ready_none_pending_none_dummy */
+static inline qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2590,27 +2535,14 @@ static qe6502_tick_t op_tya_imp_ready_none_pending_none_dummy_prefetch(qe6502_t*
     return read(cpu, cpu->PC);
 }
 
-/* prefetch_handler; prefetc; condition=decimal_set; base=op_wdc_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
-static qe6502_tick_t op_wdc_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=decimal_set; base=op_wdc_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy */
+static inline qe6502_tick_t op_wdc_adc_imm_ready_none_pending_data_fetch_or_decimal_dummy_prefetch_decimal_set(qe6502_t* cpu, uint8_t bus)
 {
-    if ((cpu->P & flag_D) != 0u)
-    {
-        prefetch(cpu);
-    }
-
-    if ((cpu->P & flag_D) == 0u)
-    {
-        adc_binary(cpu, bus);
-        cpu->microcode++;
-        return fetch(cpu);
-    }
-
-    cpu->latch_data = bus;
-    return read(cpu, 0x007fu);
+    return adc_fetch_or_decimal_dummy(cpu, bus, 0x007fu);
 }
 
-/* prefetch_handler; prefetc; condition=always; base=op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr */
-static qe6502_tick_t op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
+/* prefetch_handler; prefetch; condition=always; base=op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr */
+static inline qe6502_tick_t op_wdc_rmb_smb_rw_ready_addr_data_pending_none_wr_prefetch(qe6502_t* cpu, uint8_t bus)
 {
     (void)bus;
 
@@ -2685,18 +2617,18 @@ static inline void clear_buffer(uint8_t *bytes, uint32_t count)
     }
 }
 
-static inline void qe6502_write_u16(uint8_t *dst, uint16_t value)
+static inline void snapshot_write_u16(uint8_t *dst, uint16_t value)
 {
     dst[0] = (uint8_t)(((uint16_t)value >> 8u) & 0xffu);
     dst[1] = (uint8_t)((uint16_t)value & 0xffu);
 }
 
-static inline uint16_t qe6502_read_u16(const uint8_t *src)
+static inline uint16_t snapshot_read_u16(const uint8_t *src)
 {
     return (uint16_t)(((uint16_t)src[0] << 8u) | (uint16_t)src[1]);
 }
 
-static inline void qe6502_write_u32(uint8_t *dst, uint32_t value)
+static inline void snapshot_write_u32(uint8_t *dst, uint32_t value)
 {
     dst[0] = (uint8_t)((value >> 24u) & 0xffu);
     dst[1] = (uint8_t)((value >> 16u) & 0xffu);
@@ -2704,7 +2636,7 @@ static inline void qe6502_write_u32(uint8_t *dst, uint32_t value)
     dst[3] = (uint8_t)(value & 0xffu);
 }
 
-static inline uint32_t qe6502_read_u32(const uint8_t *src)
+static inline uint32_t snapshot_read_u32(const uint8_t *src)
 {
     return ((uint32_t)src[0] << 24u) |
            ((uint32_t)src[1] << 16u) |
@@ -2712,15 +2644,15 @@ static inline uint32_t qe6502_read_u32(const uint8_t *src)
            ((uint32_t)src[3]);
 }
 
-static inline void qe6502_write_cpu(uint8_t *dst, const qe6502_t *cpu)
+static inline void snapshot_write_cpu(uint8_t *dst, const qe6502_t *cpu)
 {
     dst[0] = cpu->model;
     dst[1] = cpu->reserved_extension;
-    qe6502_write_u16(&dst[2], cpu->microcode);
-    qe6502_write_u16(&dst[4], cpu->latch_addr);
+    snapshot_write_u16(&dst[2], cpu->microcode);
+    snapshot_write_u16(&dst[4], cpu->latch_addr);
     dst[6] = cpu->latch_data;
     dst[7] = cpu->hijack_microcode;
-    qe6502_write_u16(&dst[8], cpu->PC);
+    snapshot_write_u16(&dst[8], cpu->PC);
     dst[10] = cpu->S;
     dst[11] = cpu->A;
     dst[12] = cpu->X;
@@ -2729,15 +2661,15 @@ static inline void qe6502_write_cpu(uint8_t *dst, const qe6502_t *cpu)
     dst[15] = cpu->interrupts;
 }
 
-static inline void qe6502_read_cpu(qe6502_t *cpu, const uint8_t *src)
+static inline void snapshot_read_cpu(qe6502_t *cpu, const uint8_t *src)
 {
     cpu->model = src[0];
     cpu->reserved_extension = src[1];
-    cpu->microcode = qe6502_read_u16(&src[2]);
-    cpu->latch_addr = qe6502_read_u16(&src[4]);
+    cpu->microcode = snapshot_read_u16(&src[2]);
+    cpu->latch_addr = snapshot_read_u16(&src[4]);
     cpu->latch_data = src[6];
     cpu->hijack_microcode = src[7];
-    cpu->PC = qe6502_read_u16(&src[8]);
+    cpu->PC = snapshot_read_u16(&src[8]);
     cpu->S = src[10];
     cpu->A = src[11];
     cpu->X = src[12];
@@ -2830,10 +2762,10 @@ QE6502_ABI_API void qe6502abi_save(const qe6502abi_context_t *ctx,
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
 
-    qe6502_write_u16(&snapshot[0], impl->magic);
-    qe6502_write_u16(&snapshot[2], impl->version);
-    qe6502_write_cpu(&snapshot[4], &impl->cpu);
-    qe6502_write_u32(&snapshot[20], tick);
+    snapshot_write_u16(&snapshot[0], impl->magic);
+    snapshot_write_u16(&snapshot[2], impl->version);
+    snapshot_write_cpu(&snapshot[4], &impl->cpu);
+    snapshot_write_u32(&snapshot[20], tick);
     clear_buffer(&snapshot[24], QE6502_ABI_SNAPSHOT_SIZE - 24u);
 }
 
@@ -2842,10 +2774,10 @@ QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx,
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
 
-    impl->magic = qe6502_read_u16(&snapshot[0]);
-    impl->version = qe6502_read_u16(&snapshot[2]);
-    qe6502_read_cpu(&impl->cpu, &snapshot[4]);
-    const qe6502abi_tick_t tick = qe6502_read_u32(&snapshot[20]);
+    impl->magic = snapshot_read_u16(&snapshot[0]);
+    impl->version = snapshot_read_u16(&snapshot[2]);
+    snapshot_read_cpu(&impl->cpu, &snapshot[4]);
+    const qe6502abi_tick_t tick = snapshot_read_u32(&snapshot[20]);
     clear_buffer(impl->reserve, (uint32_t)sizeof(impl->reserve));
 
     return tick;
@@ -2948,6 +2880,7 @@ qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address)
     return qe6502_tick(cpu, 0u);
 }
 
+/* Exported native C symbol equivalent to the inline qe6502_tick() helper. */
 qe6502_tick_t qe6502_tick_exported(qe6502_t *cpu, uint8_t bus)
 {
     return qe6502_tick(cpu, bus);
@@ -3015,18 +2948,18 @@ void qe6502_save(const qe6502_t *cpu,
                  qe6502_tick_t tick,
                  uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
 {
-    qe6502_write_u16(&snapshot[0], (uint16_t)qe6502_snapshot_context_magic);
-    qe6502_write_u16(&snapshot[2], (uint16_t)qe6502_snapshot_context_version);
-    qe6502_write_cpu(&snapshot[4], cpu);
-    qe6502_write_u32(&snapshot[20], pack_tick(tick));
+    snapshot_write_u16(&snapshot[0], (uint16_t)qe6502_snapshot_context_magic);
+    snapshot_write_u16(&snapshot[2], (uint16_t)qe6502_snapshot_context_version);
+    snapshot_write_cpu(&snapshot[4], cpu);
+    snapshot_write_u32(&snapshot[20], pack_tick(tick));
     clear_buffer(&snapshot[24], QE6502_SNAPSHOT_SIZE - 24u);
 }
 
-qe6502_tick_t qe6502_load(qe6502_t *ctx,
+qe6502_tick_t qe6502_load(qe6502_t *cpu,
                           const uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
 {
-    qe6502_read_cpu(ctx, &snapshot[4]);
-    return unpack_tick(qe6502_read_u32(&snapshot[20]));
+    snapshot_read_cpu(cpu, &snapshot[4]);
+    return unpack_tick(snapshot_read_u32(&snapshot[20]));
 }
 
 const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size] =
