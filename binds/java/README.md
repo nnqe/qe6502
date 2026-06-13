@@ -37,6 +37,18 @@ the project license. The jar in that directory is the same embedded-native jar
 built by `qe6502_java`; multi-platform aggregation and Maven metadata are handled
 by later packaging steps, not by this staging target.
 
+A native runtime asset fragment for CI/package aggregation can be staged with:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_stage_runtime_asset
+```
+
+The runtime asset fragment is created under `runtime-asset/` in the Java binding
+build tree and uses the same embedded-resource layout as the jar, for example
+`qe6502/native/linux-x64/libqe6502.so`. Release CI uploads this fragment from
+each supported OS/architecture so a later aggregation step can build a
+multi-platform jar.
+
 A clean external consumer smoke can be run against the staged jar with:
 
 ```sh
