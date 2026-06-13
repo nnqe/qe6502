@@ -32,8 +32,8 @@ cmake --build --preset debug_native --target qe6502_java_package_stage
 ```
 
 The staged directory is created under the Java binding build tree as
-`package/qe6502-java-<version>/` and contains `qe6502-java.jar`, `pom.xml`,
-this README, and the project license. The jar in that directory is the same
+`package/qe6502-java-<version>/` and contains `qe6502-java.jar`,
+`qe6502-java-sources.jar`, `pom.xml`, this README, and the project license. The jar in that directory is the same
 embedded-native jar built by `qe6502_java`; the POM uses Maven coordinates
 `io.github.nnqe:qe6502:<version>` with the version generated from the qe6502
 CMake package version. Multi-platform aggregation is handled by later packaging
@@ -67,8 +67,8 @@ cmake \
 ```
 
 The aggregate script overlays the collected native resources into the staged jar,
-copies the staged `pom.xml`, and verifies that the six supported platform entries
-are present.
+copies the staged sources jar and `pom.xml`, and verifies that the six supported
+platform entries are present.
 
 A clean external consumer smoke can be run against the staged jar with:
 
@@ -78,7 +78,9 @@ cmake --build --preset debug_native --target qe6502_java_package_smoke
 
 The package smoke compiles a temporary Java consumer outside the source tree,
 uses only the staged `qe6502-java.jar` on the classpath, and runs without
-`-Dqe6502.native.path` so the embedded native-resource path is exercised.
+`-Dqe6502.native.path` so the embedded native-resource path is exercised. Release
+CI runs this package smoke on each supported native release platform before
+uploading that platform's Java runtime asset fragment.
 
 When Maven is available, a clean Maven consumer smoke can also be run with:
 

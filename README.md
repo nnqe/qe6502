@@ -537,10 +537,12 @@ a clean consumer using `io.github.nnqe:qe6502:<version>`, and runs it without
 
 Release CI also has a Java package aggregation job that downloads the Java native
 runtime fragments from the supported native release builds, overlays them into
-the staged jar, carries the generated Maven `pom.xml` with coordinates
-`io.github.nnqe:qe6502:<version>`, verifies the multi-platform
-`qe6502/native/<platform>/` layout, runs the package smoke on Linux, and uploads
-the resulting Java package candidate.
+the staged jar, carries the generated Maven `pom.xml` and Java sources jar with
+coordinates `io.github.nnqe:qe6502:<version>`, verifies the multi-platform
+`qe6502/native/<platform>/` layout, runs package smoke checks, and uploads the
+resulting Java package candidate. The native release jobs also run the Java
+package smoke on their own platform before uploading their Java runtime asset
+fragments, so embedded native loading is exercised on Windows, macOS, and Linux.
 
 
 For WebAssembly/JavaScript harnesses:

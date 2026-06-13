@@ -197,6 +197,10 @@ jobs:
         if: matrix.preset == 'release_native'
         run: cmake --build build/${{ matrix.preset }} --target qe6502_java_stage_runtime_asset
 
+      - name: Smoke Java package for current platform
+        if: matrix.preset == 'release_native'
+        run: cmake --build build/${{ matrix.preset }} --target qe6502_java_package_smoke
+
       - name: Upload Java native runtime asset for package aggregation
         if: matrix.preset == 'release_native'
         uses: actions/upload-artifact@v7
