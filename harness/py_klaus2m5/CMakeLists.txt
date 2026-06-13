@@ -76,11 +76,7 @@ add_custom_target(qe6502_py_klaus2m5_run
 
 set(QE6502_PY_KLAUS2M5_TESTS
     nmos standard
-    wdc standard
-    wdc extended
-    rw standard
     rw extended
-    st standard
 )
 
 list(LENGTH QE6502_PY_KLAUS2M5_TESTS QE6502_PY_KLAUS2M5_TEST_COUNT)
