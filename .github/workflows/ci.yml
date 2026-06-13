@@ -226,13 +226,15 @@ jobs:
 
       - name: Dry-run JS npm publish
         if: matrix.preset == 'release_wasm'
-        run: cmake --build build/${{ matrix.preset }} --target qe6502_js_npm_publish_dry_run
+        run: |
+          echo "Running npm publish --dry-run for qe6502 JavaScript package"
+          cmake --build build/${{ matrix.preset }} --target qe6502_js_npm_publish_dry_run
 
-      - name: Upload JS npm package artifact
-        if: matrix.preset == 'release_wasm'
+      - name: Upload JS npm package publish candidate
+        if: matrix.preset == 'release_wasm' && matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: qe6502-js-npm-${{ matrix.os }}-${{ matrix.preset }}
+          name: qe6502-js-npm-publish-candidate
           path: |
             build/${{ matrix.preset }}/harness/js_package_smoke/pack/*.tgz
             build/${{ matrix.preset }}/harness/js_package_smoke/pack/*-files.txt

@@ -1,7 +1,7 @@
 {
   "name": "qe6502",
   "version": "@QE6502_PACKAGE_VERSION@",
-  "description": "JavaScript and WebAssembly binding for qe6502, a cycle-oriented 6502/65C02 CPU emulator.",
+  "description": "A lightweight bus-cycle 6502 CPU emulator for JavaScript and WebAssembly.",
   "type": "module",
   "exports": {
     ".": "./qe6502.js",
@@ -31,8 +31,11 @@
     "65c02",
     "emulator",
     "cpu",
-    "mos6502",
-    "retrocomputing",
-    "wasm"
+    "cycle-accurate",
+    "bus-cycle",
+    "wasm",
+    "webassembly",
+    "javascript",
+    "retrocomputing"
   ]
 }

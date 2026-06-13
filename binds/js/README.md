@@ -1,6 +1,6 @@
-# qe6502 JavaScript / WebAssembly binding
+# qe6502 for JavaScript
 
-`qe6502` is a cycle-oriented 6502 / 65C02 CPU emulator. This package provides the JavaScript API and bundled WebAssembly module for Node.js and browser consumers.
+`qe6502` is a lightweight bus-cycle 6502 CPU emulator for JavaScript and WebAssembly. The npm package includes the JavaScript API and the compiled `qe6502_js.wasm` module.
 
 ## Requirements
 
@@ -13,35 +13,47 @@
 npm install qe6502
 ```
 
-## Node.js use
+## Node.js
 
-The Node.js loader can find the bundled `qe6502_js.wasm` file automatically:
+In Node.js, the loader finds the bundled WebAssembly module automatically:
 
 ```js
 import { loadQe6502Node, Model } from "qe6502";
 
 const qe = await loadQe6502Node();
 const cpu = qe.createCpu(Model.nmos);
+
+cpu.dispose();
 ```
 
-You can also pass an explicit WebAssembly file path or URL when embedding qe6502 in a custom environment:
+A custom WebAssembly path or URL can still be supplied when needed:
 
 ```js
 const qe = await loadQe6502Node("/custom/path/qe6502_js.wasm");
 ```
 
-## Browser use
+## Browser
 
-Browser consumers should pass the WebAssembly module URL explicitly. This keeps the package usable with plain static hosting, bundlers, CDNs, and asset pipelines that rename or relocate `.wasm` files.
+Browser consumers should pass the WebAssembly module URL explicitly. This works better with static hosting, CDNs, bundlers, and asset pipelines that rename or relocate `.wasm` files.
 
 ```js
 import { loadQe6502Browser, Model } from "qe6502";
 
 const qe = await loadQe6502Browser("/assets/qe6502_js.wasm");
 const cpu = qe.createCpu(Model.nmos);
+
+cpu.dispose();
 ```
 
-## Minimal CPU loop
+The package also exports the bundled WebAssembly file as a subpath:
+
+```js
+import wasmUrl from "qe6502/qe6502_js.wasm";
+```
+
+Whether that import returns a usable URL depends on the bundler or runtime.
+
+## Minimal bus loop
 
 `qe6502` is bus-cycle oriented. The caller observes the current bus request and supplies memory data on read cycles. On write cycles, the caller stores the CPU data byte.
 
@@ -94,6 +106,8 @@ cpu.isInternalReset();
 cpu.isJammed();
 ```
 
+The raw tick value is returned by `tick`, `jumpTo`, `restart`, and `load`.
+
 ## Registers and flags
 
 The wrapper exposes CPU registers:
@@ -137,7 +151,7 @@ cpu.tick(memory[cpu.busAddress()]);
 cpu.irqAssert(false);
 ```
 
-## Save and load
+## Snapshots
 
 `save` returns a portable 64-byte CPU snapshot, including the last tick:
 
@@ -158,6 +172,15 @@ Each CPU object owns a native WebAssembly-side context. Call `dispose()` when a 
 ```js
 cpu.dispose();
 ```
+
+Calling methods on a disposed CPU throws an error.
+
+## Package notes
+
+- The npm package is ESM-only.
+- The package has no runtime dependencies.
+- Node.js loading uses the bundled `qe6502_js.wasm` by default.
+- Browser loading intentionally uses an explicit WebAssembly URL/source.
 
 ## License
 

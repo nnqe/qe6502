@@ -6,6 +6,8 @@ if(NOT DEFINED QE6502_PACKAGE_DIR)
     message(FATAL_ERROR "QE6502_PACKAGE_DIR is required")
 endif()
 
+message(STATUS "Running npm publish --dry-run in: ${QE6502_PACKAGE_DIR}")
+
 execute_process(
     COMMAND "${QE6502_NPM_EXECUTABLE}" publish --dry-run
     WORKING_DIRECTORY "${QE6502_PACKAGE_DIR}"
