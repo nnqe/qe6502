@@ -99,6 +99,12 @@ uint32_to_python(uint32_t value)
     return PyLong_FromUnsignedLong((unsigned long)value);
 }
 
+static PyObject*
+CPU_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+    return PyType_GenericNew(type, args, kwds);
+}
+
 static int
 CPU_init(Qe6502CPUObject* self, PyObject* args, PyObject* kwargs)
 {
@@ -395,7 +401,7 @@ static PyGetSetDef CPU_getset[] = {
 
 static PyType_Slot CPU_type_slots[] = {
     {Py_tp_doc, (void*)"qe6502 CPU ABI context"},
-    {Py_tp_new, PY_QE6502_SLOT_FUNCTION(PyType_GenericNew)},
+    {Py_tp_new, PY_QE6502_SLOT_FUNCTION(CPU_new)},
     {Py_tp_init, PY_QE6502_SLOT_FUNCTION(CPU_init)},
     {Py_tp_methods, (void*)CPU_methods},
     {Py_tp_getset, (void*)CPU_getset},
