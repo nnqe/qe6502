@@ -127,6 +127,20 @@ add_custom_target(qe6502_java_package_stage
         ${QE6502_JAVA_PACKAGE_LICENSE}
 )
 
+set(QE6502_JAVA_PACKAGE_SMOKE_DIR ${CMAKE_CURRENT_BINARY_DIR}/package-smoke)
+
+add_custom_target(qe6502_java_package_smoke
+    COMMAND ${CMAKE_COMMAND}
+        -DQE6502_JAVA_JAVAC_EXECUTABLE=${Java_JAVAC_EXECUTABLE}
+        -DQE6502_JAVA_JAVA_EXECUTABLE=${Java_JAVA_EXECUTABLE}
+        -DQE6502_JAVA_PACKAGE_JAR=${QE6502_JAVA_PACKAGE_JAR}
+        -DQE6502_JAVA_PACKAGE_SMOKE_DIR=${QE6502_JAVA_PACKAGE_SMOKE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_package_smoke.cmake
+    DEPENDS qe6502_java_package_stage
+    COMMENT "Running qe6502 Java package consumer smoke"
+    VERBATIM
+)
+
 set(QE6502_JAVA_JAR ${QE6502_JAVA_JAR} CACHE INTERNAL "qe6502 Java binding jar")
 set(QE6502_JAVA_OUTPUT_DIR ${QE6502_JAVA_OUTPUT_DIR} CACHE INTERNAL "qe6502 Java binding output directory")
 set(QE6502_JAVA_NATIVE_LIBRARY_NAME ${QE6502_JAVA_NATIVE_LIBRARY_NAME} CACHE INTERNAL "qe6502 Java native library filename")

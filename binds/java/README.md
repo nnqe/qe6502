@@ -37,6 +37,16 @@ the project license. The jar in that directory is the same embedded-native jar
 built by `qe6502_java`; multi-platform aggregation and Maven metadata are handled
 by later packaging steps, not by this staging target.
 
+A clean external consumer smoke can be run against the staged jar with:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_package_smoke
+```
+
+The package smoke compiles a temporary Java consumer outside the source tree,
+uses only the staged `qe6502-java.jar` on the classpath, and runs without
+`-Dqe6502.native.path` so the embedded native-resource path is exercised.
+
 ## Runtime
 
 The binding is classpath-based in this development tree. Because the FFM API is

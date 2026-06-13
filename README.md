@@ -519,6 +519,14 @@ cmake --build --preset release_native --target qe6502_rust_smoke_run
 cmake --build --preset release_native --target qe6502_rust_klaus2m5_run
 ```
 
+For Java harnesses and the staged Java package smoke, when JDK 25+ is available:
+
+```sh
+cmake --build --preset release_native --target qe6502_java_smoke_run
+cmake --build --preset release_native --target qe6502_java_klaus2m5_run
+cmake --build --preset release_native --target qe6502_java_package_smoke
+```
+
 For WebAssembly/JavaScript harnesses:
 
 ```sh
