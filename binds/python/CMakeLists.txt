@@ -96,3 +96,105 @@ add_custom_target(qe6502_python ALL
         _qe6502
         ${CMAKE_CURRENT_BINARY_DIR}/qe6502/__init__.py
 )
+
+
+set(QE6502_PYTHON_PACKAGE_NAME "qe6502")
+set(QE6502_PYTHON_PACKAGE_DESCRIPTION "A lightweight bus-cycle 6502 CPU emulator for Python.")
+set(QE6502_PYTHON_PACKAGE_AUTHOR "Nikolay Nedelchev")
+set(QE6502_PYTHON_PACKAGE_LICENSE "MIT")
+set(QE6502_PYTHON_PACKAGE_REQUIRES_PYTHON ">=${QE6502_PYTHON_STABLE_ABI_MINIMUM}")
+set(QE6502_PYTHON_WHEEL_PYTHON_TAG "cp310")
+set(QE6502_PYTHON_WHEEL_ABI_TAG "abi3")
+
+set(QE6502_PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/package/qe6502")
+set(QE6502_PYTHON_PACKAGE_DIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/dist")
+set(QE6502_PYTHON_PACKAGE_PYPROJECT "${QE6502_PYTHON_PACKAGE_DIR}/pyproject.toml")
+set(QE6502_PYTHON_PACKAGE_README "${QE6502_PYTHON_PACKAGE_DIR}/README.md")
+set(QE6502_PYTHON_PACKAGE_LICENSE_FILE "${QE6502_PYTHON_PACKAGE_DIR}/LICENSE")
+set(QE6502_PYTHON_PACKAGE_INIT "${QE6502_PYTHON_PACKAGE_DIR}/qe6502/__init__.py")
+set(QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/package_wheel.py")
+
+file(MAKE_DIRECTORY "${QE6502_PYTHON_PACKAGE_DIR}")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in"
+    "${QE6502_PYTHON_PACKAGE_PYPROJECT}"
+    @ONLY
+)
+
+find_program(QE6502_PYTHON_PACKAGE_EXECUTABLE NAMES python3 python)
+
+if(NOT QE6502_PYTHON_PACKAGE_EXECUTABLE)
+    message(STATUS "python3/python executable not found; skipping qe6502 Python wheel target")
+else()
+    add_custom_target(qe6502_python_package_stage
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "${QE6502_PYTHON_PACKAGE_DIR}"
+            "${QE6502_PYTHON_PACKAGE_DIR}/qe6502"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+            "${QE6502_PYTHON_PACKAGE_README}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/LICENSE"
+            "${QE6502_PYTHON_PACKAGE_LICENSE_FILE}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/qe6502/__init__.py"
+            "${QE6502_PYTHON_PACKAGE_INIT}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:_qe6502>"
+            "${QE6502_PYTHON_PACKAGE_DIR}/$<TARGET_FILE_NAME:_qe6502>"
+        DEPENDS
+            qe6502_python
+            "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+            "${CMAKE_CURRENT_SOURCE_DIR}/qe6502/__init__.py"
+            "${CMAKE_SOURCE_DIR}/LICENSE"
+            "${QE6502_PYTHON_PACKAGE_PYPROJECT}"
+        COMMENT "Staging qe6502 Python package files"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_python_wheel
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${QE6502_PYTHON_PACKAGE_DIST_DIR}"
+        COMMAND "${QE6502_PYTHON_PACKAGE_EXECUTABLE}"
+            "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
+            --stage-dir "${QE6502_PYTHON_PACKAGE_DIR}"
+            --dist-dir "${QE6502_PYTHON_PACKAGE_DIST_DIR}"
+            --name "${QE6502_PYTHON_PACKAGE_NAME}"
+            --version "${QE6502_PACKAGE_VERSION}"
+            --description "${QE6502_PYTHON_PACKAGE_DESCRIPTION}"
+            --author "${QE6502_PYTHON_PACKAGE_AUTHOR}"
+            --license "${QE6502_PYTHON_PACKAGE_LICENSE}"
+            --license-file "${QE6502_PYTHON_PACKAGE_LICENSE_FILE}"
+            --readme "${QE6502_PYTHON_PACKAGE_README}"
+            --requires-python "${QE6502_PYTHON_PACKAGE_REQUIRES_PYTHON}"
+            --python-tag "${QE6502_PYTHON_WHEEL_PYTHON_TAG}"
+            --abi-tag "${QE6502_PYTHON_WHEEL_ABI_TAG}"
+            --keyword 6502
+            --keyword 65c02
+            --keyword emulator
+            --keyword cpu
+            --keyword cycle-accurate
+            --keyword bus-cycle
+            --keyword python
+            --keyword cpython
+            --keyword retrocomputing
+            --classifier "Development Status :: 3 - Alpha"
+            --classifier "License :: OSI Approved :: MIT License"
+            --classifier "Programming Language :: C"
+            --classifier "Programming Language :: Python :: 3"
+            --classifier "Programming Language :: Python :: 3 :: Only"
+            --classifier "Programming Language :: Python :: 3.10"
+            --classifier "Programming Language :: Python :: 3.11"
+            --classifier "Programming Language :: Python :: 3.12"
+            --classifier "Programming Language :: Python :: 3.13"
+            --classifier "Programming Language :: Python :: Implementation :: CPython"
+            --classifier "Topic :: System :: Emulators"
+            --project-url Homepage "https://github.com/nikolaynedelchev/qe6502"
+            --project-url Repository "https://github.com/nikolaynedelchev/qe6502"
+            --project-url Issues "https://github.com/nikolaynedelchev/qe6502/issues"
+        DEPENDS
+            qe6502_python_package_stage
+            "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
+        COMMENT "Building qe6502 Python wheel"
+        VERBATIM
+    )
+endif()
