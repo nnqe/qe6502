@@ -11,8 +11,8 @@
     <Company>Nikolay Nedelchev</Company>
     <Description>.NET binding for qe6502, a cycle-oriented 6502 CPU emulator with bundled native runtime libraries.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/nikolaynedelchev/qe6502</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/nikolaynedelchev/qe6502</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/nnqe/qe6502</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nnqe/qe6502</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>6502;65c02;emulator;cpu;mos6502;retrocomputing</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

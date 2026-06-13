@@ -38,6 +38,6 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nikolaynedelchev/qe6502"
-Repository = "https://github.com/nikolaynedelchev/qe6502"
-Issues = "https://github.com/nikolaynedelchev/qe6502/issues"
+Homepage = "https://github.com/nnqe/qe6502"
+Repository = "https://github.com/nnqe/qe6502"
+Issues = "https://github.com/nnqe/qe6502/issues"

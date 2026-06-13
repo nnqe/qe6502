@@ -20,11 +20,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nikolaynedelchev/qe6502.git"
+    "url": "git+https://github.com/nnqe/qe6502.git"
   },
-  "homepage": "https://github.com/nikolaynedelchev/qe6502#readme",
+  "homepage": "https://github.com/nnqe/qe6502#readme",
   "bugs": {
-    "url": "https://github.com/nikolaynedelchev/qe6502/issues"
+    "url": "https://github.com/nnqe/qe6502/issues"
   },
   "keywords": [
     "6502",
