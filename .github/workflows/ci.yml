@@ -579,6 +579,20 @@ jobs:
             -DQE6502_JAVA_PACKAGE_SMOKE_DIR="$PWD/build/java-multiplatform-smoke" \
             -P binds/java/run_package_smoke.cmake
 
+      - name: Smoke Java multi-platform package through Maven local repo
+        shell: bash
+        run: |
+          cmake \
+            -DQE6502_MAVEN_EXECUTABLE="$(command -v mvn)" \
+            -DQE6502_JAVA_JAVA_EXECUTABLE="$(command -v java)" \
+            -DQE6502_JAVA_PACKAGE_JAR="$PWD/build/java-package/qe6502-java-${PACKAGE_VERSION}/qe6502-java.jar" \
+            -DQE6502_JAVA_PACKAGE_POM="$PWD/build/java-package/qe6502-java-${PACKAGE_VERSION}/pom.xml" \
+            -DQE6502_JAVA_MAVEN_SMOKE_DIR="$PWD/build/java-maven-multiplatform-smoke" \
+            -DQE6502_JAVA_MAVEN_GROUP_ID="io.github.nnqe" \
+            -DQE6502_JAVA_MAVEN_ARTIFACT_ID="qe6502" \
+            -DQE6502_JAVA_MAVEN_VERSION="$PACKAGE_VERSION" \
+            -P binds/java/run_maven_package_smoke.cmake
+
       - name: Upload Java multi-platform package
         uses: actions/upload-artifact@v7
         with:

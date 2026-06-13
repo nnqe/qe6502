@@ -80,6 +80,17 @@ The package smoke compiles a temporary Java consumer outside the source tree,
 uses only the staged `qe6502-java.jar` on the classpath, and runs without
 `-Dqe6502.native.path` so the embedded native-resource path is exercised.
 
+When Maven is available, a clean Maven consumer smoke can also be run with:
+
+```sh
+cmake --build --preset debug_native --target qe6502_java_maven_package_smoke
+```
+
+The Maven smoke installs the staged jar and generated POM into a temporary local
+Maven repository, builds a temporary consumer that depends on
+`io.github.nnqe:qe6502:<version>`, and runs the consumer without
+`-Dqe6502.native.path`.
+
 ## Runtime
 
 The binding is classpath-based in this development tree. Because the FFM API is

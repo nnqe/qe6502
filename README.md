@@ -527,7 +527,13 @@ cmake --build --preset release_native --target qe6502_java_klaus2m5_run
 cmake --build --preset release_native --target qe6502_java_package_stage
 cmake --build --preset release_native --target qe6502_java_stage_runtime_asset
 cmake --build --preset release_native --target qe6502_java_package_smoke
+cmake --build --preset release_native --target qe6502_java_maven_package_smoke
 ```
+
+The Maven package smoke target is generated only when Maven is available. It
+installs the staged Java package into a temporary local Maven repository, builds
+a clean consumer using `io.github.nnqe:qe6502:<version>`, and runs it without
+`qe6502.native.path`.
 
 Release CI also has a Java package aggregation job that downloads the Java native
 runtime fragments from the supported native release builds, overlays them into
