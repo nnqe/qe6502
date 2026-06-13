@@ -224,6 +224,13 @@ jobs:
         if: matrix.preset == 'release_native'
         run: python -m pip install --upgrade twine
 
+      - name: Install Linux Python wheel repair tooling
+        if: matrix.preset == 'release_native' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf
+          python -m pip install --upgrade auditwheel
+
       - name: Build Python wheel
         if: matrix.preset == 'release_native'
         run: cmake --build build/${{ matrix.preset }} --target qe6502_python_wheel
@@ -241,7 +248,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-python-wheel-${{ matrix.os }}-${{ matrix.preset }}
-          path: build/${{ matrix.preset }}/binds/python/dist/*.whl
+          path: build/${{ matrix.preset }}/binds/python/publish-dist/*.whl
           if-no-files-found: error
 
       - name: Package JS npm artifact
