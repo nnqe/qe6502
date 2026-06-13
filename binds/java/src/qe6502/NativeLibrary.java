@@ -1,5 +1,7 @@
 package qe6502;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
@@ -8,6 +10,7 @@ import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
@@ -209,12 +212,67 @@ final class NativeLibrary implements AutoCloseable {
             return SymbolLookup.libraryLookup(Path.of(nativePath), arena);
         }
 
+        Path bundledLibrary = extractBundledLibrary();
+        if (bundledLibrary != null) {
+            return SymbolLookup.libraryLookup(bundledLibrary, arena);
+        }
+
         Path localLibrary = Path.of(platformLibraryFileName()).toAbsolutePath();
         if (Files.isRegularFile(localLibrary)) {
             return SymbolLookup.libraryLookup(localLibrary, arena);
         }
 
         return SymbolLookup.libraryLookup(defaultLibraryName(), arena);
+    }
+
+    private static Path extractBundledLibrary() {
+        String platform = platformResourceDirectory();
+        if (platform == null) {
+            return null;
+        }
+
+        String resourceName = "/qe6502/native/" + platform + "/" + platformLibraryFileName();
+        try (InputStream input = NativeLibrary.class.getResourceAsStream(resourceName)) {
+            if (input == null) {
+                return null;
+            }
+
+            Path directory = Files.createTempDirectory("qe6502-java-native-");
+            Path extractedLibrary = directory.resolve(platformLibraryFileName());
+            Files.copy(input, extractedLibrary, StandardCopyOption.REPLACE_EXISTING);
+            directory.toFile().deleteOnExit();
+            extractedLibrary.toFile().deleteOnExit();
+            return extractedLibrary;
+        } catch (IOException exception) {
+            throw new UnsatisfiedLinkError("Failed to extract bundled qe6502 native library: " + exception.getMessage());
+        }
+    }
+
+    private static String platformResourceDirectory() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        String archName = System.getProperty("os.arch", "").toLowerCase();
+
+        String os;
+        if (osName.contains("win")) {
+            os = "win";
+        } else if (osName.contains("mac") || osName.contains("darwin")) {
+            os = "osx";
+        } else if (osName.contains("linux")) {
+            os = "linux";
+        } else {
+            return null;
+        }
+
+        String arch;
+        if (archName.equals("x86_64") || archName.equals("amd64")) {
+            arch = "x64";
+        } else if (archName.equals("aarch64") || archName.equals("arm64")) {
+            arch = "arm64";
+        } else {
+            return null;
+        }
+
+        return os + "-" + arch;
     }
 
     private static String platformLibraryFileName() {

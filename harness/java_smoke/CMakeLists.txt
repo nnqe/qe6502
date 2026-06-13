@@ -75,7 +75,6 @@ add_custom_target(qe6502_java_smoke ALL
 add_custom_target(qe6502_java_smoke_run
     COMMAND ${Java_JAVA_EXECUTABLE}
         --enable-native-access=ALL-UNNAMED
-        "-Dqe6502.native.path=${QE6502_JAVA_SMOKE_NATIVE_LIBRARY}"
         -jar ${QE6502_JAVA_SMOKE_JAR}
     DEPENDS qe6502_java_smoke
     WORKING_DIRECTORY ${QE6502_JAVA_SMOKE_OUTPUT_DIR}
@@ -86,7 +85,6 @@ add_custom_target(qe6502_java_smoke_run
 add_test(NAME qe6502_java_smoke
     COMMAND ${Java_JAVA_EXECUTABLE}
         --enable-native-access=ALL-UNNAMED
-        "-Dqe6502.native.path=${QE6502_JAVA_SMOKE_NATIVE_LIBRARY}"
         -jar ${QE6502_JAVA_SMOKE_JAR}
     WORKING_DIRECTORY ${QE6502_JAVA_SMOKE_OUTPUT_DIR}
 )

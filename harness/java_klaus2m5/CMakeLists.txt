@@ -87,7 +87,6 @@ add_custom_target(qe6502_java_klaus2m5 ALL
 add_custom_target(qe6502_java_klaus2m5_run
     COMMAND ${Java_JAVA_EXECUTABLE}
         --enable-native-access=ALL-UNNAMED
-        "-Dqe6502.native.path=${QE6502_JAVA_KLAUS2M5_NATIVE_LIBRARY}"
         -jar ${QE6502_JAVA_KLAUS2M5_JAR}
     DEPENDS qe6502_java_klaus2m5
     WORKING_DIRECTORY ${QE6502_JAVA_KLAUS2M5_OUTPUT_DIR}
@@ -115,7 +114,6 @@ foreach(index RANGE 0 ${QE6502_JAVA_KLAUS2M5_LAST_INDEX} 2)
     add_test(NAME qe6502.java.klaus2m5.${model}.${test_name}
         COMMAND ${Java_JAVA_EXECUTABLE}
             --enable-native-access=ALL-UNNAMED
-            "-Dqe6502.native.path=${QE6502_JAVA_KLAUS2M5_NATIVE_LIBRARY}"
             -jar ${QE6502_JAVA_KLAUS2M5_JAR} ${model} ${test_name}
         WORKING_DIRECTORY ${QE6502_JAVA_KLAUS2M5_OUTPUT_DIR}
     )
