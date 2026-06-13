@@ -1,0 +1,622 @@
+name: Release Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example 0.5.0"
+        required: true
+        type: string
+      ref:
+        description: "Optional ref, branch, SHA, or tag to build"
+        required: false
+        type: string
+        default: ""
+      java_signed_central_bundle:
+        description: "Build a signed Java Maven Central bundle when GPG is available on the runner"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  validate-release:
+    name: Validate release version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_major: ${{ steps.version.outputs.version_major }}
+      version_minor: ${{ steps.version.outputs.version_minor }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Validate requested version against core header
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          import re
+          from pathlib import Path
+
+          requested = os.environ["QE6502_REQUESTED_VERSION"].strip()
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", requested):
+              raise SystemExit(f"Release version must use MAJOR.MINOR.PATCH form, got: {requested!r}")
+
+          text = Path("cpu/include/qe6502/qe6502_version.h").read_text(encoding="utf-8")
+          major = re.search(r"#\s*define\s+QE6502_VERSION_MAJOR\s+([0-9]+)[uU]?", text)
+          minor = re.search(r"#\s*define\s+QE6502_VERSION_MINOR\s+([0-9]+)[uU]?", text)
+          if not major or not minor:
+              raise SystemExit("Could not read QE6502_VERSION_MAJOR/MINOR from version header")
+
+          expected = f"{major.group(1)}.{minor.group(1)}.0"
+          if requested != expected:
+              raise SystemExit(f"Requested release version {requested} does not match core package version {expected}")
+
+          print(f"version={requested}")
+          print(f"version_major={major.group(1)}")
+          print(f"version_minor={minor.group(1)}")
+          PY
+        env:
+          QE6502_REQUESTED_VERSION: ${{ inputs.version }}
+
+      - name: Summarize release candidate
+        shell: bash
+        run: |
+          echo "Release candidate version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Git ref: ${{ inputs.ref || github.ref }}" >> "$GITHUB_STEP_SUMMARY"
+
+  native-assets:
+    name: Native release assets / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: validate-release
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-15-intel
+          - macos-15
+          - windows-latest
+          - windows-11-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: "25"
+
+      - name: Setup .NET 8
+        if: matrix.os != 'windows-11-arm'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup .NET 8 for Windows ARM64
+        if: matrix.os == 'windows-11-arm'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+          architecture: arm64
+
+      - name: Setup Python 3.13
+        if: matrix.os != 'windows-11-arm'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Setup Python 3.13 for Windows ARM64
+        if: matrix.os == 'windows-11-arm'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          architecture: arm64
+
+      - name: Setup MSVC for Windows ARM64 native build
+        if: matrix.os == 'windows-11-arm'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: arm64
+
+      - name: Configure native release packaging build on Windows ARM64
+        if: matrix.os == 'windows-11-arm'
+        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+
+      - name: Configure native release packaging build
+        if: matrix.os != 'windows-11-arm'
+        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON
+
+      - name: Stage C# native runtime asset
+        run: cmake --build build/release_native --target qe6502_csharp_stage_runtime_asset
+
+      - name: Upload C# native runtime asset
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-${{ matrix.os }}-${{ needs.validate-release.outputs.version }}
+          path: build/release_native/binds/csharp/runtime-asset/Release
+          if-no-files-found: error
+
+      - name: Stage Java native runtime asset
+        run: cmake --build build/release_native --target qe6502_java_stage_runtime_asset
+
+      - name: Upload Java native runtime asset
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-${{ matrix.os }}-${{ needs.validate-release.outputs.version }}
+          path: build/release_native/binds/java/runtime-asset
+          if-no-files-found: error
+
+      - name: Install Python package metadata tooling
+        run: python -m pip install --upgrade twine
+
+      - name: Install Linux Python wheel repair tooling
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf
+          python -m pip install --upgrade auditwheel
+
+      - name: Build Python wheel
+        run: cmake --build build/release_native --target qe6502_python_wheel
+
+      - name: Check Python wheel metadata
+        run: cmake --build build/release_native --target qe6502_python_twine_check
+
+      - name: Upload Python wheel release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-python-wheel-${{ matrix.os }}-${{ needs.validate-release.outputs.version }}
+          path: build/release_native/binds/python/publish-dist/*.whl
+          if-no-files-found: error
+
+  package-js:
+    name: Package JavaScript npm artifact
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install LLVM for WASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld ninja-build
+
+      - name: Configure WASM release packaging build
+        run: cmake --preset release_wasm -DQE6502_BUILD_TESTS=OFF
+
+      - name: Stage JS npm package
+        run: cmake --build build/release_wasm --target qe6502_js_npm_package_stage
+
+      - name: Pack JS npm artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/js-npm-pack
+          npm pack --pack-destination "$PWD/build/js-npm-pack" \
+            --prefix "$PWD/build/release_wasm/binds/js/npm/qe6502"
+          tar -tzf build/js-npm-pack/*.tgz | sort > build/js-npm-pack/qe6502-${{ needs.validate-release.outputs.version }}-files.txt
+
+      - name: Dry-run JS npm publish
+        shell: bash
+        run: npm publish --dry-run "$PWD/build/js-npm-pack/qe6502-${{ needs.validate-release.outputs.version }}.tgz"
+
+      - name: Upload JS npm release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-js-npm-${{ needs.validate-release.outputs.version }}
+          path: |
+            build/js-npm-pack/*.tgz
+            build/js-npm-pack/*-files.txt
+          if-no-files-found: error
+
+  package-csharp-nuget:
+    name: Package C# multi-RID NuGet
+    runs-on: ubuntu-latest
+    needs:
+      - validate-release
+      - native-assets
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download Linux x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-ubuntu-latest-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/linux-x64
+
+      - name: Download Linux ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-ubuntu-24.04-arm-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/linux-arm64
+
+      - name: Download macOS x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-macos-15-intel-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/osx-x64
+
+      - name: Download macOS ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-macos-15-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/osx-arm64
+
+      - name: Download Windows x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-windows-latest-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/win-x64
+
+      - name: Download Windows ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-csharp-runtime-windows-11-arm-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-runtime-fragments/win-arm64
+
+      - name: Merge C# native runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/csharp-multirid-runtime
+          mkdir -p build/csharp-multirid-runtime/runtimes
+          for fragment in build/csharp-runtime-fragments/*; do
+            if [ ! -d "$fragment/runtimes" ]; then
+              echo "Missing runtimes directory in $fragment" >&2
+              exit 1
+            fi
+            cp -R "$fragment/runtimes/." build/csharp-multirid-runtime/runtimes/
+          done
+          find build/csharp-multirid-runtime/runtimes -type f | sort
+
+      - name: Build C# binding for package aggregation
+        run: dotnet build binds/csharp/Qe6502/Qe6502.csproj --configuration Release -p:Platform=AnyCPU -p:PlatformTarget=AnyCPU -p:Version=${{ needs.validate-release.outputs.version }}
+
+      - name: Pack C# multi-RID NuGet package
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet pack binds/csharp/Qe6502/Qe6502.csproj \
+            --configuration Release \
+            --no-build \
+            -p:Platform=AnyCPU \
+            -p:PlatformTarget=AnyCPU \
+            -p:Version="${{ needs.validate-release.outputs.version }}" \
+            -p:PackageOutputPath="$PWD/build/csharp-nuget" \
+            -p:Qe6502NativeRuntimeRoot="$PWD/build/csharp-multirid-runtime/runtimes"
+          unzip -l "build/csharp-nuget/Qe6502.${{ needs.validate-release.outputs.version }}.nupkg"
+
+      - name: Verify C# multi-RID NuGet package layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          package_version = os.environ["QE6502_RELEASE_VERSION"]
+          nupkg = Path("build/csharp-nuget") / f"Qe6502.{package_version}.nupkg"
+          expected = {
+              "runtimes/linux-x64/native/libqe6502.so",
+              "runtimes/linux-arm64/native/libqe6502.so",
+              "runtimes/osx-x64/native/libqe6502.dylib",
+              "runtimes/osx-arm64/native/libqe6502.dylib",
+              "runtimes/win-x64/native/libqe6502.dll",
+              "runtimes/win-arm64/native/libqe6502.dll",
+          }
+          with zipfile.ZipFile(nupkg) as zf:
+              names = set(zf.namelist())
+          missing = sorted(expected - names)
+          if missing:
+              print("Missing expected NuGet runtime assets:", file=sys.stderr)
+              for name in missing:
+                  print(f"  {name}", file=sys.stderr)
+              raise SystemExit(1)
+          print("C# multi-RID NuGet package layout verified")
+          PY
+        env:
+          QE6502_RELEASE_VERSION: ${{ needs.validate-release.outputs.version }}
+
+      - name: Upload C# NuGet release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-csharp-nuget-${{ needs.validate-release.outputs.version }}
+          path: build/csharp-nuget/*.nupkg
+          if-no-files-found: error
+
+  package-java:
+    name: Package Java multi-platform Maven artifact
+    runs-on: ubuntu-latest
+    needs:
+      - validate-release
+      - native-assets
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: "25"
+
+      - name: Download Linux x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-ubuntu-latest-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/linux-x64
+
+      - name: Download Linux ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-ubuntu-24.04-arm-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/linux-arm64
+
+      - name: Download macOS x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-macos-15-intel-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/osx-x64
+
+      - name: Download macOS ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-macos-15-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/osx-arm64
+
+      - name: Download Windows x64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-windows-latest-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/win-x64
+
+      - name: Download Windows ARM64 runtime asset
+        uses: actions/download-artifact@v7
+        with:
+          name: qe6502-release-java-runtime-windows-11-arm-${{ needs.validate-release.outputs.version }}
+          path: build/java-runtime-fragments/win-arm64
+
+      - name: Merge Java native runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/java-multiplatform-runtime
+          mkdir -p build/java-multiplatform-runtime
+          for fragment in build/java-runtime-fragments/*; do
+            if [ ! -d "$fragment/qe6502/native" ]; then
+              echo "Missing qe6502/native directory in $fragment" >&2
+              exit 1
+            fi
+            cp -R "$fragment/qe6502" build/java-multiplatform-runtime/
+          done
+          find build/java-multiplatform-runtime/qe6502/native -type f | sort
+
+      - name: Build Java base package
+        run: |
+          cmake --preset release_native \
+            -DQE6502_BUILD_TESTS=OFF \
+            -DQE6502_BUILD_CSHARP=OFF \
+            -DQE6502_BUILD_RUST=OFF \
+            -DQE6502_BUILD_PYTHON=OFF \
+            -DQE6502_REQUIRE_JAVA=ON
+          cmake --build build/release_native --target qe6502_java_package_stage
+
+      - name: Aggregate Java multi-platform package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_JAVA_JAR_EXECUTABLE="$(command -v jar)" \
+            -DQE6502_JAVA_BASE_PACKAGE_DIR="$PWD/build/release_native/binds/java/package/qe6502-java-${{ needs.validate-release.outputs.version }}" \
+            -DQE6502_JAVA_RUNTIME_ROOT="$PWD/build/java-multiplatform-runtime" \
+            -DQE6502_JAVA_AGGREGATE_DIR="$PWD/build/java-package" \
+            -DQE6502_JAVA_PACKAGE_VERSION="${{ needs.validate-release.outputs.version }}" \
+            -P binds/java/run_package_aggregate.cmake
+          jar --list --file "build/java-package/qe6502-java-${{ needs.validate-release.outputs.version }}/qe6502-java.jar"
+
+      - name: Stage Java Maven publish layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_JAVA_PACKAGE_DIR="$PWD/build/java-package/qe6502-java-${{ needs.validate-release.outputs.version }}" \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -DQE6502_JAVA_MAVEN_GROUP_ID="io.github.nnqe" \
+            -DQE6502_JAVA_MAVEN_ARTIFACT_ID="qe6502" \
+            -DQE6502_JAVA_MAVEN_VERSION="${{ needs.validate-release.outputs.version }}" \
+            -P binds/java/run_maven_publish_layout.cmake
+          find build/java-maven-publish -type f | sort
+
+      - name: Sign Java Maven artifacts
+        if: inputs.java_signed_central_bundle == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_GPG_EXECUTABLE="$(command -v gpg)" \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -P binds/java/run_sign_maven_artifacts.cmake
+
+      - name: Generate Java Maven checksums
+        if: inputs.java_signed_central_bundle == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -P binds/java/run_generate_maven_checksums.cmake
+
+      - name: Verify Java Maven Central bundle layout
+        if: inputs.java_signed_central_bundle == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -DQE6502_JAVA_MAVEN_GROUP_ID="io.github.nnqe" \
+            -DQE6502_JAVA_MAVEN_ARTIFACT_ID="qe6502" \
+            -DQE6502_JAVA_MAVEN_VERSION="${{ needs.validate-release.outputs.version }}" \
+            -P binds/java/run_verify_maven_central_bundle.cmake
+
+      - name: Package Java Maven Central bundle zip
+        if: inputs.java_signed_central_bundle == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake \
+            -DQE6502_JAVA_MAVEN_PUBLISH_DIR="$PWD/build/java-maven-publish" \
+            -DQE6502_JAVA_MAVEN_CENTRAL_BUNDLE="$PWD/build/qe6502-java-maven-central-${{ needs.validate-release.outputs.version }}.zip" \
+            -P binds/java/run_package_maven_central_bundle.cmake
+
+      - name: Upload Java Maven publish layout release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-java-maven-layout-${{ needs.validate-release.outputs.version }}
+          path: build/java-maven-publish/**/*
+          if-no-files-found: error
+
+      - name: Upload Java Maven Central bundle release artifact
+        if: inputs.java_signed_central_bundle == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-java-maven-central-bundle-${{ needs.validate-release.outputs.version }}
+          path: build/qe6502-java-maven-central-${{ needs.validate-release.outputs.version }}.zip
+          if-no-files-found: error
+
+  package-rust:
+    name: Package Rust crate artifact
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Configure Rust release package build
+        run: |
+          cmake --preset release_native \
+            -DQE6502_BUILD_TESTS=OFF \
+            -DQE6502_BUILD_CSHARP=OFF \
+            -DQE6502_BUILD_JAVA=OFF \
+            -DQE6502_BUILD_PYTHON=OFF \
+            -DQE6502_REQUIRE_RUST=ON
+
+      - name: Stage and check Rust crate package
+        run: cmake --build build/release_native --target qe6502_rust_package_check
+
+      - name: Upload Rust crate release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-rust-crate-${{ needs.validate-release.outputs.version }}
+          path: |
+            build/rust-package/qe6502
+            build/rust-package/qe6502/target/package/*.crate
+          if-no-files-found: error
+
+  package-source:
+    name: Package source archive
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Create source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/source-release
+          git archive \
+            --format=tar.gz \
+            --prefix="qe6502-${{ needs.validate-release.outputs.version }}/" \
+            --output="build/source-release/qe6502-${{ needs.validate-release.outputs.version }}.tar.gz" \
+            HEAD
+          sha256sum "build/source-release/qe6502-${{ needs.validate-release.outputs.version }}.tar.gz" > "build/source-release/qe6502-${{ needs.validate-release.outputs.version }}.tar.gz.sha256"
+
+      - name: Upload source release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-source-${{ needs.validate-release.outputs.version }}
+          path: build/source-release/*
+          if-no-files-found: error
+
+  release-summary:
+    name: Summarize release artifacts
+    runs-on: ubuntu-latest
+    needs:
+      - validate-release
+      - native-assets
+      - package-js
+      - package-csharp-nuget
+      - package-java
+      - package-rust
+      - package-source
+
+    steps:
+      - name: Write release artifact summary
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          Release artifact workflow completed.
+
+          Version: ${{ needs.validate-release.outputs.version }}
+
+          Uploaded artifact families:
+          - Python wheels
+          - JavaScript npm package tarball
+          - C# multi-RID NuGet package
+          - Java Maven publish layout
+          - Rust crate package
+          - Source archive
+
+          This workflow does not publish to any package registry.
+          EOF
