@@ -25,4 +25,4 @@
 #define QE6502_VERSION \
     ((QE6502_VERSION_MAJOR << 16u) | QE6502_VERSION_MINOR)
 
-#endif
+#endif /* QE6502_VERSION_H */

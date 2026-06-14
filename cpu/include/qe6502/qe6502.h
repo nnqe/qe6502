@@ -213,7 +213,7 @@ qe6502_tick_t qe6502_load(qe6502_t *cpu, const qe6502_snapshot_t snapshot);
  * Definitions are kept at the end of this header.
  */
 
- /* Execute one CPU bus phase and return the next packed bus request. */
+/* Execute one CPU bus phase and return the next packed bus request. */
 static inline qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus);
 
 /* Decode tick status bits returned by qe6502_tick(). */

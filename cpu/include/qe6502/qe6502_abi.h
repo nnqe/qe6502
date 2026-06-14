@@ -167,7 +167,7 @@ QE6502_ABI_API void    qe6502abi_irq_assert(qe6502abi_context_t *ctx, uint8_t as
 QE6502_ABI_API uint8_t qe6502abi_is_nmi_asserted(const qe6502abi_context_t *ctx);
 QE6502_ABI_API uint8_t qe6502abi_is_irq_asserted(const qe6502abi_context_t *ctx);
 
-/* Save and restore a portable 64-byte native CPU snapshot. */
+/* Save and restore a portable 64-byte ABI snapshot. */
 QE6502_ABI_API void             qe6502abi_save(const qe6502abi_context_t *ctx, qe6502abi_tick_t tick, qe6502abi_snapshot_t snapshot);
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx, const qe6502abi_snapshot_t snapshot);
 
