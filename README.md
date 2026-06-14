@@ -94,7 +94,7 @@ Use the **stable shared C ABI** when the CPU core crosses a dynamic-library boun
 target_link_libraries(my_program PRIVATE qe6502::shared)
 ```
 
-Use the **C++ wrapper** when writing C++17 code and you want a small RAII-style wrapper around the static C core.
+Use the **C++ wrapper** when writing C++17 code and you want a small RAII-style wrapper around the native C core.
 
 ```cpp
 #include <qe6502/cpu.hpp>
@@ -204,8 +204,11 @@ Available installed CMake targets depend on the build options:
 - `qe6502::static`
 - `qe6502::shared`
 - `qe6502::cpp`
+- `qe6502::cpp_static` and `qe6502::cpp_shared` when both C++ variants are installed
 
-The Rust binding is Cargo-managed. CMake can build and test it from this source tree, but `cmake --install` does not install a Rust crate or a CMake target for Rust consumers.
+In static-only and both-variant installs, `qe6502::cpp` selects the static wrapper. In dynamic-only installs, it selects the shared wrapper.
+
+The Rust binding is Cargo-managed. CMake can build and test it from this source tree when Cargo is available, but `cmake --install` does not install a Rust crate or a CMake target for Rust consumers.
 
 ## Build options
 
@@ -213,14 +216,16 @@ The Rust binding is Cargo-managed. CMake can build and test it from this source 
 | --- | ---: | --- |
 | `QE6502_BUILD_STATIC` | `ON` | Build the fast static C library. |
 | `QE6502_BUILD_SHARED` | `ON` | Build the stable shared ABI library. |
-| `QE6502_BUILD_CPP` | `ON` | Build and install the C++ wrapper. Requires `QE6502_BUILD_STATIC=ON`. |
+| `QE6502_BUILD_CPP` | `ON` | Build the C++ wrapper. Static/shared C++ targets follow the enabled C library variants. |
+| `QE6502_BUILD_TOOLS` | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build developer tools and tool support libraries. |
 | `QE6502_BUILD_CSHARP` | `ON` | Build the C# binding when the .NET SDK is available. |
-| `QE6502_BUILD_RUST` | `ON` | Build the Cargo-managed Rust binding. The Rust build stages the canonical C core from `cpu/` and statically builds it through Cargo. |
-| `QE6502_BUILD_JAVA` | `ON` | Build the Java binding when JDK 25+ development tools are available. |
-| `QE6502_BUILD_PYTHON` | `ON` | Build the CPython binding when Python development headers are available. |
+| `QE6502_BUILD_RUST` | `ON` | Build the Cargo-managed Rust binding when Cargo is available. |
+| `QE6502_BUILD_JAVA` | `ON` | Build the Java binding when JDK 25+ development tools, including `javadoc`, are available. |
+| `QE6502_BUILD_PYTHON` | `ON` | Build the CPython binding when a Python development module is available. |
 | `QE6502_BUILD_TESTS` | `${BUILD_TESTING}` top-level, `OFF` as subproject | Build tests and harnesses. Turn this off for dependency/package builds. |
 | `QE6502_BUILD_WASM` | `OFF` | Enable the WebAssembly build mode. |
 | `QE6502_ENABLE_WERROR` | `OFF` | Treat warnings as errors. Intended for maintainer/CI builds, not package consumers. |
+| `QE6502_GENERATE_ASSEMBLY` | `OFF` | Generate compiler assembly/intermediate files for inspection. |
 | `QE6502_INSTALL` | `ON` top-level, `OFF` as subproject | Install headers, libraries, CMake package files, and pkg-config files. |
 
 For a dependency-style build without harnesses:
@@ -474,7 +479,7 @@ qe6502::cpu restored(snapshot);
 
 ## Testing
 
-The repository includes regression harnesses for instruction behavior, bus timing, save/load replay, C#, Rust, and JavaScript/WASM bindings, ABI surface stability, and NMOS interrupt lockstep scenarios.
+The repository includes regression harnesses for Klaus2m5 functional ROMs, instruction behavior, bus timing, save/load replay, C#, Java, Python, Rust, and JavaScript/WASM bindings, ABI surface stability, and NMOS interrupt lockstep scenarios.
 
 The NMOS interrupt implementation is checked against `perfect6502` through lockstep tests that compare externally visible bus behavior tick by tick. These tests cover IRQ/NMI timing, I-flag windows, interrupt arbitration, hijacking cases, and lost-NMI scenarios.
 
@@ -515,7 +520,7 @@ cmake --build --preset release_native --target qe6502_rust_smoke_run
 cmake --build --preset release_native --target qe6502_rust_klaus2m5_run
 ```
 
-For Java harnesses, Java package staging, runtime asset staging, and Java package smoke, when JDK 25+ is available:
+For Java harnesses, Java package staging, runtime asset staging, and Java package smoke, when JDK 25+ tools are available:
 
 ```sh
 cmake --build --preset release_native --target qe6502_java_smoke_run
@@ -539,8 +544,9 @@ runtime fragments from the supported native release builds, overlays them into
 the staged jar, carries the generated Maven `pom.xml`, Java sources jar, and
 javadoc jar with coordinates `io.github.nnqe:qe6502:<version>`, verifies the
 multi-platform `qe6502/native/<platform>/` layout, stages a Maven-style publish
-layout, runs package smoke checks, and uploads only that Maven publish layout as
-the Java release candidate. The native release jobs also run the Java package
+layout, runs package smoke checks, and uploads the Maven publish layout as
+the Java release candidate. When requested, CI also uploads a signed Maven
+Central bundle. The native release jobs also run the Java package
 smoke on their own platform before uploading their Java runtime asset fragments,
 so embedded native loading is exercised on Windows, macOS, and Linux.
 

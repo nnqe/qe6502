@@ -154,13 +154,13 @@ Native library names:
 
 ## ABI compatibility
 
-The C# binding uses the stable native `qe6502_abi` library.
+The C# binding uses the stable native qe6502 ABI exported by `libqe6502`.
 
 At runtime, the binding checks the native ABI version. It accepts the same ABI major version with a runtime minor version greater than or equal to the version it was compiled against.
 
 ## Build from source
 
-From the repository root:
+From the repository root, when the .NET SDK is available:
 
 ```sh
 cmake -S . -B build

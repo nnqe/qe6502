@@ -1,17 +1,18 @@
 # qe6502 Java binding
 
 The Java binding uses the Java 25 Foreign Function & Memory API to call the
-stable `qe6502_abi` shared library. It intentionally keeps the public Java API
+stable qe6502 ABI exported by `libqe6502`. It intentionally keeps the public Java API
 close to the C# binding while using conventional Java method names.
 
 ## Requirements
 
-- JDK 25 or newer, with `java`, `javac`, and `jar`
+- JDK 25 or newer, with `java`, `javac`, `jar`, and `javadoc`
 - A native qe6502 build with `QE6502_BUILD_SHARED=ON`
 
-The CMake build looks for Java 25 automatically. On macOS it checks registered
-JDK bundles and common Homebrew locations such as `/opt/homebrew/opt/openjdk@25`
-and `/usr/local/opt/openjdk@25`.
+The CMake build looks for Java 25 automatically and skips these targets when
+the required tools are not available. On macOS it checks registered JDK bundles
+and common Homebrew locations such as `/opt/homebrew/opt/openjdk@25` and
+`/usr/local/opt/openjdk@25`.
 
 ## Build
 
@@ -79,10 +80,11 @@ cmake --build --preset debug_native --target qe6502_java_maven_publish_layout
 
 The layout is staged under `maven-publish/io/github/nnqe/qe6502/<version>/` and
 contains `qe6502-<version>.jar`, `qe6502-<version>-sources.jar`,
-`qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. This Maven publish
-layout is the only Java release candidate uploaded by CI; the package staging
-directory remains an internal build/smoke-test input and is not part of the final
-publish artifact.
+`qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. This Maven
+publish layout is the primary Java release candidate uploaded by CI; the package
+staging directory remains an internal build/smoke-test input and is not part of
+the final publish artifact. CI can also upload a signed Maven Central bundle
+when requested.
 
 If GPG is available, the Maven Central bundle target signs the artifacts,
 generates the required `.md5` and `.sha1` checksum sidecars, verifies the Maven

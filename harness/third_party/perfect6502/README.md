@@ -36,7 +36,7 @@ You can measure the performance of the emulator by running `make benchmark`. It 
 
 # Credits
 
-*perfect6502* is is written by [Michael Steil](http://www.pagetable.com/) and derived from the JavaScript [visual6502](https://github.com/trebonian/visual6502) implementation by Greg James, Brian Silverman and Barry Silverman.
+*perfect6502* is written by [Michael Steil](http://www.pagetable.com/) and derived from the JavaScript [visual6502](https://github.com/trebonian/visual6502) implementation by Greg James, Brian Silverman and Barry Silverman.
 
 # Contributing
 
