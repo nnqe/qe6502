@@ -13,17 +13,25 @@
 # endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(__GNUC__) || defined(__clang__)
 # define QE6502_MAYBE_UNUSED __attribute__((unused))
 #else
 # define QE6502_MAYBE_UNUSED
 #endif
 
-/* Model identifiers. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * ---------------------------------------------------------------------------
+ * Processor model identifiers
+ * ---------------------------------------------------------------------------
+ *
+ * Selects the supported 6502-family CPU model and its model-specific behavior.
+ * Use these values with qe6502_init() and qe6502_set_model().
+ */
+
 enum
 {
     qe6502_model_nmos = 0,
@@ -35,16 +43,16 @@ enum
     qe6502_supported_models_count = 5
 };
 
-/* Control-store layout.
+/*
+ * ---------------------------------------------------------------------------
+ * Native CPU state, bus ticks, and control store
+ * ---------------------------------------------------------------------------
  *
- * The control store is split into fixed-size model blocks. Each model block
- * contains 512 slots: opcode slots 0x000..0x0FF and private service slots
- * 0x100..0x1FF. Each slot contains 8 microcode entries.
- *
- * Addressing form:
- *
- *     model block + slot + cycle -> microcode entry
+ * Public native types used by the tick loop: CPU storage, single-cycle bus
+ * requests, processor-status flags, tick-status flags, and control-store entry
+ * points. Prefer accessor functions over direct qe6502_t field access.
  */
+
 enum
 {
     /* Number of microcode entries stored in each opcode/service slot. */
@@ -56,11 +64,15 @@ enum
 QE6502_STATIC_ASSERT((qe6502_microcode_per_slot & (qe6502_microcode_per_slot - 1u)) == 0u,
                      "qe6502_microcode_per_slot must be a power of two");
 
-#define QE6502_HIJACKED_SERVICE_SLOT 0x100u
-#define QE6502_IDX(model, slot, cycle) (uint16_t)((((uint32_t)(model) & 0x0Fu) << 12u) | ((((uint32_t)(slot)) & 0x1FFu) << 3u) | (uint32_t)(cycle))
+#define QE6502_SERVICE_MODE_SLOT 0x100u
+#define QE6502_IDX(model, slot, cycle)                      \
+        (uint16_t)( (((uint32_t)(model) & 0x0Fu) << 12u) |  \
+                    (((uint32_t)(slot) & 0x1FFu) << 3u)  |  \
+                    (uint32_t)(cycle)   )
+
 #define QE6502_SERVICE_SLOT_IDX(model, service, cycle) QE6502_IDX(model, service, cycle)
 
-/* CPU state. */
+/* Native CPU storage. Prefer accessor functions over direct field access. */
 typedef struct qe6502_cpu
 {
     /* Configuration. */
@@ -71,9 +83,7 @@ typedef struct qe6502_cpu
     uint16_t microcode;
     uint16_t latch_addr;
     uint8_t  latch_data;
-
-    /* Intercepts normal microcode execution. */
-    uint8_t  hijack_microcode;
+    uint8_t  service_mode;
 
     /* CPU registers. */
     uint16_t PC;
@@ -83,24 +93,27 @@ typedef struct qe6502_cpu
     uint8_t  Y;
     uint8_t  P;
 
-    /* Interrupts control. */
+    /* Internal interrupt state. */
     uint8_t  interrupts;
 } qe6502_t;
 QE6502_STATIC_ASSERT(sizeof(qe6502_t) == 16, "qe6502_t must be 16 bytes");
 
-/* Single bus-cycle result. */
+/* Single bus-cycle request/result. */
 typedef struct qe6502_tick_result
 {
     uint16_t address;
     uint8_t  bus;
     uint8_t  status;
 } qe6502_tick_t;
+QE6502_STATIC_ASSERT(sizeof(qe6502_tick_t) == 4, "qe6502_tick_t must be 4 bytes");
 
+/* Portable 64-byte snapshot buffer used by save/load APIs. */
 #define QE6502_SNAPSHOT_SIZE (64u)
+typedef uint8_t qe6502_snapshot_t[QE6502_SNAPSHOT_SIZE];
 
+/* Processor status register flags. */
 enum
 {
-    /* Processor status register flags. */
     qe6502_flag_C  = (1u << 0),
     qe6502_flag_Z  = (1u << 1),
     qe6502_flag_I  = (1u << 2),
@@ -108,40 +121,16 @@ enum
     qe6502_flag_B  = (1u << 4),
     qe6502_flag_UN = (1u << 5),
     qe6502_flag_V  = (1u << 6),
-    qe6502_flag_N  = (1u << 7),
+    qe6502_flag_N  = (1u << 7)
+};
 
-    /* Tick status flags. */
-
-    /* Tick requests a memory write; clear means memory read. */
-    qe6502_status_writing = (1u << 0),
-
-    /* Tick is an opcode fetch boundary. */
-    qe6502_status_opcode_fetch = (1u << 1),
-
-    /* Internal reset procedure ticks. */
+/* Private tick status flags. Prefer qe6502_is_*() helpers. */
+enum
+{
+    qe6502_status_writing        = (1u << 0),
+    qe6502_status_opcode_fetch   = (1u << 1),
     qe6502_status_internal_reset = (1u << 6),
-
-    /* CPU is jammed after a KIL opcode. */
-    qe6502_status_cpu_jammed = (1u << 7),
-
-    /* Interrupt state flags. */
-
-    /* Interrupt sampling cycle. */
-    qe6502_interrupt_sampling  = (1u << 0),
-
-    qe6502_interrupt_nmi_inv_pin  = (1u << 1),
-
-    qe6502_interrupt_nmi_inv_last_sampled_pin  = (1u << 2),
-
-    qe6502_interrupt_nmi_edge = (1u << 3),
-
-    qe6502_interrupt_nmi_taken = (1u << 4),
-
-    qe6502_interrupt_irq_inv_pin  = (1u << 5),
-
-    qe6502_interrupt_irq_taken  = (1u << 6),
-
-    qe6502_interrupt_sampling_off  = (1u << 7),
+    qe6502_status_cpu_jammed     = (1u << 7)
 };
 
 /* Microcode entry. */
@@ -150,7 +139,14 @@ typedef qe6502_tick_t (*qe6502_microcode_fn)(qe6502_t *cpu, uint8_t bus);
 /* Control store. */
 extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size];
 
-/* Public API. */
+/*
+ * ---------------------------------------------------------------------------
+ * Native C API
+ * ---------------------------------------------------------------------------
+ *
+ * These functions operate directly on qe6502_t and qe6502_tick_t.
+ * Prefer this accessor API over direct qe6502_t field access in application code.
+ */
 
 /* Restart the CPU context and return an initial dummy read request at address 0x00ff. */
 qe6502_tick_t qe6502_restart(qe6502_t *cpu);
@@ -161,25 +157,83 @@ qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address);
 /* Exported native C symbol equivalent to the inline qe6502_tick() helper. */
 qe6502_tick_t qe6502_tick_exported(qe6502_t *cpu, uint8_t bus);
 
-void qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi);
-void qe6502_irq_assert(qe6502_t *cpu, uint8_t assert_irq);
-
+/* Interrupt pin control. */
+void    qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi);
+void    qe6502_irq_assert(qe6502_t *cpu, uint8_t assert_irq);
 uint8_t qe6502_is_nmi_asserted(const qe6502_t *cpu);
 uint8_t qe6502_is_irq_asserted(const qe6502_t *cpu);
 
-void qe6502_save(const qe6502_t *cpu,
-                 qe6502_tick_t tick,
-                 uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
-qe6502_tick_t qe6502_load(qe6502_t *cpu,
-                          const uint8_t snapshot[QE6502_SNAPSHOT_SIZE]);
+/* CPU register accessors. */
+uint8_t  qe6502_get_model(const qe6502_t *cpu);
+void     qe6502_set_model(qe6502_t *cpu, uint8_t value);
+uint16_t qe6502_get_pc(const qe6502_t *cpu);
+void     qe6502_set_pc(qe6502_t *cpu, uint16_t value);
+uint8_t  qe6502_get_s(const qe6502_t *cpu);
+void     qe6502_set_s(qe6502_t *cpu, uint8_t value);
+uint8_t  qe6502_get_a(const qe6502_t *cpu);
+void     qe6502_set_a(qe6502_t *cpu, uint8_t value);
+uint8_t  qe6502_get_x(const qe6502_t *cpu);
+void     qe6502_set_x(qe6502_t *cpu, uint8_t value);
+uint8_t  qe6502_get_y(const qe6502_t *cpu);
+void     qe6502_set_y(qe6502_t *cpu, uint8_t value);
+uint8_t  qe6502_get_p(const qe6502_t *cpu);
+void     qe6502_set_p(qe6502_t *cpu, uint8_t value);
 
-/* Execute one CPU bus phase and return the next bus request. */
-static inline QE6502_MAYBE_UNUSED
-qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
+/* Processor status flag accessors. Getters return the flag mask or zero. */
+uint8_t qe6502_get_flag_c(const qe6502_t *cpu);
+void    qe6502_set_flag_c(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_z(const qe6502_t *cpu);
+void    qe6502_set_flag_z(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_i(const qe6502_t *cpu);
+void    qe6502_set_flag_i(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_d(const qe6502_t *cpu);
+void    qe6502_set_flag_d(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_b(const qe6502_t *cpu);
+void    qe6502_set_flag_b(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_un(const qe6502_t *cpu);
+void    qe6502_set_flag_un(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_v(const qe6502_t *cpu);
+void    qe6502_set_flag_v(qe6502_t *cpu, uint8_t value);
+uint8_t qe6502_get_flag_n(const qe6502_t *cpu);
+void    qe6502_set_flag_n(qe6502_t *cpu, uint8_t value);
+
+/* Save and restore a portable 64-byte native CPU snapshot. */
+void          qe6502_save(const qe6502_t *cpu, qe6502_tick_t tick, qe6502_snapshot_t snapshot);
+qe6502_tick_t qe6502_load(qe6502_t *cpu, const qe6502_snapshot_t snapshot);
+
+/*
+ * ---------------------------------------------------------------------------
+ * Hot-path inline API declarations
+ * ---------------------------------------------------------------------------
+ *
+ * Inline helpers for the CPU tick loop and tick-status decoding.
+ * Definitions are kept at the end of this header.
+ */
+
+ /* Execute one CPU bus phase and return the next packed bus request. */
+static inline qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus);
+
+/* Decode tick status bits returned by qe6502_tick(). */
+static inline uint8_t       qe6502_is_write(qe6502_tick_t tick);
+static inline uint8_t       qe6502_is_fetch(qe6502_tick_t tick);
+static inline uint8_t       qe6502_is_reset(qe6502_tick_t tick);
+static inline uint8_t       qe6502_is_jammed(qe6502_tick_t tick);
+
+/*
+ * ---------------------------------------------------------------------------
+ * Inline implementation section
+ * ---------------------------------------------------------------------------
+ *
+ * Public inline helpers are declared above with the rest of the API.
+ * Their definitions are kept here to keep the main declaration section compact.
+ */
+
+static inline QE6502_MAYBE_UNUSED qe6502_tick_t
+qe6502_tick(qe6502_t *cpu, uint8_t bus)
 {
-    if( cpu->hijack_microcode != 0 )
+    if (cpu->service_mode != 0u)
     {
-        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(0, QE6502_HIJACKED_SERVICE_SLOT, 0)](cpu, bus);
+        return qe6502_control_store[QE6502_SERVICE_SLOT_IDX(0, QE6502_SERVICE_MODE_SLOT, 0)](cpu, bus);
     }
 
     qe6502_tick_t tick = qe6502_control_store[cpu->microcode](cpu, bus);
@@ -187,6 +241,29 @@ qe6502_tick_t qe6502_tick(qe6502_t *cpu, uint8_t bus)
     return tick;
 }
 
+static inline QE6502_MAYBE_UNUSED uint8_t
+qe6502_is_write(qe6502_tick_t tick)
+{
+    return (uint8_t)(tick.status & qe6502_status_writing);
+}
+
+static inline QE6502_MAYBE_UNUSED uint8_t
+qe6502_is_fetch(qe6502_tick_t tick)
+{
+    return (uint8_t)(tick.status & qe6502_status_opcode_fetch);
+}
+
+static inline QE6502_MAYBE_UNUSED uint8_t
+qe6502_is_reset(qe6502_tick_t tick)
+{
+    return (uint8_t)(tick.status & qe6502_status_internal_reset);
+}
+
+static inline QE6502_MAYBE_UNUSED uint8_t
+qe6502_is_jammed(qe6502_tick_t tick)
+{
+    return (uint8_t)(tick.status & qe6502_status_cpu_jammed);
+}
 
 #ifdef __cplusplus
 }

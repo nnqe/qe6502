@@ -147,17 +147,17 @@ QE6502_CPP_IMPL std::uint8_t cpu::bus_status() const noexcept
 
 QE6502_CPP_IMPL bool cpu::is_write() const noexcept
 {
-    return (tick_.status & qe6502_status_writing) != 0u;
+    return qe6502_is_write(tick_) != 0u;
 }
 
 QE6502_CPP_IMPL bool cpu::is_opcode_fetch() const noexcept
 {
-    return (tick_.status & qe6502_status_opcode_fetch) != 0u;
+    return qe6502_is_fetch(tick_) != 0u;
 }
 
 QE6502_CPP_IMPL bool cpu::is_jammed() const noexcept
 {
-    return (tick_.status & qe6502_status_cpu_jammed) != 0u;
+    return qe6502_is_jammed(tick_) != 0u;
 }
 
 #    undef QE6502_CPP_IMPL

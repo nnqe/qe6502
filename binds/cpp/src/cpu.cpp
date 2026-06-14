@@ -17,7 +17,7 @@ cpu::cpu(model cpu_model) noexcept
     : cpu_{}
     , tick_{}
 {
-    cpu_.model = static_cast<std::uint8_t>(cpu_model);
+    qe6502_set_model(&cpu_, static_cast<std::uint8_t>(cpu_model));
 }
 
 cpu::cpu(const cpu_snapshot& snapshot)
@@ -75,67 +75,67 @@ const qe6502_tick_t& cpu::load(const cpu_snapshot& value)
 
 model cpu::cpu_model() const noexcept
 {
-    return static_cast<model>(cpu_.model);
+    return static_cast<model>(qe6502_get_model(&cpu_));
 }
 
 std::uint16_t cpu::pc() const noexcept
 {
-    return cpu_.PC;
+    return qe6502_get_pc(&cpu_);
 }
 
 void cpu::pc(std::uint16_t value) noexcept
 {
-    cpu_.PC = value;
+    qe6502_set_pc(&cpu_, value);
 }
 
 std::uint8_t cpu::s() const noexcept
 {
-    return cpu_.S;
+    return qe6502_get_s(&cpu_);
 }
 
 void cpu::s(std::uint8_t value) noexcept
 {
-    cpu_.S = value;
+    qe6502_set_s(&cpu_, value);
 }
 
 std::uint8_t cpu::a() const noexcept
 {
-    return cpu_.A;
+    return qe6502_get_a(&cpu_);
 }
 
 void cpu::a(std::uint8_t value) noexcept
 {
-    cpu_.A = value;
+    qe6502_set_a(&cpu_, value);
 }
 
 std::uint8_t cpu::x() const noexcept
 {
-    return cpu_.X;
+    return qe6502_get_x(&cpu_);
 }
 
 void cpu::x(std::uint8_t value) noexcept
 {
-    cpu_.X = value;
+    qe6502_set_x(&cpu_, value);
 }
 
 std::uint8_t cpu::y() const noexcept
 {
-    return cpu_.Y;
+    return qe6502_get_y(&cpu_);
 }
 
 void cpu::y(std::uint8_t value) noexcept
 {
-    cpu_.Y = value;
+    qe6502_set_y(&cpu_, value);
 }
 
 std::uint8_t cpu::p() const noexcept
 {
-    return cpu_.P;
+    return qe6502_get_p(&cpu_);
 }
 
 void cpu::p(std::uint8_t value) noexcept
 {
-    cpu_.P = value;
+    qe6502_set_p(&cpu_, value);
 }
 
 std::string cpu::to_string() const

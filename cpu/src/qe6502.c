@@ -36,7 +36,7 @@ static inline uint16_t u16_set_byte(uint16_t x, unsigned byte_index, uint8_t val
 
 typedef enum service_slot
 {
-    service_slot_microcode_hijacked = QE6502_HIJACKED_SERVICE_SLOT,
+    service_slot_service_mode = QE6502_SERVICE_MODE_SLOT,
     service_slot_illegal_ext = 257,
     service_slot_internal_reset = 258,
     service_slot_reset_0 = 259,
@@ -47,6 +47,19 @@ typedef enum service_slot
 
     service_slot_count_used
 } service_slot_t;
+
+/* Internal interrupt state flags. */
+enum
+{
+    qe6502_interrupt_sampling                 = (1u << 0),
+    qe6502_interrupt_nmi_inv_pin              = (1u << 1),
+    qe6502_interrupt_nmi_inv_last_sampled_pin = (1u << 2),
+    qe6502_interrupt_nmi_edge                 = (1u << 3),
+    qe6502_interrupt_nmi_taken                = (1u << 4),
+    qe6502_interrupt_irq_inv_pin              = (1u << 5),
+    qe6502_interrupt_irq_taken                = (1u << 6),
+    qe6502_interrupt_sampling_off             = (1u << 7)
+};
 
 #define IDX(model, slot, cycle) QE6502_IDX(model, slot, cycle)
 #define SERVICE_SLOT_IDX(model, service, cycle) QE6502_SERVICE_SLOT_IDX(model, service, cycle)
@@ -532,7 +545,7 @@ static qe6502_tick_t interrupt_resolver(qe6502_t* cpu, uint8_t bus)
         flag(cpu->interrupts, qe6502_interrupt_nmi_taken) == 0u &&
         flag(cpu->interrupts, qe6502_interrupt_irq_taken) == 0u)
     {
-        cpu->hijack_microcode = 0;
+        cpu->service_mode = 0;
     }
 
     return tick;
@@ -2651,7 +2664,7 @@ static inline void snapshot_write_cpu(uint8_t *dst, const qe6502_t *cpu)
     snapshot_write_u16(&dst[2], cpu->microcode);
     snapshot_write_u16(&dst[4], cpu->latch_addr);
     dst[6] = cpu->latch_data;
-    dst[7] = cpu->hijack_microcode;
+    dst[7] = cpu->service_mode;
     snapshot_write_u16(&dst[8], cpu->PC);
     dst[10] = cpu->S;
     dst[11] = cpu->A;
@@ -2668,7 +2681,7 @@ static inline void snapshot_read_cpu(qe6502_t *cpu, const uint8_t *src)
     cpu->microcode = snapshot_read_u16(&src[2]);
     cpu->latch_addr = snapshot_read_u16(&src[4]);
     cpu->latch_data = src[6];
-    cpu->hijack_microcode = src[7];
+    cpu->service_mode = src[7];
     cpu->PC = snapshot_read_u16(&src[8]);
     cpu->S = src[10];
     cpu->A = src[11];
@@ -2711,7 +2724,7 @@ QE6502_ABI_API void qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model)
     impl->magic = (uint16_t)QE6502_ABI_CONTEXT_MAGIC;
     impl->version = (uint16_t)QE6502_ABI_CONTEXT_VERSION;
     clear_buffer(impl->reserve, (uint32_t)sizeof(impl->reserve));
-    impl->cpu.model = (uint8_t)model;
+    qe6502_set_model(&impl->cpu, (uint8_t)model);
 }
 
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx)
@@ -2758,7 +2771,7 @@ QE6502_ABI_API uint8_t qe6502abi_is_irq_asserted(const qe6502abi_context_t *ctx)
 
 QE6502_ABI_API void qe6502abi_save(const qe6502abi_context_t *ctx,
                                    qe6502abi_tick_t tick,
-                                   uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE])
+                                   qe6502abi_snapshot_t snapshot)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
 
@@ -2770,7 +2783,7 @@ QE6502_ABI_API void qe6502abi_save(const qe6502abi_context_t *ctx,
 }
 
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx,
-                                               const uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE])
+                                               const qe6502abi_snapshot_t snapshot)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
 
@@ -2786,91 +2799,195 @@ QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx,
 QE6502_ABI_API uint32_t qe6502abi_get_pc(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.PC;
+    return qe6502_get_pc(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_pc(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.PC = (uint16_t)value;
+    qe6502_set_pc(&impl->cpu, (uint16_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_s(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.S;
+    return qe6502_get_s(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_s(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.S = (uint8_t)value;
+    qe6502_set_s(&impl->cpu, (uint8_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_a(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.A;
+    return qe6502_get_a(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_a(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.A = (uint8_t)value;
+    qe6502_set_a(&impl->cpu, (uint8_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_x(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.X;
+    return qe6502_get_x(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_x(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.X = (uint8_t)value;
+    qe6502_set_x(&impl->cpu, (uint8_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_y(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.Y;
+    return qe6502_get_y(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_y(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.Y = (uint8_t)value;
+    qe6502_set_y(&impl->cpu, (uint8_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_p(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.P;
+    return qe6502_get_p(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_p(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.P = (uint8_t)value;
+    qe6502_set_p(&impl->cpu, (uint8_t)value);
 }
 
 QE6502_ABI_API uint32_t qe6502abi_get_model(const qe6502abi_context_t *ctx)
 {
     const qe6502abi_impl_t *impl = qe6502abi_const_impl(ctx);
-    return impl->cpu.model;
+    return qe6502_get_model(&impl->cpu);
 }
 
 QE6502_ABI_API void qe6502abi_set_model(qe6502abi_context_t *ctx, uint32_t value)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu.model = (uint8_t)value;
+    qe6502_set_model(&impl->cpu, (uint8_t)value);
 }
 
 #endif /* QE6502_NO_ABI */
 
 
 /* Public API. */
+
+static uint8_t get_p_flag(const qe6502_t *cpu, uint8_t mask)
+{
+    return (uint8_t)(cpu->P & mask);
+}
+
+static void set_p_flag(qe6502_t *cpu, uint8_t mask, uint8_t value)
+{
+    if (value != 0u)
+    {
+        cpu->P = flag_on(cpu->P, mask);
+    }
+    else
+    {
+        cpu->P = flag_off(cpu->P, mask);
+    }
+}
+
+uint8_t qe6502_get_model(const qe6502_t *cpu)
+{
+    return cpu->model;
+}
+
+void qe6502_set_model(qe6502_t *cpu, uint8_t value)
+{
+    cpu->model = value;
+}
+
+uint16_t qe6502_get_pc(const qe6502_t *cpu)
+{
+    return cpu->PC;
+}
+
+void qe6502_set_pc(qe6502_t *cpu, uint16_t value)
+{
+    cpu->PC = value;
+}
+
+uint8_t qe6502_get_s(const qe6502_t *cpu)
+{
+    return cpu->S;
+}
+
+void qe6502_set_s(qe6502_t *cpu, uint8_t value)
+{
+    cpu->S = value;
+}
+
+uint8_t qe6502_get_a(const qe6502_t *cpu)
+{
+    return cpu->A;
+}
+
+void qe6502_set_a(qe6502_t *cpu, uint8_t value)
+{
+    cpu->A = value;
+}
+
+uint8_t qe6502_get_x(const qe6502_t *cpu)
+{
+    return cpu->X;
+}
+
+void qe6502_set_x(qe6502_t *cpu, uint8_t value)
+{
+    cpu->X = value;
+}
+
+uint8_t qe6502_get_y(const qe6502_t *cpu)
+{
+    return cpu->Y;
+}
+
+void qe6502_set_y(qe6502_t *cpu, uint8_t value)
+{
+    cpu->Y = value;
+}
+
+uint8_t qe6502_get_p(const qe6502_t *cpu)
+{
+    return cpu->P;
+}
+
+void qe6502_set_p(qe6502_t *cpu, uint8_t value)
+{
+    cpu->P = value;
+}
+
+uint8_t qe6502_get_flag_c(const qe6502_t *cpu) { return get_p_flag(cpu, flag_C); }
+void qe6502_set_flag_c(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_C, value); }
+uint8_t qe6502_get_flag_z(const qe6502_t *cpu) { return get_p_flag(cpu, flag_Z); }
+void qe6502_set_flag_z(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_Z, value); }
+uint8_t qe6502_get_flag_i(const qe6502_t *cpu) { return get_p_flag(cpu, flag_I); }
+void qe6502_set_flag_i(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_I, value); }
+uint8_t qe6502_get_flag_d(const qe6502_t *cpu) { return get_p_flag(cpu, flag_D); }
+void qe6502_set_flag_d(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_D, value); }
+uint8_t qe6502_get_flag_b(const qe6502_t *cpu) { return get_p_flag(cpu, flag_B); }
+void qe6502_set_flag_b(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_B, value); }
+uint8_t qe6502_get_flag_un(const qe6502_t *cpu) { return get_p_flag(cpu, flag_UN); }
+void qe6502_set_flag_un(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_UN, value); }
+uint8_t qe6502_get_flag_v(const qe6502_t *cpu) { return get_p_flag(cpu, flag_V); }
+void qe6502_set_flag_v(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_V, value); }
+uint8_t qe6502_get_flag_n(const qe6502_t *cpu) { return get_p_flag(cpu, flag_N); }
+void qe6502_set_flag_n(qe6502_t *cpu, uint8_t value) { set_p_flag(cpu, flag_N, value); }
 
 qe6502_tick_t qe6502_goto(qe6502_t *cpu, uint16_t address)
 {
@@ -2894,13 +3011,13 @@ void qe6502_nmi_assert(qe6502_t *cpu, uint8_t assert_nmi)
         if (flag(cpu->interrupts, qe6502_interrupt_nmi_inv_pin) == 0)
         {
             cpu->interrupts = flag_on(cpu->interrupts, qe6502_interrupt_nmi_inv_pin);
-            cpu->hijack_microcode = 1;
+            cpu->service_mode = 1;
         }
     }
     else if (flag(cpu->interrupts, qe6502_interrupt_nmi_inv_pin) != 0)
     {
         cpu->interrupts = flag_off(cpu->interrupts, qe6502_interrupt_nmi_inv_pin);
-        cpu->hijack_microcode = 1;
+        cpu->service_mode = 1;
     }
 }
 
@@ -2910,7 +3027,7 @@ void qe6502_irq_assert(qe6502_t *cpu, uint8_t assert_irq)
     if (assert_irq != 0u)
     {
         cpu->interrupts = flag_on(cpu->interrupts, qe6502_interrupt_irq_inv_pin);
-        cpu->hijack_microcode = 1;
+        cpu->service_mode = 1;
     }
     else
     {
@@ -2946,7 +3063,7 @@ qe6502_tick_t qe6502_restart(qe6502_t *cpu)
 
 void qe6502_save(const qe6502_t *cpu,
                  qe6502_tick_t tick,
-                 uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
+                 qe6502_snapshot_t snapshot)
 {
     snapshot_write_u16(&snapshot[0], (uint16_t)qe6502_snapshot_context_magic);
     snapshot_write_u16(&snapshot[2], (uint16_t)qe6502_snapshot_context_version);
@@ -2956,7 +3073,7 @@ void qe6502_save(const qe6502_t *cpu,
 }
 
 qe6502_tick_t qe6502_load(qe6502_t *cpu,
-                          const uint8_t snapshot[QE6502_SNAPSHOT_SIZE])
+                          const qe6502_snapshot_t snapshot)
 {
     snapshot_read_cpu(cpu, &snapshot[4]);
     return unpack_tick(snapshot_read_u32(&snapshot[20]));

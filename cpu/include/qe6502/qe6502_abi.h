@@ -51,11 +51,13 @@ extern "C" {
 #endif
 
 /*
- * Stable shared/WASM/FFI ABI wrapper.
+ * ---------------------------------------------------------------------------
+ * Stable ABI wrapper
+ * ---------------------------------------------------------------------------
  *
- * This ABI deliberately exposes only scalar values and caller-owned opaque
- * storage. It does not perform null-pointer, bounds, model, or state-safety
- * checks; callers must pass valid objects and must not edit context bytes.
+ * Shared-library, WASM, and FFI entry points using scalar values and
+ * caller-owned opaque storage. Callers must pass valid objects and must not
+ * edit context bytes directly.
  */
 
 #define QE6502_ABI_CONTEXT_SIZE    64u
@@ -63,11 +65,17 @@ extern "C" {
 #define QE6502_ABI_CONTEXT_MAGIC   0x6502u
 #define QE6502_ABI_CONTEXT_VERSION 1u
 
+/* Portable 64-byte snapshot buffer used by save/load APIs. */
 #define QE6502_ABI_SNAPSHOT_SIZE QE6502_ABI_CONTEXT_SIZE
+typedef uint8_t qe6502abi_snapshot_t[QE6502_ABI_SNAPSHOT_SIZE];
 
 /*
- * Opaque 64-byte, 8-byte-aligned ABI context.
- * The first 20 bytes are currently used; the remaining 44 bytes are reserved.
+ * ---------------------------------------------------------------------------
+ * ABI context storage
+ * ---------------------------------------------------------------------------
+ *
+ * Opaque 64-byte, 8-byte-aligned caller-owned context. The used bytes contain
+ * private ABI state; the remaining bytes are reserved and must not be edited.
  */
 typedef struct qe6502abi_context
 {
@@ -81,6 +89,15 @@ QE6502_ABI_STATIC_ASSERT(QE6502_ABI_ALIGNOF(qe6502abi_context_t) == QE6502_ABI_C
                          "qe6502abi_context_t must be 8-byte aligned");
 
 typedef uint32_t qe6502abi_tick_t;
+
+/*
+ * ---------------------------------------------------------------------------
+ * ABI constants and packed tick helpers
+ * ---------------------------------------------------------------------------
+ *
+ * Stable scalar constants for processor models, status flags, and packed tick
+ * decoding. These values are part of the shared/WASM/FFI ABI contract.
+ */
 
 #define QE6502_ABI_MODEL_NMOS  0u
 #define QE6502_ABI_MODEL_NES   1u
@@ -120,37 +137,43 @@ typedef uint32_t qe6502abi_tick_t;
 #define QE6502_ABI_TICK_STATUS(tick) \
     ((uint8_t)(((uint32_t)(tick) >> QE6502_ABI_TICK_STATUS_SHIFT) & 0xffu))
 
+/*
+ * ---------------------------------------------------------------------------
+ * ABI entry points
+ * ---------------------------------------------------------------------------
+ *
+ * Shared/WASM/FFI functions for versioning, CPU execution, interrupt pins,
+ * snapshots, and scalar CPU-state access through the opaque ABI context.
+ */
+
 /* ABI version. */
 QE6502_ABI_API uint32_t qe6502abi_version(void);
 
-/* Primary CPU control path. */
+/* Initialize an ABI context for the selected processor model. */
 QE6502_ABI_API void             qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model);
-QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx);
-QE6502_ABI_API qe6502abi_tick_t qe6502abi_tick(qe6502abi_context_t *ctx, uint32_t bus);
 
-/* Additional execution control. */
+/* Restart the CPU context and return an initial dummy read request at address 0x00ff. */
+QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx);
+
+/* Enter execution at address and return the first bus request. */
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_goto(qe6502abi_context_t *ctx, uint32_t address);
 
-/* Interrupts assert/deassert. */
-QE6502_ABI_API void qe6502abi_nmi_assert(qe6502abi_context_t *ctx, uint8_t assert_nmi);
-QE6502_ABI_API void qe6502abi_irq_assert(qe6502abi_context_t *ctx, uint8_t assert_irq);
+/* Execute one CPU bus phase and return the next packed bus request. */
+QE6502_ABI_API qe6502abi_tick_t qe6502abi_tick(qe6502abi_context_t *ctx, uint32_t bus);
 
-/* Interrupts pins state. */
+/* Interrupt pin control. */
+QE6502_ABI_API void    qe6502abi_nmi_assert(qe6502abi_context_t *ctx, uint8_t assert_nmi);
+QE6502_ABI_API void    qe6502abi_irq_assert(qe6502abi_context_t *ctx, uint8_t assert_irq);
 QE6502_ABI_API uint8_t qe6502abi_is_nmi_asserted(const qe6502abi_context_t *ctx);
 QE6502_ABI_API uint8_t qe6502abi_is_irq_asserted(const qe6502abi_context_t *ctx);
 
+/* Save and restore a portable 64-byte native CPU snapshot. */
+QE6502_ABI_API void             qe6502abi_save(const qe6502abi_context_t *ctx, qe6502abi_tick_t tick, qe6502abi_snapshot_t snapshot);
+QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx, const qe6502abi_snapshot_t snapshot);
 
-/*
- * Save and restore the portable 64-byte ABI context snapshot.
- * Snapshot layout is big-endian: magic, version, CPU context, tick, reserved.
- */
-QE6502_ABI_API void             qe6502abi_save(const qe6502abi_context_t *ctx,
-                                               qe6502abi_tick_t tick,
-                                               uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE]);
-QE6502_ABI_API qe6502abi_tick_t qe6502abi_load(qe6502abi_context_t *ctx,
-                                               const uint8_t snapshot[QE6502_ABI_SNAPSHOT_SIZE]);
-
-/* Debug/helper accessors for public CPU state. */
+/* CPU register accessors. */
+QE6502_ABI_API uint32_t qe6502abi_get_model(const qe6502abi_context_t *ctx);
+QE6502_ABI_API void     qe6502abi_set_model(qe6502abi_context_t *ctx, uint32_t value);
 QE6502_ABI_API uint32_t qe6502abi_get_pc(const qe6502abi_context_t *ctx);
 QE6502_ABI_API void     qe6502abi_set_pc(qe6502abi_context_t *ctx, uint32_t value);
 QE6502_ABI_API uint32_t qe6502abi_get_s(const qe6502abi_context_t *ctx);
@@ -163,8 +186,6 @@ QE6502_ABI_API uint32_t qe6502abi_get_y(const qe6502abi_context_t *ctx);
 QE6502_ABI_API void     qe6502abi_set_y(qe6502abi_context_t *ctx, uint32_t value);
 QE6502_ABI_API uint32_t qe6502abi_get_p(const qe6502abi_context_t *ctx);
 QE6502_ABI_API void     qe6502abi_set_p(qe6502abi_context_t *ctx, uint32_t value);
-QE6502_ABI_API uint32_t qe6502abi_get_model(const qe6502abi_context_t *ctx);
-QE6502_ABI_API void     qe6502abi_set_model(qe6502abi_context_t *ctx, uint32_t value);
 
 #ifdef __cplusplus
 }

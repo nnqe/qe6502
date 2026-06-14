@@ -21,7 +21,7 @@ pub struct Cpu {
 impl Cpu {
     pub fn new(model: Model) -> Self {
         let mut ctx = sys::CpuContext::default();
-        ctx.model = model as u8;
+        unsafe { sys::qe6502_set_model(&mut ctx, model as u8) };
 
         Self {
             ctx,
@@ -79,142 +79,142 @@ impl Cpu {
 
     #[inline(always)]
     pub fn pc(&self) -> u16 {
-        self.ctx.pc
+        unsafe { sys::qe6502_get_pc(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_pc(&mut self, value: u16) {
-        self.ctx.pc = value;
+        unsafe { sys::qe6502_set_pc(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn s(&self) -> u8 {
-        self.ctx.s
+        unsafe { sys::qe6502_get_s(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_s(&mut self, value: u8) {
-        self.ctx.s = value;
+        unsafe { sys::qe6502_set_s(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn a(&self) -> u8 {
-        self.ctx.a
+        unsafe { sys::qe6502_get_a(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_a(&mut self, value: u8) {
-        self.ctx.a = value;
+        unsafe { sys::qe6502_set_a(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn x(&self) -> u8 {
-        self.ctx.x
+        unsafe { sys::qe6502_get_x(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_x(&mut self, value: u8) {
-        self.ctx.x = value;
+        unsafe { sys::qe6502_set_x(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn y(&self) -> u8 {
-        self.ctx.y
+        unsafe { sys::qe6502_get_y(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_y(&mut self, value: u8) {
-        self.ctx.y = value;
+        unsafe { sys::qe6502_set_y(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn p(&self) -> u8 {
-        self.ctx.p
+        unsafe { sys::qe6502_get_p(&self.ctx) }
     }
 
     #[inline(always)]
     pub fn set_p(&mut self, value: u8) {
-        self.ctx.p = value;
+        unsafe { sys::qe6502_set_p(&mut self.ctx, value) };
     }
 
     #[inline(always)]
     pub fn carry_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_C)
+        unsafe { sys::qe6502_get_flag_c(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_carry_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_C, value);
+        unsafe { sys::qe6502_set_flag_c(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn zero_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_Z)
+        unsafe { sys::qe6502_get_flag_z(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_zero_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_Z, value);
+        unsafe { sys::qe6502_set_flag_z(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn interrupt_disable_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_I)
+        unsafe { sys::qe6502_get_flag_i(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_interrupt_disable_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_I, value);
+        unsafe { sys::qe6502_set_flag_i(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn decimal_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_D)
+        unsafe { sys::qe6502_get_flag_d(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_decimal_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_D, value);
+        unsafe { sys::qe6502_set_flag_d(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn break_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_B)
+        unsafe { sys::qe6502_get_flag_b(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_break_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_B, value);
+        unsafe { sys::qe6502_set_flag_b(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn unused_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_UN)
+        unsafe { sys::qe6502_get_flag_un(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_unused_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_UN, value);
+        unsafe { sys::qe6502_set_flag_un(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn overflow_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_V)
+        unsafe { sys::qe6502_get_flag_v(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_overflow_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_V, value);
+        unsafe { sys::qe6502_set_flag_v(&mut self.ctx, u8::from(value)) };
     }
 
     #[inline(always)]
     pub fn negative_flag(&self) -> bool {
-        self.p_flag(sys::FLAG_N)
+        unsafe { sys::qe6502_get_flag_n(&self.ctx) != 0 }
     }
 
     #[inline(always)]
     pub fn set_negative_flag(&mut self, value: bool) {
-        self.set_p_flag(sys::FLAG_N, value);
+        unsafe { sys::qe6502_set_flag_n(&mut self.ctx, u8::from(value)) };
     }
 
     pub fn nmi_asserted(&self) -> bool {
@@ -245,17 +245,4 @@ impl Cpu {
         self.tick = unsafe { sys::qe6502_load(&mut self.ctx, snapshot.as_ptr()) };
     }
 
-    #[inline(always)]
-    fn p_flag(&self, mask: u8) -> bool {
-        (self.ctx.p & mask) != 0
-    }
-
-    #[inline(always)]
-    fn set_p_flag(&mut self, mask: u8, value: bool) {
-        if value {
-            self.ctx.p |= mask;
-        } else {
-            self.ctx.p &= !mask;
-        }
-    }
 }

@@ -2,7 +2,7 @@
 
         /* NMOS service slots. */
 
-        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_microcode_hijacked, 0)] = &interrupt_resolver,
+        [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_service_mode, 0)] = &interrupt_resolver,
 
         [SERVICE_SLOT_IDX(qe6502_model_nmos, service_slot_illegal_ext, 0)] = &mc_dispatch,
 

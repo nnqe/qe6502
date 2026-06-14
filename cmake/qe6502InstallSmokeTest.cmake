@@ -41,7 +41,7 @@ file(WRITE "${qe6502_consumer_src}/use_static.c" [=[
 int main(void)
 {
     qe6502_t cpu = {0};
-    cpu.model = qe6502_model_nmos;
+    qe6502_set_model(&cpu, qe6502_model_nmos);
     (void)qe6502_restart(&cpu);
     return 0;
 }

@@ -6,14 +6,6 @@ pub(crate) const MODEL_WDC: u8 = 2;
 pub(crate) const MODEL_RW: u8 = 3;
 pub(crate) const MODEL_ST: u8 = 4;
 
-pub(crate) const FLAG_C: u8 = 1 << 0;
-pub(crate) const FLAG_Z: u8 = 1 << 1;
-pub(crate) const FLAG_I: u8 = 1 << 2;
-pub(crate) const FLAG_D: u8 = 1 << 3;
-pub(crate) const FLAG_B: u8 = 1 << 4;
-pub(crate) const FLAG_UN: u8 = 1 << 5;
-pub(crate) const FLAG_V: u8 = 1 << 6;
-pub(crate) const FLAG_N: u8 = 1 << 7;
 
 pub(crate) const STATUS_WRITING: u8 = 1 << 0;
 pub(crate) const STATUS_OPCODE_FETCH: u8 = 1 << 1;
@@ -28,7 +20,7 @@ pub(crate) struct CpuContext {
     pub(crate) microcode: u16,
     pub(crate) latch_addr: u16,
     pub(crate) latch_data: u8,
-    pub(crate) hijack_microcode: u8,
+    pub(crate) service_mode: u8,
     pub(crate) pc: u16,
     pub(crate) s: u8,
     pub(crate) a: u8,
@@ -49,7 +41,7 @@ impl Default for CpuContext {
             microcode: 0,
             latch_addr: 0,
             latch_data: 0,
-            hijack_microcode: 0,
+            service_mode: 0,
             pc: 0,
             s: 0,
             a: 0,
@@ -84,4 +76,35 @@ unsafe extern "C" {
 
     pub(crate) fn qe6502_save(cpu: *const CpuContext, tick: Tick, snapshot: *mut u8);
     pub(crate) fn qe6502_load(cpu: *mut CpuContext, snapshot: *const u8) -> Tick;
+
+    pub(crate) fn qe6502_set_model(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_pc(cpu: *const CpuContext) -> u16;
+    pub(crate) fn qe6502_set_pc(cpu: *mut CpuContext, value: u16);
+    pub(crate) fn qe6502_get_s(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_s(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_a(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_a(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_x(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_x(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_y(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_y(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_p(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_p(cpu: *mut CpuContext, value: u8);
+
+    pub(crate) fn qe6502_get_flag_c(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_c(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_z(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_z(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_i(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_i(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_d(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_d(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_b(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_b(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_un(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_un(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_v(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_v(cpu: *mut CpuContext, value: u8);
+    pub(crate) fn qe6502_get_flag_n(cpu: *const CpuContext) -> u8;
+    pub(crate) fn qe6502_set_flag_n(cpu: *mut CpuContext, value: u8);
 }
