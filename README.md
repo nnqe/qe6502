@@ -261,8 +261,7 @@ static void memory_write(uint16_t address, uint8_t value);
 
 int main(void)
 {
-    qe6502_t cpu = {0};
-    cpu.model = qe6502_model_nmos;
+    qe6502_t cpu = qe6502_setup(qe6502_model_nmos);
 
     qe6502_tick_t tick = qe6502_restart(&cpu);
     uint8_t input = 0;

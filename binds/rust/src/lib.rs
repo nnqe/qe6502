@@ -20,11 +20,8 @@ pub struct Cpu {
 
 impl Cpu {
     pub fn new(model: Model) -> Self {
-        let mut ctx = sys::CpuContext::default();
-        unsafe { sys::qe6502_set_model(&mut ctx, model as u8) };
-
         Self {
-            ctx,
+            ctx: unsafe { sys::qe6502_setup(model as u32) },
             tick: sys::Tick::default(),
         }
     }

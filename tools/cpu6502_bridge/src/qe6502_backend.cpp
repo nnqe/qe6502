@@ -11,8 +11,8 @@ namespace {
 class Qe6502Cpu final : public ICpu {
 public:
     Qe6502Cpu() noexcept
+        : cpu_{qe6502_setup(qe6502_model_nmos)}
     {
-        cpu_.model = qe6502_model_nmos;
         restart();
     }
 
@@ -85,7 +85,7 @@ public:
     std::uint8_t p() const noexcept override { return cpu_.P; }
 
 private:
-    qe6502_t cpu_{};
+    qe6502_t cpu_;
     qe6502_tick_t tick_{};
     std::array<std::uint8_t, 65536> memory_{};
 };

@@ -14,10 +14,9 @@
 namespace qe6502 {
 
 cpu::cpu(model cpu_model) noexcept
-    : cpu_{}
+    : cpu_{qe6502_setup(static_cast<std::uint32_t>(cpu_model))}
     , tick_{}
 {
-    qe6502_set_model(&cpu_, static_cast<std::uint8_t>(cpu_model));
 }
 
 cpu::cpu(const cpu_snapshot& snapshot)

@@ -65,6 +65,7 @@ const _: [(); 4] = [(); core::mem::size_of::<Tick>()];
 const _: [(); 2] = [(); core::mem::align_of::<Tick>()];
 
 unsafe extern "C" {
+    pub(crate) fn qe6502_setup(model: u32) -> CpuContext;
     pub(crate) fn qe6502_restart(cpu: *mut CpuContext) -> Tick;
     pub(crate) fn qe6502_goto(cpu: *mut CpuContext, address: u16) -> Tick;
     pub(crate) fn qe6502_tick_exported(cpu: *mut CpuContext, bus: u8) -> Tick;
@@ -77,7 +78,6 @@ unsafe extern "C" {
     pub(crate) fn qe6502_save(cpu: *const CpuContext, tick: Tick, snapshot: *mut u8);
     pub(crate) fn qe6502_load(cpu: *mut CpuContext, snapshot: *const u8) -> Tick;
 
-    pub(crate) fn qe6502_set_model(cpu: *mut CpuContext, value: u8);
     pub(crate) fn qe6502_get_pc(cpu: *const CpuContext) -> u16;
     pub(crate) fn qe6502_set_pc(cpu: *mut CpuContext, value: u16);
     pub(crate) fn qe6502_get_s(cpu: *const CpuContext) -> u8;

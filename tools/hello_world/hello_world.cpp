@@ -21,8 +21,7 @@ int main()
     const auto image = program.compile_to_map();
     asm6502::Asm6502::apply(image, memory.data());
 
-    qe6502_t cpu{};
-    cpu.model = qe6502_model_nmos;
+    qe6502_t cpu = qe6502_setup(qe6502_model_nmos);
 
     qe6502_tick_t tick = qe6502_restart(&cpu);
 

@@ -57,7 +57,7 @@ const char* test_klaus2m5_v2(uint8_t cpu_model,
     *result = 0;
     *mhz = 0.0;
 
-    cpu.model = cpu_model;
+    cpu = qe6502_setup(cpu_model);
     (void)qe6502_restart(cpu_ptr);
     tick = qe6502_goto(cpu_ptr, 0x0400u);
 

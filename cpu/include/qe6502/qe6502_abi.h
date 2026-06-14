@@ -150,7 +150,7 @@ typedef uint32_t qe6502abi_tick_t;
 QE6502_ABI_API uint32_t qe6502abi_version(void);
 
 /* Initialize an ABI context for the selected processor model. */
-QE6502_ABI_API void             qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model);
+QE6502_ABI_API void qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model);
 
 /* Restart the CPU context and return an initial dummy read request at address 0x00ff. */
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx);

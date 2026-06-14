@@ -180,6 +180,7 @@ function(qe6502_check_installed_shared_symbols)
             qe6502_require_export("${qe6502_abi_library}" "${qe6502_abi_symbols}" "${required_symbol}")
         endforeach()
         foreach(forbidden_symbol IN ITEMS
+            qe6502_setup
             qe6502_restart
             qe6502_tick_exported
             qe6502_control_store
@@ -197,6 +198,7 @@ function(qe6502_check_installed_shared_symbols)
             qe6502abi_version
             qe6502abi_setup
             qe6502abi_tick
+            qe6502_setup
             qe6502_restart
             qe6502_tick_exported
             qe6502_control_store

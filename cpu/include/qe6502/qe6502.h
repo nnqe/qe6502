@@ -29,7 +29,7 @@ extern "C" {
  * ---------------------------------------------------------------------------
  *
  * Selects the supported 6502-family CPU model and its model-specific behavior.
- * Use these values with qe6502_init() and qe6502_set_model().
+ * Use these values with qe6502_setup() and qe6502_set_model().
  */
 
 enum
@@ -147,6 +147,9 @@ extern const qe6502_microcode_fn qe6502_control_store[qe6502_control_store_size]
  * These functions operate directly on qe6502_t and qe6502_tick_t.
  * Prefer this accessor API over direct qe6502_t field access in application code.
  */
+
+/* Initialize a native CPU context for the selected processor model. */
+qe6502_t qe6502_setup(uint32_t model);
 
 /* Restart the CPU context and return an initial dummy read request at address 0x00ff. */
 qe6502_tick_t qe6502_restart(qe6502_t *cpu);

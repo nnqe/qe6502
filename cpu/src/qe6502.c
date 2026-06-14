@@ -1,7 +1,30 @@
 #include <qe6502/qe6502.h>
+
 #ifndef QE6502_NO_ABI
 #include <qe6502/qe6502_abi.h>
+
+QE6502_STATIC_ASSERT(QE6502_ABI_SNAPSHOT_SIZE == QE6502_SNAPSHOT_SIZE, "ABI/native snapshot sizes must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_NMOS  == qe6502_model_nmos, "ABI/native NMOS model id must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_NES   == qe6502_model_nes, "ABI/native NES model id must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_WDC   == qe6502_model_wdc, "ABI/native WDC model id must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_RW    == qe6502_model_rw, "ABI/native Rockwell model id must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_ST    == qe6502_model_st, "ABI/native Synertek model id must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_MODEL_COUNT == qe6502_supported_models_count, "ABI/native model count must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_C  == qe6502_flag_C, "ABI/native carry flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_Z  == qe6502_flag_Z, "ABI/native zero flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_I  == qe6502_flag_I, "ABI/native interrupt-disable flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_D  == qe6502_flag_D, "ABI/native decimal flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_B  == qe6502_flag_B, "ABI/native break flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_UN == qe6502_flag_UN, "ABI/native unused flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_V  == qe6502_flag_V, "ABI/native overflow flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_FLAG_N  == qe6502_flag_N, "ABI/native negative flag mask must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_TICK_WRITING == ((uint32_t)qe6502_status_writing << QE6502_ABI_TICK_STATUS_SHIFT), "ABI/native write tick status bit must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_TICK_FETCH == ((uint32_t)qe6502_status_opcode_fetch << QE6502_ABI_TICK_STATUS_SHIFT), "ABI/native opcode-fetch tick status bit must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_TICK_INTERNAL_RESET == ((uint32_t)qe6502_status_internal_reset << QE6502_ABI_TICK_STATUS_SHIFT), "ABI/native internal-reset tick status bit must match");
+QE6502_STATIC_ASSERT(QE6502_ABI_TICK_CPU_JAMMED == ((uint32_t)qe6502_status_cpu_jammed << QE6502_ABI_TICK_STATUS_SHIFT), "ABI/native CPU-jammed tick status bit must match");
+
 #endif
+
 #include <stdbool.h>
 
 static const uint8_t flag_C  = qe6502_flag_C ;
@@ -2720,11 +2743,10 @@ QE6502_ABI_API uint32_t qe6502abi_version(void)
 QE6502_ABI_API void qe6502abi_setup(qe6502abi_context_t *ctx, uint32_t model)
 {
     qe6502abi_impl_t *impl = qe6502abi_impl(ctx);
-    impl->cpu = (qe6502_t){0};
+    impl->cpu = qe6502_setup(model);
     impl->magic = (uint16_t)QE6502_ABI_CONTEXT_MAGIC;
     impl->version = (uint16_t)QE6502_ABI_CONTEXT_VERSION;
     clear_buffer(impl->reserve, (uint32_t)sizeof(impl->reserve));
-    qe6502_set_model(&impl->cpu, (uint8_t)model);
 }
 
 QE6502_ABI_API qe6502abi_tick_t qe6502abi_restart(qe6502abi_context_t *ctx)
@@ -2900,6 +2922,13 @@ static void set_p_flag(qe6502_t *cpu, uint8_t mask, uint8_t value)
     {
         cpu->P = flag_off(cpu->P, mask);
     }
+}
+
+qe6502_t qe6502_setup(uint32_t model)
+{
+    qe6502_t cpu = {0};
+    qe6502_set_model(&cpu, (uint8_t)model);
+    return cpu;
 }
 
 uint8_t qe6502_get_model(const qe6502_t *cpu)
