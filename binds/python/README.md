@@ -4,13 +4,29 @@
 
 The Python package wraps the stable qe6502 C ABI and provides a small stateful `CPU` object for stepping the emulator one bus cycle at a time.
 
-## Install
+## Official 1.0 release package
+
+The `qe6502` 1.0.0 GitHub Release provides `qe6502-python-1.0.0-wheels.zip`, which contains platform wheels and the `qe6502-1.0.0.tar.gz` source distribution. The release workflow uploads these files as GitHub Release assets; it does not automatically publish them to PyPI.
+
+Until the package is published to PyPI, unzip the release asset and install the wheel matching your platform:
 
 ```sh
-pip install qe6502
+python -m pip install /path/to/qe6502-1.0.0-*.whl
 ```
 
-Most users should receive a prebuilt wheel. The package is a native CPython extension targeting Python 3.10 and newer through CPython's stable ABI. Source builds are a fallback and may require a C compiler, CMake, and Python development headers.
+Source builds are available from the included source distribution and may require a C compiler, CMake, and Python development headers:
+
+```sh
+python -m pip install /path/to/qe6502-1.0.0.tar.gz
+```
+
+After a PyPI publication is announced, the normal registry install command is:
+
+```sh
+python -m pip install qe6502==1.0.0
+```
+
+Most users should use a prebuilt wheel. The package is a native CPython extension targeting Python 3.10 and newer through CPython's stable ABI.
 
 ## Quick start
 

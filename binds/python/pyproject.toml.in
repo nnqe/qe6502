@@ -24,7 +24,7 @@ keywords = [
   "retrocomputing"
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: C",
   "Programming Language :: Python :: 3",

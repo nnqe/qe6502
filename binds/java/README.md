@@ -4,6 +4,20 @@ The Java binding uses the Java 25 Foreign Function & Memory API to call the
 stable qe6502 ABI exported by `libqe6502`. It intentionally keeps the public Java API
 close to the C# binding while using conventional Java method names.
 
+## Official 1.0 release package
+
+The `qe6502` 1.0.0 GitHub Release provides `qe6502-java-1.0.0-maven-bundle.zip`, which contains a Maven publish layout for `io.github.nnqe:qe6502:1.0.0`. The release workflow uploads this package as a GitHub Release asset; it does not automatically publish it to Maven Central.
+
+Until a Maven Central publication is announced, unzip the release asset and use the contained Maven layout as a local or hosted Maven repository.
+
+```xml
+<dependency>
+  <groupId>io.github.nnqe</groupId>
+  <artifactId>qe6502</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
 ## Requirements
 
 - JDK 25 or newer, with `java`, `javac`, `jar`, and `javadoc`
@@ -81,7 +95,7 @@ cmake --build --preset debug_native --target qe6502_java_maven_publish_layout
 The layout is staged under `maven-publish/io/github/nnqe/qe6502/<version>/` and
 contains `qe6502-<version>.jar`, `qe6502-<version>-sources.jar`,
 `qe6502-<version>-javadoc.jar`, and `qe6502-<version>.pom`. This Maven
-publish layout is the primary Java release candidate uploaded by CI; the package
+publish layout is the primary Java release artifact uploaded by CI; the package
 staging directory remains an internal build/smoke-test input and is not part of
 the final publish artifact. CI can also upload a signed Maven Central bundle
 when requested.

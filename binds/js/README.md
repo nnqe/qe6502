@@ -7,10 +7,20 @@
 - Node.js 22 or newer for Node.js consumers.
 - A modern browser with WebAssembly support for browser consumers.
 
-## Install
+## Official 1.0 release package
+
+The `qe6502` 1.0.0 GitHub Release provides `qe6502-wasm-1.0.0.zip`, which contains the npm package tarball `qe6502-1.0.0.tgz`. The release workflow uploads this package as a GitHub Release asset; it does not automatically publish it to npm.
+
+Until the package is published to npm, unzip the release asset and install from the local tarball:
 
 ```sh
-npm install qe6502
+npm install ./qe6502-1.0.0.tgz
+```
+
+After an npm publication is announced, the normal registry install command is:
+
+```sh
+npm install qe6502@1.0.0
 ```
 
 ## Node.js

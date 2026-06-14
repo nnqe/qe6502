@@ -191,7 +191,7 @@ else()
             --keyword python
             --keyword cpython
             --keyword retrocomputing
-            --classifier "Development Status :: 3 - Alpha"
+            --classifier "Development Status :: 5 - Production/Stable"
             --classifier "License :: OSI Approved :: MIT License"
             --classifier "Programming Language :: C"
             --classifier "Programming Language :: Python :: 3"
@@ -239,7 +239,7 @@ else()
             --keyword python
             --keyword cpython
             --keyword retrocomputing
-            --classifier "Development Status :: 3 - Alpha"
+            --classifier "Development Status :: 5 - Production/Stable"
             --classifier "License :: OSI Approved :: MIT License"
             --classifier "Programming Language :: C"
             --classifier "Programming Language :: Python :: 3"

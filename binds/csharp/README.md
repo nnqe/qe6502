@@ -4,10 +4,20 @@
 
 The NuGet package includes the managed C# wrapper and bundled native `qe6502` runtime libraries for the supported platforms. A normal .NET consumer project should not need to build or copy the native library manually.
 
-## Install
+## Official 1.0 release package
+
+The `qe6502` 1.0.0 GitHub Release provides `qe6502-csharp-1.0.0-nupkg.zip`, which contains the multi-RID `Qe6502.1.0.0.nupkg`. The release workflow uploads this package as a GitHub Release asset; it does not automatically publish it to NuGet.org.
+
+Until the package is published to NuGet.org, unzip the release asset and install from the local `.nupkg` path:
 
 ```sh
-dotnet add package Qe6502
+dotnet add package Qe6502 --version 1.0.0 --source /path/to/unzipped/nupkg-directory
+```
+
+After a NuGet.org publication is announced, the normal registry install command is:
+
+```sh
+dotnet add package Qe6502 --version 1.0.0
 ```
 
 ## Minimal use
@@ -183,7 +193,7 @@ To validate that package end-to-end with an external .NET console app:
 cmake --build build --target qe6502_csharp_package_smoke
 ```
 
-GitHub CI also builds and validates a multi-RID NuGet package artifact containing all supported native runtime assets. This CI artifact is not automatically published to NuGet.org.
+GitHub CI also builds and validates a multi-RID NuGet package artifact containing all supported native runtime assets. The release workflow uploads the assembled package to GitHub Releases and does not automatically publish it to NuGet.org.
 
 ## Tests
 

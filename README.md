@@ -8,6 +8,23 @@ The fast native C API keeps the complete CPU state in a 16-byte `qe6502_t`. The 
 
 `qe6502` has no hidden mutable global state and performs no memory/device I/O internally; independent CPU contexts are suitable for multithreaded use.
 
+## Official 1.0 release
+
+`qe6502` 1.0.0 is the first official public release. The release is distributed from the GitHub Releases page as downloadable artifacts rather than by automatically publishing to external package registries.
+
+The 1.0.0 release assets include:
+
+- native C/C++ install packages for Linux, macOS, and Windows on x64 and arm64;
+- a source archive and checksum files;
+- Python wheels plus source distribution;
+- a C# NuGet `.nupkg`;
+- a Rust `.crate`;
+- a Java Maven publish layout;
+- a JavaScript/WebAssembly npm package tarball;
+- a generated vcpkg port package.
+
+Registry publishing to NuGet.org, PyPI, crates.io, Maven Central, npm, and the upstream vcpkg registry is intentionally separate from the GitHub Release artifact flow. Until a package registry entry is announced, install the desired binding from the corresponding GitHub Release asset.
+
 ## CPU models
 
 The public model constants cover:
@@ -545,7 +562,7 @@ the staged jar, carries the generated Maven `pom.xml`, Java sources jar, and
 javadoc jar with coordinates `io.github.nnqe:qe6502:<version>`, verifies the
 multi-platform `qe6502/native/<platform>/` layout, stages a Maven-style publish
 layout, runs package smoke checks, and uploads the Maven publish layout as
-the Java release candidate. When requested, CI also uploads a signed Maven
+the Java release artifact. When requested, CI also uploads a signed Maven
 Central bundle. The native release jobs also run the Java package
 smoke on their own platform before uploading their Java runtime asset fragments,
 so embedded native loading is exercised on Windows, macOS, and Linux.
@@ -581,11 +598,9 @@ The exact performance numbers in that repository should be read as measurements 
 
 ## Status
 
-`qe6502` is pre-1.0 and under active development.
+`qe6502` 1.0.0 is the first official public release. The core project includes C, C++, stable ABI, C#, Java, Python, Rust, and JavaScript/WebAssembly integration surfaces.
 
-The first official public release is currently targeted for October 2026, subject to API/ABI stabilization and completion of the current correctness baseline.
-
-The core project currently includes C, C++, stable ABI, C#, Java, Python, Rust, and JavaScript/WebAssembly integration surfaces.
+The project remains actively maintained. Within the 1.x line, ABI-backed bindings are expected to accept a runtime with the same major version and a minor version greater than or equal to the version they were compiled against.
 
 ## License
 
