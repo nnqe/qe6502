@@ -25,6 +25,10 @@
     <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Qe6502GeneratedVersionSource)' != ''">
+    <Compile Include="$(Qe6502GeneratedVersionSource)" Link="Qe6502Version.g.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(Qe6502NativeRuntimeRid)' != '' and '$(Qe6502NativeRuntimeLibrary)' != ''">
     <None Include="$(Qe6502NativeRuntimeLibrary)" Pack="true" PackagePath="runtimes/$(Qe6502NativeRuntimeRid)/native/" Visible="false" />
   </ItemGroup>

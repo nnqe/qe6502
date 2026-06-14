@@ -10,6 +10,17 @@ if(NOT TARGET qe6502_shared)
     return()
 endif()
 
+
+set(QE6502_CSHARP_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+set(QE6502_CSHARP_GENERATED_VERSION_SOURCE
+    ${QE6502_CSHARP_GENERATED_DIR}/Qe6502Version.g.cs
+)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Qe6502/Qe6502Version.g.cs.in
+    ${QE6502_CSHARP_GENERATED_VERSION_SOURCE}
+    @ONLY
+)
+
 set(QE6502_CSHARP_CONFIGURATION "$<IF:$<CONFIG:Debug>,Debug,Release>")
 set(QE6502_CSHARP_PROJECT ${CMAKE_CURRENT_SOURCE_DIR}/Qe6502/Qe6502.csproj)
 set(QE6502_CSHARP_OUTPUT_DIR
@@ -71,6 +82,7 @@ add_custom_target(qe6502_csharp ALL
         -p:PlatformTarget=AnyCPU
         -p:Version=${QE6502_CSHARP_PACKAGE_VERSION}
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
+        -p:Qe6502GeneratedVersionSource=${QE6502_CSHARP_GENERATED_VERSION_SOURCE}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CSHARP_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:qe6502_shared>
@@ -89,7 +101,7 @@ if(QE6502_CSHARP_RUNTIME_RID)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${QE6502_CSHARP_NATIVE_PACKAGE_SOURCE}
             ${QE6502_CSHARP_RUNTIME_ASSET_NATIVE_DIR}/${QE6502_CSHARP_NATIVE_LIBRARY_NAME}
-        DEPENDS qe6502_shared
+        DEPENDS qe6502_shared ${QE6502_CSHARP_GENERATED_VERSION_SOURCE}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Staging qe6502 C# native runtime asset for ${QE6502_CSHARP_RUNTIME_RID}"
         VERBATIM
@@ -108,6 +120,7 @@ if(QE6502_CSHARP_RUNTIME_RID)
             -p:PlatformTarget=AnyCPU
             -p:Version=${QE6502_CSHARP_PACKAGE_VERSION}
             -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
+            -p:Qe6502GeneratedVersionSource=${QE6502_CSHARP_GENERATED_VERSION_SOURCE}
             -p:PackageOutputPath=${QE6502_CSHARP_PACKAGE_DIR}
             -p:Qe6502NativeRuntimeRid=${QE6502_CSHARP_RUNTIME_RID}
             -p:Qe6502NativeRuntimeLibrary=${QE6502_CSHARP_PACKAGE_NATIVE_DIR}/${QE6502_CSHARP_NATIVE_LIBRARY_NAME}

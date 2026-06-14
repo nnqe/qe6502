@@ -46,15 +46,17 @@ check_abi_version(void)
     const uint32_t version = qe6502abi_version();
     const uint32_t major = PY_QE6502_VERSION_MAJOR(version);
     const uint32_t minor = PY_QE6502_VERSION_MINOR(version);
+    const uint32_t expected_major = (uint32_t)PY_QE6502_EXPECTED_VERSION_MAJOR;
+    const uint32_t expected_minor = (uint32_t)PY_QE6502_EXPECTED_VERSION_MINOR;
 
-    if (major != PY_QE6502_EXPECTED_VERSION_MAJOR || minor < PY_QE6502_EXPECTED_VERSION_MINOR) {
+    if (major != expected_major || minor < expected_minor) {
         PyErr_Format(
             PyExc_RuntimeError,
             "unsupported qe6502 version %u.%u; expected %u.%u or compatible",
             (unsigned int)major,
             (unsigned int)minor,
-            (unsigned int)PY_QE6502_EXPECTED_VERSION_MAJOR,
-            (unsigned int)PY_QE6502_EXPECTED_VERSION_MINOR);
+            (unsigned int)expected_major,
+            (unsigned int)expected_minor);
         return -1;
     }
 
