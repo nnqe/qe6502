@@ -20,6 +20,14 @@ on:
         options:
           - "false"
           - "true"
+      github_release_upload:
+        description: "Create/update the GitHub Release and upload assembled assets; requires ref v<version>"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: read
@@ -35,6 +43,9 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       version_major: ${{ steps.version.outputs.version_major }}
       version_minor: ${{ steps.version.outputs.version_minor }}
+      release_ref: ${{ steps.version.outputs.release_ref }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
+      is_release_tag: ${{ steps.version.outputs.is_release_tag }}
 
     steps:
       - name: Checkout
@@ -56,6 +67,13 @@ jobs:
           if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", requested):
               raise SystemExit(f"Release version must use MAJOR.MINOR.PATCH form, got: {requested!r}")
 
+          raw_ref = os.environ["QE6502_RELEASE_REF"].strip() or f"v{requested}"
+          release_ref = raw_ref
+          for prefix in ("refs/tags/", "refs/heads/"):
+              if release_ref.startswith(prefix):
+                  release_ref = release_ref[len(prefix):]
+          release_tag = f"v{requested}"
+
           text = Path("cpu/include/qe6502/qe6502_version.h").read_text(encoding="utf-8")
           major = re.search(r"#\s*define\s+QE6502_VERSION_MAJOR\s+([0-9]+)[uU]?", text)
           minor = re.search(r"#\s*define\s+QE6502_VERSION_MINOR\s+([0-9]+)[uU]?", text)
@@ -69,31 +87,42 @@ jobs:
           print(f"version={requested}")
           print(f"version_major={major.group(1)}")
           print(f"version_minor={minor.group(1)}")
+          print(f"release_ref={release_ref}")
+          print(f"release_tag={release_tag}")
+          print(f"is_release_tag={'true' if release_ref == release_tag else 'false'}")
           PY
         env:
           QE6502_REQUESTED_VERSION: ${{ inputs.version }}
+          QE6502_RELEASE_REF: ${{ inputs.ref }}
 
       - name: Summarize release candidate
         shell: bash
         run: |
           echo "Release candidate version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Git ref: ${{ inputs.ref || format('v{0}', inputs.version) }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Git ref: ${{ steps.version.outputs.release_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "GitHub Release upload requested: ${{ inputs.github_release_upload }}" >> "$GITHUB_STEP_SUMMARY"
 
   native-assets:
-    name: Native release assets / ${{ matrix.os }}
+    name: Native release assets / ${{ matrix.asset_target }}
     runs-on: ${{ matrix.os }}
     needs: validate-release
 
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - ubuntu-24.04-arm
-          - macos-15-intel
-          - macos-15
-          - windows-latest
-          - windows-11-arm
+        include:
+          - os: ubuntu-latest
+            asset_target: linux-x64
+          - os: ubuntu-24.04-arm
+            asset_target: linux-arm64
+          - os: macos-15-intel
+            asset_target: macos-x64
+          - os: macos-15
+            asset_target: macos-arm64
+          - os: windows-latest
+            asset_target: windows-x64
+          - os: windows-11-arm
+            asset_target: windows-arm64
 
     steps:
       - name: Checkout
@@ -147,6 +176,43 @@ jobs:
         if: matrix.os != 'windows-11-arm'
         run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF
 
+      - name: Package native C/C++ install tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.validate-release.outputs.version }}"
+          target="${{ matrix.asset_target }}"
+          package_name="qe6502-native-${version}-${target}"
+          package_root="$PWD/build/native-package/${package_name}"
+          package_zip="$PWD/build/${package_name}.zip"
+
+          cmake --build build/release_native --target \
+            qe6502_static \
+            qe6502_shared \
+            qe6502_cpp_static \
+            qe6502_cpp_shared
+          rm -rf "$package_root" "$package_zip"
+          cmake --install build/release_native --prefix "$package_root" --config Release
+          cp LICENSE "$package_root/LICENSE"
+
+          test -f "$package_root/include/qe6502/qe6502.h"
+          test -f "$package_root/include/qe6502/cpu.hpp"
+          test -d "$package_root/lib/cmake/qe6502"
+          test -d "$package_root/lib/pkgconfig"
+          test -f "$package_root/LICENSE"
+
+          (
+            cd "$PWD/build/native-package"
+            cmake -E tar cf "$package_zip" --format=zip -- "$package_name"
+          )
+
+      - name: Upload native C/C++ release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-native-${{ matrix.asset_target }}-${{ needs.validate-release.outputs.version }}
+          path: build/qe6502-native-${{ needs.validate-release.outputs.version }}-${{ matrix.asset_target }}.zip
+          if-no-files-found: error
+
       - name: Stage C# native runtime asset
         run: cmake --build build/release_native --target qe6502_csharp_stage_runtime_asset
 
@@ -188,6 +254,48 @@ jobs:
         with:
           name: qe6502-release-python-wheel-${{ matrix.os }}-${{ needs.validate-release.outputs.version }}
           path: build/release_native/binds/python/publish-dist/*.whl
+          if-no-files-found: error
+
+  package-python-sdist:
+    name: Package Python source distribution artifact
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Python package metadata tooling
+        run: python -m pip install --upgrade twine
+
+      - name: Configure Python source distribution build
+        run: |
+          cmake --preset release_native \
+            -DQE6502_BUILD_TESTS=OFF \
+            -DQE6502_BUILD_SHARED=OFF \
+            -DQE6502_BUILD_CPP=OFF \
+            -DQE6502_BUILD_CSHARP=OFF \
+            -DQE6502_BUILD_RUST=OFF \
+            -DQE6502_BUILD_JAVA=OFF
+
+      - name: Build Python source distribution
+        run: cmake --build build/release_native --target qe6502_python_sdist
+
+      - name: Check Python source distribution metadata
+        run: cmake --build build/release_native --target qe6502_python_sdist_twine_check
+
+      - name: Upload Python source distribution release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-python-sdist-${{ needs.validate-release.outputs.version }}
+          path: build/release_native/binds/python/sdist/*.tar.gz
           if-no-files-found: error
 
   package-js:
@@ -669,7 +777,7 @@ jobs:
 
           vcpkg_cmake_install()
 
-          file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+          file(REMOVE_RECURSE "\${CURRENT_PACKAGES_DIR}/debug/include")
 
           vcpkg_cmake_config_fixup(
               PACKAGE_NAME qe6502
@@ -719,18 +827,95 @@ jobs:
           path: build/source-release/*
           if-no-files-found: error
 
-  release-summary:
-    name: Summarize release artifacts
+  assemble-release-assets:
+    name: Assemble downloadable release assets
     runs-on: ubuntu-latest
     needs:
       - validate-release
       - native-assets
+      - package-python-sdist
       - package-js
       - package-csharp-nuget
       - package-java
       - package-rust
       - package-vcpkg-port
       - package-source
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout release tooling
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
+
+      - name: Download all workflow artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: build/collected-artifacts
+          merge-multiple: false
+
+      - name: Assemble stable downloadable assets
+        run: |
+          python3 .github/scripts/assemble_release_assets.py \
+            --artifacts-dir build/collected-artifacts \
+            --out-dir build/release-assets \
+            --version ${{ needs.validate-release.outputs.version }}
+
+      - name: Upload assembled release asset bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-assets-${{ needs.validate-release.outputs.version }}
+          path: build/release-assets/*
+          if-no-files-found: error
+
+      - name: Publish assets to GitHub Release
+        if: inputs.github_release_upload == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ needs.validate-release.outputs.version }}"
+          tag="${{ needs.validate-release.outputs.release_tag }}"
+
+          if [ "${{ needs.validate-release.outputs.is_release_tag }}" != "true" ]; then
+            echo "Ref '${{ needs.validate-release.outputs.release_ref }}' is not the official release tag '${tag}'." >&2
+            echo "Re-run with ref '${tag}' or leave ref empty after pushing the tag." >&2
+            exit 1
+          fi
+
+          cat > build/release-notes.md <<EOF
+          qe6502 ${version} release assets.
+
+          This release workflow uploads downloadable artifacts only. It does not publish to NuGet, PyPI, crates.io, Maven Central, npm, or vcpkg automatically.
+          EOF
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" build/release-assets/* --clobber
+          else
+            gh release create "$tag" \
+              --verify-tag \
+              --title "qe6502 ${version}" \
+              --notes-file build/release-notes.md \
+              build/release-assets/*
+          fi
+
+  release-summary:
+    name: Summarize release artifacts
+    runs-on: ubuntu-latest
+    needs:
+      - validate-release
+      - native-assets
+      - package-python-sdist
+      - package-js
+      - package-csharp-nuget
+      - package-java
+      - package-rust
+      - package-vcpkg-port
+      - package-source
+      - assemble-release-assets
 
     steps:
       - name: Write release artifact summary
@@ -742,13 +927,15 @@ jobs:
           Version: ${{ needs.validate-release.outputs.version }}
 
           Uploaded artifact families:
-          - Python wheels
-          - JavaScript npm package tarball
+          - Native C/C++ install ZIPs
+          - Python wheels and source distribution
+          - JavaScript/WASM npm package tarball
           - C# multi-RID NuGet package
-          - Java Maven publish layout
+          - Java Maven publish layout and optional signed Central bundle
           - Rust crate package
           - vcpkg port files
           - Source archive
+          - SHA256SUMS and release asset manifest
 
-          This workflow does not publish to any package registry.
+          The assembled assets are uploaded as a workflow artifact. When github_release_upload=true and the workflow runs against the official v<version> tag, the same assets are uploaded to the GitHub Release page. This workflow does not publish to any package registry.
           EOF

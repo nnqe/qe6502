@@ -101,19 +101,36 @@ set(QE6502_PYTHON_WHEEL_ABI_TAG "abi3")
 set(QE6502_PYTHON_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/package/qe6502")
 set(QE6502_PYTHON_PACKAGE_DIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/dist")
 set(QE6502_PYTHON_PACKAGE_PUBLISH_DIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/publish-dist")
+set(QE6502_PYTHON_PACKAGE_SDIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/sdist")
 set(QE6502_PYTHON_PACKAGE_PYPROJECT "${QE6502_PYTHON_PACKAGE_DIR}/pyproject.toml")
 set(QE6502_PYTHON_PACKAGE_README "${QE6502_PYTHON_PACKAGE_DIR}/README.md")
 set(QE6502_PYTHON_PACKAGE_LICENSE_FILE "${QE6502_PYTHON_PACKAGE_DIR}/LICENSE")
 set(QE6502_PYTHON_PACKAGE_INIT "${QE6502_PYTHON_PACKAGE_DIR}/qe6502/__init__.py")
 set(QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/package_wheel.py")
+set(QE6502_PYTHON_PACKAGE_SDIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/package_sdist.py")
+set(QE6502_PYTHON_PACKAGE_SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
+set(QE6502_PYTHON_PACKAGE_SETUP_CFG_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.cfg.in")
+set(QE6502_PYTHON_PACKAGE_SETUP_PY "${QE6502_PYTHON_PACKAGE_DIR}/setup.py")
+set(QE6502_PYTHON_PACKAGE_SETUP_CFG "${QE6502_PYTHON_PACKAGE_DIR}/setup.cfg")
 set(QE6502_PYTHON_WHEEL_GLOB "${QE6502_PYTHON_PACKAGE_DIST_DIR}/${QE6502_PYTHON_PACKAGE_NAME}-${QE6502_PACKAGE_VERSION}-${QE6502_PYTHON_WHEEL_PYTHON_TAG}-${QE6502_PYTHON_WHEEL_ABI_TAG}-*.whl")
 set(QE6502_PYTHON_PUBLISH_WHEEL_GLOB "${QE6502_PYTHON_PACKAGE_PUBLISH_DIST_DIR}/${QE6502_PYTHON_PACKAGE_NAME}-${QE6502_PACKAGE_VERSION}-${QE6502_PYTHON_WHEEL_PYTHON_TAG}-${QE6502_PYTHON_WHEEL_ABI_TAG}-*.whl")
+set(QE6502_PYTHON_SDIST_GLOB "${QE6502_PYTHON_PACKAGE_SDIST_DIR}/${QE6502_PYTHON_PACKAGE_NAME}-${QE6502_PACKAGE_VERSION}.tar.gz")
 set(QE6502_PYTHON_WHEEL_SMOKE_DIR "${CMAKE_CURRENT_BINARY_DIR}/wheel-smoke")
 
 file(MAKE_DIRECTORY "${QE6502_PYTHON_PACKAGE_DIR}")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in"
     "${QE6502_PYTHON_PACKAGE_PYPROJECT}"
+    @ONLY
+)
+configure_file(
+    "${QE6502_PYTHON_PACKAGE_SETUP_PY_IN}"
+    "${QE6502_PYTHON_PACKAGE_SETUP_PY}"
+    @ONLY
+)
+configure_file(
+    "${QE6502_PYTHON_PACKAGE_SETUP_CFG_IN}"
+    "${QE6502_PYTHON_PACKAGE_SETUP_CFG}"
     @ONLY
 )
 
@@ -192,6 +209,63 @@ else()
             qe6502_python_package_stage
             "${QE6502_PYTHON_PACKAGE_WHEEL_SCRIPT}"
         COMMENT "Building qe6502 Python wheel"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_python_sdist
+        COMMAND "${CMAKE_COMMAND}" -E remove_directory "${QE6502_PYTHON_PACKAGE_SDIST_DIR}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${QE6502_PYTHON_PACKAGE_SDIST_DIR}"
+        COMMAND "${QE6502_PYTHON_PACKAGE_EXECUTABLE}"
+            "${QE6502_PYTHON_PACKAGE_SDIST_SCRIPT}"
+            --repo-root "${CMAKE_SOURCE_DIR}"
+            --stage-dir "${QE6502_PYTHON_PACKAGE_DIR}"
+            --dist-dir "${QE6502_PYTHON_PACKAGE_SDIST_DIR}"
+            --setup-py "${QE6502_PYTHON_PACKAGE_SETUP_PY}"
+            --setup-cfg "${QE6502_PYTHON_PACKAGE_SETUP_CFG}"
+            --name "${QE6502_PYTHON_PACKAGE_NAME}"
+            --version "${QE6502_PACKAGE_VERSION}"
+            --description "${QE6502_PYTHON_PACKAGE_DESCRIPTION}"
+            --author "${QE6502_PYTHON_PACKAGE_AUTHOR}"
+            --license "${QE6502_PYTHON_PACKAGE_LICENSE}"
+            --license-file "${QE6502_PYTHON_PACKAGE_LICENSE_FILE}"
+            --readme "${QE6502_PYTHON_PACKAGE_README}"
+            --requires-python "${QE6502_PYTHON_PACKAGE_REQUIRES_PYTHON}"
+            --keyword 6502
+            --keyword 65c02
+            --keyword emulator
+            --keyword cpu
+            --keyword cycle-accurate
+            --keyword bus-cycle
+            --keyword python
+            --keyword cpython
+            --keyword retrocomputing
+            --classifier "Development Status :: 3 - Alpha"
+            --classifier "License :: OSI Approved :: MIT License"
+            --classifier "Programming Language :: C"
+            --classifier "Programming Language :: Python :: 3"
+            --classifier "Programming Language :: Python :: 3 :: Only"
+            --classifier "Programming Language :: Python :: 3.10"
+            --classifier "Programming Language :: Python :: 3.11"
+            --classifier "Programming Language :: Python :: 3.12"
+            --classifier "Programming Language :: Python :: 3.13"
+            --classifier "Programming Language :: Python :: Implementation :: CPython"
+            --classifier "Topic :: System :: Emulators"
+            --project-url Homepage "https://github.com/nnqe/qe6502"
+            --project-url Repository "https://github.com/nnqe/qe6502"
+            --project-url Issues "https://github.com/nnqe/qe6502/issues"
+        DEPENDS
+            qe6502_python_package_stage
+            "${QE6502_PYTHON_PACKAGE_SDIST_SCRIPT}"
+            "${QE6502_PYTHON_PACKAGE_SETUP_PY}"
+            "${QE6502_PYTHON_PACKAGE_SETUP_CFG}"
+        COMMENT "Building qe6502 Python source distribution"
+        VERBATIM
+    )
+
+    add_custom_target(qe6502_python_sdist_twine_check
+        COMMAND "${QE6502_PYTHON_PACKAGE_EXECUTABLE}" -m twine check "${QE6502_PYTHON_SDIST_GLOB}"
+        DEPENDS qe6502_python_sdist
+        COMMENT "Running twine check for qe6502 Python source distribution"
         VERBATIM
     )
 
