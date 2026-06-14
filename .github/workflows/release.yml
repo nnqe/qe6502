@@ -665,17 +665,17 @@ jobs:
                   -DQE6502_BUILD_PYTHON=OFF
                   -DQE6502_BUILD_WASM=OFF
                   -DQE6502_INSTALL=ON
-                  -DQE6502_INSTALL_PKGCONFIG=ON
           )
 
           vcpkg_cmake_install()
+
+          file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
           vcpkg_cmake_config_fixup(
               PACKAGE_NAME qe6502
               CONFIG_PATH lib/cmake/qe6502
           )
 
-          vcpkg_fixup_pkgconfig()
 
           vcpkg_install_copyright(FILE_LIST "\${SOURCE_PATH}/LICENSE")
           EOF
