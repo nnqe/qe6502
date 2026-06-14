@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version, for example 0.5.0"
+        description: "Release version, for example 1.0.0"
         required: true
         type: string
       ref:
@@ -562,6 +562,127 @@ jobs:
             build/release_native/rust-package/qe6502/target/package/*.crate
           if-no-files-found: error
 
+  package-vcpkg-port:
+    name: Package vcpkg port artifact
+    runs-on: ubuntu-latest
+    needs: validate-release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Generate vcpkg port
+        shell: bash
+        env:
+          QE6502_RELEASE_VERSION: ${{ needs.validate-release.outputs.version }}
+          QE6502_RELEASE_REF: ${{ inputs.ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          release_ref="$QE6502_RELEASE_REF"
+          release_ref="${release_ref#refs/tags/}"
+          release_ref="${release_ref#refs/heads/}"
+
+          mkdir -p build/vcpkg-port/ports/qe6502
+          archive="build/vcpkg-port/qe6502-${QE6502_RELEASE_VERSION}-source.tar.gz"
+          curl -fsSL \
+            "https://github.com/nnqe/qe6502/archive/${release_ref}.tar.gz" \
+            -o "$archive"
+          archive_sha512="$(sha512sum "$archive" | awk '{print $1}')"
+
+          cat > build/vcpkg-port/ports/qe6502/vcpkg.json <<EOF
+          {
+            "name": "qe6502",
+            "version": "${QE6502_RELEASE_VERSION}",
+            "description": "Cycle-oriented MOS 6502/65C02 CPU emulation core with C and C++ APIs",
+            "homepage": "https://github.com/nnqe/qe6502",
+            "license": "MIT",
+            "supports": "!uwp",
+            "dependencies": [
+              {
+                "name": "vcpkg-cmake",
+                "host": true
+              },
+              {
+                "name": "vcpkg-cmake-config",
+                "host": true
+              }
+            ]
+          }
+          EOF
+
+          cat > build/vcpkg-port/ports/qe6502/portfile.cmake <<EOF
+          vcpkg_from_github(
+              OUT_SOURCE_PATH SOURCE_PATH
+              REPO nnqe/qe6502
+              REF ${release_ref}
+              SHA512 ${archive_sha512}
+              HEAD_REF main
+          )
+
+          if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+              set(QE6502_BUILD_STATIC OFF)
+              set(QE6502_BUILD_SHARED ON)
+          else()
+              set(QE6502_BUILD_STATIC ON)
+              set(QE6502_BUILD_SHARED OFF)
+          endif()
+
+          vcpkg_cmake_configure(
+              SOURCE_PATH "\${SOURCE_PATH}"
+              OPTIONS
+                  -DQE6502_BUILD_STATIC=\${QE6502_BUILD_STATIC}
+                  -DQE6502_BUILD_SHARED=\${QE6502_BUILD_SHARED}
+                  -DQE6502_BUILD_CPP=ON
+                  -DQE6502_BUILD_TESTS=OFF
+                  -DQE6502_BUILD_TOOLS=OFF
+                  -DQE6502_BUILD_CSHARP=OFF
+                  -DQE6502_BUILD_RUST=OFF
+                  -DQE6502_BUILD_JAVA=OFF
+                  -DQE6502_BUILD_PYTHON=OFF
+                  -DQE6502_BUILD_WASM=OFF
+                  -DQE6502_INSTALL=ON
+                  -DQE6502_INSTALL_PKGCONFIG=ON
+          )
+
+          vcpkg_cmake_install()
+
+          vcpkg_cmake_config_fixup(
+              PACKAGE_NAME qe6502
+              CONFIG_PATH lib/cmake/qe6502
+          )
+
+          vcpkg_fixup_pkgconfig()
+
+          vcpkg_install_copyright(FILE_LIST "\${SOURCE_PATH}/LICENSE")
+          EOF
+
+          python3 - <<'PY'
+          import os
+          import zipfile
+          from pathlib import Path
+
+          version = os.environ["QE6502_RELEASE_VERSION"]
+          root = Path("build/vcpkg-port")
+          out = Path("build") / f"qe6502-vcpkg-port-{version}.zip"
+          with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+              for path in sorted((root / "ports" / "qe6502").rglob("*")):
+                  if path.is_file():
+                      zf.write(path, path.relative_to(root))
+          print(out)
+          PY
+
+          find build/vcpkg-port/ports/qe6502 -type f -print -exec sed -n '1,120p' {} \;
+
+      - name: Upload vcpkg port release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qe6502-release-vcpkg-port-${{ needs.validate-release.outputs.version }}
+          path: build/qe6502-vcpkg-port-${{ needs.validate-release.outputs.version }}.zip
+          if-no-files-found: error
+
   package-source:
     name: Package source archive
     runs-on: ubuntu-latest
@@ -602,6 +723,7 @@ jobs:
       - package-csharp-nuget
       - package-java
       - package-rust
+      - package-vcpkg-port
       - package-source
 
     steps:
@@ -619,6 +741,7 @@ jobs:
           - C# multi-RID NuGet package
           - Java Maven publish layout
           - Rust crate package
+          - vcpkg port files
           - Source archive
 
           This workflow does not publish to any package registry.
