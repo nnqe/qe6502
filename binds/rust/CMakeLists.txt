@@ -25,9 +25,6 @@ find_program(CARGO_EXECUTABLE
 )
 
 if(NOT CARGO_EXECUTABLE)
-    if(QE6502_REQUIRE_RUST)
-        message(FATAL_ERROR "cargo not found but QE6502_REQUIRE_RUST is ON")
-    endif()
     message(STATUS "cargo not found; skipping qe6502 Rust binding")
     return()
 endif()

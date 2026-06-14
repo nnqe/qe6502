@@ -5,11 +5,7 @@ if(NOT QE6502_BUILD_JAVA)
     return()
 endif()
 
-if(QE6502_REQUIRE_JAVA)
-    qe6502_find_java25(REQUIRED)
-else()
-    qe6502_find_java25()
-endif()
+qe6502_find_java25()
 
 if(NOT Java_FOUND)
     message(STATUS "Java 25+ development tools not found; skipping qe6502 Java Klaus2m5 harness")

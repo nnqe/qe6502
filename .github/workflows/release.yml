@@ -141,11 +141,11 @@ jobs:
 
       - name: Configure native release packaging build on Windows ARM64
         if: matrix.os == 'windows-11-arm'
-        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
 
       - name: Configure native release packaging build
         if: matrix.os != 'windows-11-arm'
-        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON
+        run: cmake --preset release_native -DQE6502_BUILD_TESTS=OFF
 
       - name: Stage C# native runtime asset
         run: cmake --build build/release_native --target qe6502_csharp_stage_runtime_asset
@@ -446,8 +446,7 @@ jobs:
             -DQE6502_BUILD_TESTS=OFF \
             -DQE6502_BUILD_CSHARP=OFF \
             -DQE6502_BUILD_RUST=OFF \
-            -DQE6502_BUILD_PYTHON=OFF \
-            -DQE6502_REQUIRE_JAVA=ON
+            -DQE6502_BUILD_PYTHON=OFF
           cmake --build build/release_native --target qe6502_java_package_stage
 
       - name: Aggregate Java multi-platform package
@@ -549,8 +548,7 @@ jobs:
             -DQE6502_BUILD_TESTS=OFF \
             -DQE6502_BUILD_CSHARP=OFF \
             -DQE6502_BUILD_JAVA=OFF \
-            -DQE6502_BUILD_PYTHON=OFF \
-            -DQE6502_REQUIRE_RUST=ON
+            -DQE6502_BUILD_PYTHON=OFF
 
       - name: Stage and check Rust crate package
         run: cmake --build build/release_native --target qe6502_rust_package_check

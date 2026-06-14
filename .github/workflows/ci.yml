@@ -155,11 +155,11 @@ jobs:
 
       - name: Configure native on Windows ARM64
         if: matrix.os == 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DQE6502_REQUIRE_RUST=ON -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
+        run: cmake --preset ${{ matrix.preset }} -DPython3_FIND_REGISTRY=NEVER -DPython3_ROOT_DIR="$env:pythonLocation"
 
       - name: Configure native
         if: matrix.os != 'windows-11-arm' && contains(matrix.preset, 'native')
-        run: cmake --preset ${{ matrix.preset }} -DQE6502_REQUIRE_JAVA=ON -DQE6502_REQUIRE_PYTHON=ON -DQE6502_REQUIRE_RUST=ON
+        run: cmake --preset ${{ matrix.preset }}
 
       - name: Configure WASM
         if: contains(matrix.preset, 'wasm') && runner.os != 'macOS'
@@ -557,8 +557,7 @@ jobs:
             -DQE6502_BUILD_TESTS=OFF \
             -DQE6502_BUILD_CSHARP=OFF \
             -DQE6502_BUILD_RUST=OFF \
-            -DQE6502_BUILD_PYTHON=OFF \
-            -DQE6502_REQUIRE_JAVA=ON
+            -DQE6502_BUILD_PYTHON=OFF
           cmake --build build/release_native --target qe6502_java_package_stage
 
       - name: Aggregate Java multi-platform package

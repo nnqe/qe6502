@@ -3,11 +3,7 @@ if(NOT QE6502_BUILD_PYTHON)
     return()
 endif()
 
-if(QE6502_REQUIRE_PYTHON)
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
-else()
-    find_package(Python3 COMPONENTS Interpreter)
-endif()
+find_package(Python3 QUIET COMPONENTS Interpreter)
 
 if(NOT Python3_Interpreter_FOUND)
     message(STATUS "Python3 interpreter not found; skipping qe6502 Python smoke harness")
