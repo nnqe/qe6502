@@ -42,7 +42,9 @@ add_custom_target(qe6502_cs_smoke ALL
         --configuration ${QE6502_CS_SMOKE_CONFIGURATION}
         -p:Platform=AnyCPU
         -p:PlatformTarget=AnyCPU
+        -p:Version=${QE6502_PACKAGE_VERSION}
         -p:Qe6502CMakeArtifactsRoot=${CMAKE_CURRENT_BINARY_DIR}
+        -p:Qe6502GeneratedVersionSource=${QE6502_CSHARP_GENERATED_VERSION_SOURCE}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QE6502_CS_SMOKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:qe6502_shared>

@@ -14,6 +14,7 @@ endif()
 set(QE6502_CSHARP_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(QE6502_CSHARP_GENERATED_VERSION_SOURCE
     ${QE6502_CSHARP_GENERATED_DIR}/Qe6502Version.g.cs
+    CACHE INTERNAL "Generated qe6502 C# version source"
 )
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Qe6502/Qe6502Version.g.cs.in

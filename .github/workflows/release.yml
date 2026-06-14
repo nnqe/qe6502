@@ -313,8 +313,27 @@ jobs:
           done
           find build/csharp-multirid-runtime/runtimes -type f | sort
 
+      - name: Generate C# version source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/csharp-generated
+          IFS=. read -r major minor patch <<< "${{ needs.validate-release.outputs.version }}"
+          cat > build/csharp-generated/Qe6502Version.g.cs <<EOF
+          namespace Qe6502
+          {
+              internal static class NativeVersion
+              {
+                  internal const uint CompiledAbiVersionMajor = ${major}u;
+                  internal const uint CompiledAbiVersionMinor = ${minor}u;
+                  internal const uint CompiledAbiVersion =
+                      (CompiledAbiVersionMajor << 16) | CompiledAbiVersionMinor;
+              }
+          }
+          EOF
+
       - name: Build C# binding for package aggregation
-        run: dotnet build binds/csharp/Qe6502/Qe6502.csproj --configuration Release -p:Platform=AnyCPU -p:PlatformTarget=AnyCPU -p:Version=${{ needs.validate-release.outputs.version }}
+        run: dotnet build binds/csharp/Qe6502/Qe6502.csproj --configuration Release -p:Platform=AnyCPU -p:PlatformTarget=AnyCPU -p:Version=${{ needs.validate-release.outputs.version }} -p:Qe6502GeneratedVersionSource=$PWD/build/csharp-generated/Qe6502Version.g.cs
 
       - name: Pack C# multi-RID NuGet package
         shell: bash
@@ -326,6 +345,7 @@ jobs:
             -p:Platform=AnyCPU \
             -p:PlatformTarget=AnyCPU \
             -p:Version="${{ needs.validate-release.outputs.version }}" \
+            -p:Qe6502GeneratedVersionSource="$PWD/build/csharp-generated/Qe6502Version.g.cs" \
             -p:PackageOutputPath="$PWD/build/csharp-nuget" \
             -p:Qe6502NativeRuntimeRoot="$PWD/build/csharp-multirid-runtime/runtimes"
           unzip -l "build/csharp-nuget/Qe6502.${{ needs.validate-release.outputs.version }}.nupkg"
