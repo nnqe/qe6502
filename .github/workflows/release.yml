@@ -685,9 +685,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-release-rust-crate-${{ needs.validate-release.outputs.version }}
-          path: |
-            build/release_native/rust-package/qe6502
-            build/release_native/rust-package/qe6502/target/package/*.crate
+          path: build/release_native/rust-package/qe6502/target/package/*.crate
           if-no-files-found: error
 
   package-vcpkg-port:

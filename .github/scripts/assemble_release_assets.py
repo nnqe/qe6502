@@ -157,8 +157,13 @@ def assemble(args: argparse.Namespace) -> list[Path]:
 
     rust_dir = artifact_dir(artifacts_root, f"qe6502-release-rust-crate-{version}")
     rust_files = all_files(rust_dir)
-    require(any(path.suffix == ".crate" for path in rust_files), f"Missing Rust .crate under {rust_dir}")
-    produced.append(write_zip_from_dir(out_dir / f"qe6502-rust-{version}-crate.zip", rust_dir))
+    rust_crates = [path for path in rust_files if path.suffix == ".crate"]
+    require(rust_crates, f"Missing Rust .crate under {rust_dir}")
+    require(
+        not any("target" in path.relative_to(rust_dir).parts[:-1] for path in rust_files if path.suffix != ".crate"),
+        f"Rust release artifact must not include Cargo build output under {rust_dir}",
+    )
+    produced.append(write_zip_from_files(out_dir / f"qe6502-rust-{version}-crate.zip", rust_crates))
 
     vcpkg_dir = artifact_dir(artifacts_root, f"qe6502-release-vcpkg-port-{version}")
     require((vcpkg_dir / "ports" / "qe6502" / "vcpkg.json").is_file(), f"Missing vcpkg.json under {vcpkg_dir}")
