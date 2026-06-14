@@ -40,7 +40,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Validate requested version against core header
         id: version
@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           echo "Release candidate version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Git ref: ${{ inputs.ref || github.ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Git ref: ${{ inputs.ref || format('v{0}', inputs.version) }}" >> "$GITHUB_STEP_SUMMARY"
 
   native-assets:
     name: Native release assets / ${{ matrix.os }}
@@ -99,7 +99,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Setup Java 25
         uses: actions/setup-java@v5
@@ -199,7 +199,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -255,7 +255,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v5
@@ -381,7 +381,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Setup Java 25
         uses: actions/setup-java@v5
@@ -540,7 +540,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Configure Rust release package build
         run: |
@@ -571,13 +571,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Generate vcpkg port
         shell: bash
         env:
           QE6502_RELEASE_VERSION: ${{ needs.validate-release.outputs.version }}
-          QE6502_RELEASE_REF: ${{ inputs.ref || github.ref_name }}
+          QE6502_RELEASE_REF: ${{ inputs.ref || format('v{0}', inputs.version) }}
         run: |
           set -euo pipefail
 
@@ -659,28 +659,13 @@ jobs:
           vcpkg_install_copyright(FILE_LIST "\${SOURCE_PATH}/LICENSE")
           EOF
 
-          python3 - <<'PY'
-          import os
-          import zipfile
-          from pathlib import Path
-
-          version = os.environ["QE6502_RELEASE_VERSION"]
-          root = Path("build/vcpkg-port")
-          out = Path("build") / f"qe6502-vcpkg-port-{version}.zip"
-          with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-              for path in sorted((root / "ports" / "qe6502").rglob("*")):
-                  if path.is_file():
-                      zf.write(path, path.relative_to(root))
-          print(out)
-          PY
-
           find build/vcpkg-port/ports/qe6502 -type f -print -exec sed -n '1,120p' {} \;
 
       - name: Upload vcpkg port release artifact
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-release-vcpkg-port-${{ needs.validate-release.outputs.version }}
-          path: build/qe6502-vcpkg-port-${{ needs.validate-release.outputs.version }}.zip
+          path: build/vcpkg-port/ports/qe6502
           if-no-files-found: error
 
   package-source:
@@ -692,7 +677,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref || format('v{0}', inputs.version) }}
 
       - name: Create source archive
         shell: bash
