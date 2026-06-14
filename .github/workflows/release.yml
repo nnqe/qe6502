@@ -585,8 +585,9 @@ jobs:
           release_ref="${release_ref#refs/tags/}"
           release_ref="${release_ref#refs/heads/}"
 
-          mkdir -p build/vcpkg-port/ports/qe6502
-          archive="build/vcpkg-port/qe6502-${QE6502_RELEASE_VERSION}-source.tar.gz"
+          rm -rf build/vcpkg-port build/vcpkg-port-work
+          mkdir -p build/vcpkg-port/ports/qe6502 build/vcpkg-port-work
+          archive="build/vcpkg-port-work/qe6502-${QE6502_RELEASE_VERSION}-source.tar.gz"
           curl -fsSL \
             "https://github.com/nnqe/qe6502/archive/${release_ref}.tar.gz" \
             -o "$archive"
@@ -665,7 +666,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: qe6502-release-vcpkg-port-${{ needs.validate-release.outputs.version }}
-          path: build/vcpkg-port/ports/qe6502
+          path: build/vcpkg-port
           if-no-files-found: error
 
   package-source:
