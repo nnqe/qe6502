@@ -20,8 +20,8 @@
  *
  * The packed value uses major in bits 16..31 and minor in bits 0..15.
  */
-#define QE6502_VERSION_MAJOR 0u
-#define QE6502_VERSION_MINOR 5u
+#define QE6502_VERSION_MAJOR 1u
+#define QE6502_VERSION_MINOR 0u
 #define QE6502_VERSION \
     ((QE6502_VERSION_MAJOR << 16u) | QE6502_VERSION_MINOR)
 
