@@ -162,6 +162,12 @@ pkg-config --cflags --libs qe6502-abi
 pkg-config --cflags --libs qe6502-cpp
 ```
 
+The native C/C++ package is also available through vcpkg:
+
+```sh
+vcpkg install qe6502
+```
+
 Useful build options:
 
 | Option | Default | Notes |
